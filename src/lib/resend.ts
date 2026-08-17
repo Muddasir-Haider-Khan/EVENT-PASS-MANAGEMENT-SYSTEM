@@ -14,6 +14,25 @@ function getFromEmail(): string {
   return process.env.RESEND_FROM_EMAIL || 'no-reply@epms.27mediaagency.com';
 }
 
+async function safeSend(resend: Resend, emailData: { from: string; to: string; subject: string; html: string }) {
+  let res = await resend.emails.send(emailData);
+  if (res.error) {
+    console.warn(`Resend email dispatch failed with sender "${emailData.from}":`, res.error);
+    if (emailData.from !== 'onboarding@resend.dev') {
+      console.info('Retrying email dispatch via fallback sender "onboarding@resend.dev"...');
+      res = await resend.emails.send({
+        ...emailData,
+        from: 'onboarding@resend.dev',
+      });
+    }
+  }
+  if (res.error) {
+    console.error('Final Resend error:', res.error);
+    throw new Error(res.error.message || 'Resend email dispatch failed');
+  }
+  return res.data;
+}
+
 /**
  * Send event manager credentials email
  */
@@ -26,7 +45,7 @@ export async function sendManagerCredentials(params: {
 }) {
   const resend = getResend();
 
-  return resend.emails.send({
+  return safeSend(resend, {
     from: getFromEmail(),
     to: params.to,
     subject: `Your Event Manager Credentials — ${params.eventName}`,
@@ -37,38 +56,46 @@ export async function sendManagerCredentials(params: {
           <meta charset="utf-8" />
           <meta name="viewport" content="width=device-width, initial-scale=1.0" />
         </head>
-        <body style="margin:0;padding:0;background:#0C0F14;font-family:'Segoe UI',system-ui,sans-serif;">
+        <body style="margin:0;padding:0;background:#070709;font-family:'Segoe UI',system-ui,sans-serif;color:#F8FAFC;">
           <div style="max-width:560px;margin:0 auto;padding:40px 24px;">
-            <div style="background:#161A22;border:1px solid #1E2330;border-radius:12px;padding:32px;">
-              <h1 style="color:#F8FAFC;font-size:20px;font-weight:600;margin:0 0 8px;">
-                Event Manager Access
+            <div style="background:#0F0F14;border:1px solid rgba(212,175,55,0.3);border-radius:14px;padding:36px;box-shadow:0 10px 30px rgba(0,0,0,0.5);">
+              <div style="text-align:center;margin-bottom:24px;">
+                <span style="display:inline-block;background:linear-gradient(135deg,#D4AF37,#AA7C11);color:#070709;font-weight:700;font-size:12px;padding:4px 12px;border-radius:100px;text-transform:uppercase;letter-spacing:0.1em;">
+                  27 MEDIA AGENCY • EVENT PORTAL
+                </span>
+              </div>
+
+              <h1 style="color:#F8FAFC;font-size:22px;font-weight:700;margin:0 0 8px;text-align:center;">
+                Event Manager Access Granted
               </h1>
-              <p style="color:#94A3B8;font-size:14px;margin:0 0 24px;">
-                You've been assigned to manage <strong style="color:#F8FAFC;">${params.eventName}</strong>
+              <p style="color:#94A3B8;font-size:14px;margin:0 0 28px;text-align:center;">
+                You have been provisioned as the Official Event Manager for <strong style="color:#D4AF37;">${params.eventName}</strong>.
               </p>
               
-              <div style="background:#0C0F14;border-radius:8px;padding:20px;margin:0 0 24px;">
-                <div style="margin:0 0 12px;">
-                  <span style="color:#64748B;font-size:12px;text-transform:uppercase;letter-spacing:0.05em;">Login ID</span>
-                  <div style="color:#F8FAFC;font-size:16px;font-family:monospace;margin-top:4px;">${params.loginId}</div>
+              <div style="background:#070709;border:1px solid rgba(255,255,255,0.1);border-radius:10px;padding:24px;margin:0 0 28px;">
+                <div style="margin:0 0 16px;padding-bottom:12px;border-bottom:1px solid rgba(255,255,255,0.06);">
+                  <span style="color:#D4AF37;font-size:11px;text-transform:uppercase;letter-spacing:0.1em;font-weight:600;">Manager Login ID</span>
+                  <div style="color:#F8FAFC;font-size:18px;font-family:monospace;margin-top:4px;font-weight:700;">${params.loginId}</div>
                 </div>
                 <div>
-                  <span style="color:#64748B;font-size:12px;text-transform:uppercase;letter-spacing:0.05em;">Temporary Password</span>
-                  <div style="color:#F8FAFC;font-size:16px;font-family:monospace;margin-top:4px;">${params.password}</div>
+                  <span style="color:#D4AF37;font-size:11px;text-transform:uppercase;letter-spacing:0.1em;font-weight:600;">Permanent System Password</span>
+                  <div style="color:#F8FAFC;font-size:18px;font-family:monospace;margin-top:4px;font-weight:700;">${params.password}</div>
                 </div>
               </div>
               
-              <a href="${params.loginUrl}" style="display:inline-block;background:#3B82F6;color:#fff;text-decoration:none;padding:12px 24px;border-radius:8px;font-size:14px;font-weight:500;">
-                Log In Now →
-              </a>
+              <div style="text-align:center;">
+                <a href="${params.loginUrl}" style="display:inline-block;background:linear-gradient(135deg,#D4AF37,#AA7C11);color:#070709;text-decoration:none;padding:14px 32px;border-radius:8px;font-size:14px;font-weight:700;">
+                  Log In to Event Dashboard →
+                </a>
+              </div>
               
-              <p style="color:#F59E0B;font-size:13px;margin:20px 0 0;padding:12px;background:rgba(245,158,11,0.1);border-radius:6px;">
-                ⚠ You will be required to change your password on first login.
+              <p style="color:#94A3B8;font-size:12px;margin:24px 0 0;padding:12px;background:rgba(212,175,55,0.06);border:1px solid rgba(212,175,55,0.2);border-radius:8px;text-align:center;">
+                ℹ️ This password is your permanent system-generated key for accessing your event panel.
               </p>
             </div>
             
-            <p style="color:#475569;font-size:12px;text-align:center;margin:16px 0 0;">
-              Event Pass Management System — 27 Media Agency
+            <p style="color:#64748B;font-size:12px;text-align:center;margin:20px 0 0;">
+              © ${new Date().getFullYear()} 27 MEDIA AGENCY — Event Pass Management System
             </p>
           </div>
         </body>
@@ -101,7 +128,7 @@ export async function sendQRPass(params: {
       })
     : '';
 
-  return resend.emails.send({
+  return safeSend(resend, {
     from: getFromEmail(),
     to: params.to,
     subject: `Your Event Pass — ${params.eventName}`,
@@ -112,45 +139,45 @@ export async function sendQRPass(params: {
           <meta charset="utf-8" />
           <meta name="viewport" content="width=device-width, initial-scale=1.0" />
         </head>
-        <body style="margin:0;padding:0;background:#0C0F14;font-family:'Segoe UI',system-ui,sans-serif;">
+        <body style="margin:0;padding:0;background:#070709;font-family:'Segoe UI',system-ui,sans-serif;color:#F8FAFC;">
           <div style="max-width:560px;margin:0 auto;padding:40px 24px;">
-            <div style="background:#161A22;border:1px solid #1E2330;border-radius:12px;padding:32px;text-align:center;">
-              <h1 style="color:#F8FAFC;font-size:22px;font-weight:600;margin:0 0 4px;">
+            <div style="background:#0F0F14;border:1px solid rgba(212,175,55,0.3);border-radius:14px;padding:36px;text-align:center;">
+              <h1 style="color:#F8FAFC;font-size:24px;font-weight:700;margin:0 0 6px;">
                 You're In! 🎉
               </h1>
               <p style="color:#94A3B8;font-size:14px;margin:0 0 24px;">
-                Your registration for <strong style="color:#F8FAFC;">${params.eventName}</strong> has been approved.
+                Your registration pass for <strong style="color:#D4AF37;">${params.eventName}</strong> is confirmed.
               </p>
               
-              <div style="background:#fff;border-radius:12px;padding:20px;display:inline-block;margin:0 0 24px;">
-                <img src="${params.qrDataUrl}" alt="QR Pass" style="width:200px;height:200px;" />
+              <div style="background:#fff;border-radius:14px;padding:20px;display:inline-block;margin:0 0 24px;">
+                <img src="${params.qrDataUrl}" alt="QR Pass" style="width:200px;height:200px;display:block;" />
               </div>
               
-              <div style="background:#0C0F14;border-radius:8px;padding:16px;text-align:left;margin:0 0 20px;">
+              <div style="background:#070709;border:1px solid rgba(255,255,255,0.1);border-radius:10px;padding:20px;text-align:left;margin:0 0 20px;">
                 ${params.participantName ? `
-                <div style="margin:0 0 8px;">
-                  <span style="color:#64748B;font-size:11px;text-transform:uppercase;letter-spacing:0.05em;">Name</span>
-                  <div style="color:#F8FAFC;font-size:15px;margin-top:2px;">${params.participantName}</div>
+                <div style="margin:0 0 10px;">
+                  <span style="color:#D4AF37;font-size:11px;text-transform:uppercase;letter-spacing:0.1em;">Guest Name</span>
+                  <div style="color:#F8FAFC;font-size:15px;margin-top:2px;font-weight:600;">${params.participantName}</div>
                 </div>` : ''}
-                <div style="margin:0 0 8px;">
-                  <span style="color:#64748B;font-size:11px;text-transform:uppercase;letter-spacing:0.05em;">Venue</span>
+                <div style="margin:0 0 10px;">
+                  <span style="color:#D4AF37;font-size:11px;text-transform:uppercase;letter-spacing:0.1em;">Venue</span>
                   <div style="color:#F8FAFC;font-size:15px;margin-top:2px;">${params.venue}</div>
                 </div>
                 ${dateStr ? `
                 <div>
-                  <span style="color:#64748B;font-size:11px;text-transform:uppercase;letter-spacing:0.05em;">Date</span>
+                  <span style="color:#D4AF37;font-size:11px;text-transform:uppercase;letter-spacing:0.1em;">Date & Time</span>
                   <div style="color:#F8FAFC;font-size:15px;margin-top:2px;">${dateStr}</div>
                 </div>` : ''}
               </div>
               
               <p style="color:#94A3B8;font-size:13px;margin:0;line-height:1.5;">
-                Present this QR code at the gate for entry.<br/>
-                Save or screenshot this email for quick access.
+                Present this QR pass code at the entrance gate scanner.<br/>
+                Save or screenshot this pass for immediate verification.
               </p>
             </div>
             
-            <p style="color:#475569;font-size:12px;text-align:center;margin:16px 0 0;">
-              Event Pass Management System — 27 Media Agency
+            <p style="color:#64748B;font-size:12px;text-align:center;margin:20px 0 0;">
+              © ${new Date().getFullYear()} 27 MEDIA AGENCY — Event Pass Management System
             </p>
           </div>
         </body>
@@ -168,7 +195,7 @@ export async function sendDeclineNotice(params: {
 }) {
   const resend = getResend();
 
-  return resend.emails.send({
+  return safeSend(resend, {
     from: getFromEmail(),
     to: params.to,
     subject: `Registration Update — ${params.eventName}`,
@@ -176,9 +203,9 @@ export async function sendDeclineNotice(params: {
       <!DOCTYPE html>
       <html>
         <head><meta charset="utf-8" /></head>
-        <body style="margin:0;padding:0;background:#0C0F14;font-family:'Segoe UI',system-ui,sans-serif;">
+        <body style="margin:0;padding:0;background:#070709;font-family:'Segoe UI',system-ui,sans-serif;color:#F8FAFC;">
           <div style="max-width:560px;margin:0 auto;padding:40px 24px;">
-            <div style="background:#161A22;border:1px solid #1E2330;border-radius:12px;padding:32px;">
+            <div style="background:#0F0F14;border:1px solid rgba(239,68,68,0.3);border-radius:14px;padding:32px;">
               <h1 style="color:#F8FAFC;font-size:20px;font-weight:600;margin:0 0 12px;">
                 Registration Update
               </h1>

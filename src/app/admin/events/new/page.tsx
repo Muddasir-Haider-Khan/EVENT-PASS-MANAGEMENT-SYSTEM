@@ -21,7 +21,12 @@ export default function CreateEventPage() {
     logoUrl: '',
     logoFileId: '',
   });
-  const [credentials, setCredentials] = useState<{ loginId: string; password: string } | null>(null);
+  const [credentials, setCredentials] = useState<{
+    loginId: string;
+    password: string;
+    emailSent?: boolean;
+    emailError?: string | null;
+  } | null>(null);
 
   function update(field: string, value: string) {
     setForm((prev) => ({ ...prev, [field]: value }));
@@ -55,32 +60,42 @@ export default function CreateEventPage() {
 
   if (credentials) {
     return (
-      <div style={{ padding: '40px 24px', maxWidth: 560, margin: '0 auto' }}>
+      <div style={{ padding: '40px 24px', maxWidth: 580, margin: '0 auto' }}>
         <div className="card card-gold-glow" style={{ padding: 36 }}>
           <div style={{ marginBottom: 24, textAlign: 'center' }}>
             <span className="badge badge-gold" style={{ marginBottom: 12 }}>
               ✓ Event Configured & Manager Assigned
             </span>
-            <h2 className="text-headline gold-gradient-text">Manager Credentials</h2>
+            <h2 className="text-headline gold-gradient-text">Manager Permanent Credentials</h2>
             <p className="text-caption" style={{ color: 'var(--text-secondary)', marginTop: 6 }}>
-              Login credentials have been generated for <strong>{form.managerEmail}</strong>. Please copy or save these credentials.
+              Permanent access credentials have been generated for <strong>{form.managerEmail}</strong>.
             </p>
           </div>
 
-          <div className="card-elevated" style={{ padding: 20, marginBottom: 28, border: '1px solid var(--border-hover)' }}>
-            <div style={{ marginBottom: 16 }}>
+          <div className="card-elevated" style={{ padding: 22, marginBottom: 20, border: '1px solid var(--border-hover)' }}>
+            <div style={{ marginBottom: 18 }}>
               <span className="text-overline" style={{ color: 'var(--gold-light)' }}>Manager Login ID</span>
               <div className="text-mono" style={{ fontSize: 18, marginTop: 4, color: '#F8FAFC', fontWeight: 600 }}>
                 {credentials.loginId}
               </div>
             </div>
             <div>
-              <span className="text-overline" style={{ color: 'var(--gold-light)' }}>Temporary Password</span>
+              <span className="text-overline" style={{ color: 'var(--gold-light)' }}>Permanent System Password</span>
               <div className="text-mono" style={{ fontSize: 18, marginTop: 4, color: '#F8FAFC', fontWeight: 600 }}>
                 {credentials.password}
               </div>
             </div>
           </div>
+
+          {credentials.emailSent ? (
+            <div style={{ padding: '12px 14px', borderRadius: 8, background: 'rgba(34, 197, 94, 0.1)', border: '1px solid rgba(34, 197, 94, 0.3)', color: '#4ADE80', fontSize: 13, marginBottom: 24 }}>
+              ✅ Email with permanent credentials successfully dispatched to <strong>{form.managerEmail}</strong>.
+            </div>
+          ) : (
+            <div style={{ padding: '12px 14px', borderRadius: 8, background: 'rgba(234, 179, 8, 0.1)', border: '1px solid rgba(234, 179, 8, 0.3)', color: '#FACC15', fontSize: 12, marginBottom: 24 }}>
+              ⚠️ Email delivery info: {credentials.emailError ? credentials.emailError : 'Resend API requires domain verification'}. Please copy these credentials manually for your event manager.
+            </div>
+          )}
 
           <button className="btn btn-gold" style={{ width: '100%', height: 44 }} onClick={() => router.push('/admin')}>
             ← Return to Super Admin Roster

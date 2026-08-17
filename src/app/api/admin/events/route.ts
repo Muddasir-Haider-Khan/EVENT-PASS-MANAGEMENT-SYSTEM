@@ -59,7 +59,7 @@ export async function POST(req: NextRequest) {
             loginId,
             passwordHash,
             contactEmail: managerEmail,
-            mustChangePassword: true,
+            mustChangePassword: false,
           },
         },
         // Create default locked email field
@@ -82,6 +82,9 @@ export async function POST(req: NextRequest) {
     const rootDomain = process.env.NEXT_PUBLIC_ROOT_DOMAIN || '27mediaagency.com';
     const loginUrl = `https://epms.${rootDomain}/login`;
 
+    let emailSent = false;
+    let emailErrorStr: string | null = null;
+
     try {
       await sendManagerCredentials({
         to: managerEmail,
@@ -90,14 +93,16 @@ export async function POST(req: NextRequest) {
         password,
         loginUrl,
       });
-    } catch (emailError) {
-      console.error('Failed to send manager credentials email:', emailError);
-      // Don't fail the event creation if email fails
+      emailSent = true;
+    } catch (emailError: unknown) {
+      const errMessage = emailError instanceof Error ? emailError.message : String(emailError);
+      console.error('Failed to send manager credentials email:', errMessage);
+      emailErrorStr = errMessage;
     }
 
     return NextResponse.json({
       event,
-      managerCredentials: { loginId, password, email: managerEmail },
+      managerCredentials: { loginId, password, email: managerEmail, emailSent, emailError: emailErrorStr },
     }, { status: 201 });
   } catch (error) {
     console.error('Create event error:', error);
