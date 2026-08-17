@@ -29,6 +29,16 @@ export default function AdminDashboardPage() {
   const [deleting, setDeleting] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
 
+  const [resendingId, setResendingId] = useState<string | null>(null);
+  const [resendResult, setResendResult] = useState<{
+    eventName: string;
+    email: string;
+    loginId: string;
+    password: string;
+    emailSent: boolean;
+    emailError?: string | null;
+  } | null>(null);
+
   const loadEvents = useCallback(async () => {
     try {
       const res = await fetch('/api/admin/events');
@@ -41,6 +51,33 @@ export default function AdminDashboardPage() {
       setLoading(false);
     }
   }, [router, toast]);
+
+  async function handleResendCredentials(event: EventItem) {
+    setResendingId(event.id);
+    try {
+      const res = await fetch(`/api/admin/events/${event.id}/resend-credentials`, {
+        method: 'POST',
+      });
+      const data = await res.json();
+      if (res.ok) {
+        setResendResult({
+          eventName: event.name,
+          email: data.managerCredentials.email,
+          loginId: data.managerCredentials.loginId,
+          password: data.managerCredentials.password,
+          emailSent: data.emailSent,
+          emailError: data.emailError,
+        });
+        toast(data.emailSent ? 'Credentials email sent to manager' : 'Credentials updated (email notice shown)', data.emailSent ? 'success' : 'info');
+      } else {
+        toast(data.error || 'Failed to resend credentials', 'error');
+      }
+    } catch {
+      toast('Network error while sending email', 'error');
+    } finally {
+      setResendingId(null);
+    }
+  }
 
   useEffect(() => {
     loadEvents();
@@ -281,7 +318,17 @@ export default function AdminDashboardPage() {
                       </span>
                     </td>
                     <td>
-                      <div style={{ display: 'flex', gap: 8 }}>
+                      <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+                        {event.eventManager && (
+                          <button
+                            className="btn btn-ghost btn-sm"
+                            style={{ color: 'var(--gold-light)' }}
+                            disabled={resendingId === event.id}
+                            onClick={() => handleResendCredentials(event)}
+                          >
+                            {resendingId === event.id ? 'Sending...' : '✉️ Resend Email'}
+                          </button>
+                        )}
                         <button
                           className="btn btn-ghost btn-sm"
                           onClick={() => router.push(`/admin/events/${event.id}`)}
@@ -304,6 +351,52 @@ export default function AdminDashboardPage() {
           </div>
         )}
       </div>
+
+      {resendResult && (
+        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.75)', backdropFilter: 'blur(6px)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 100, padding: 20 }}>
+          <div className="card card-gold-glow" style={{ maxWidth: 500, width: '100%', padding: 28 }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
+              <span className="badge badge-gold">Manager Credentials</span>
+              <button className="btn btn-ghost btn-sm" onClick={() => setResendResult(null)}>✕</button>
+            </div>
+            <h3 className="text-headline gold-gradient-text" style={{ fontSize: 18, marginBottom: 4 }}>
+              Credentials Dispatched
+            </h3>
+            <p className="text-caption" style={{ color: 'var(--text-secondary)', marginBottom: 20 }}>
+              Credentials for <strong>{resendResult.eventName}</strong> assigned to <strong>{resendResult.email}</strong>.
+            </p>
+
+            <div className="card-elevated" style={{ padding: 18, marginBottom: 16 }}>
+              <div style={{ marginBottom: 14 }}>
+                <span className="text-overline" style={{ color: 'var(--gold-light)' }}>Manager Login ID</span>
+                <div className="text-mono" style={{ fontSize: 16, marginTop: 2, color: '#F8FAFC', fontWeight: 600 }}>
+                  {resendResult.loginId}
+                </div>
+              </div>
+              <div>
+                <span className="text-overline" style={{ color: 'var(--gold-light)' }}>New System Password</span>
+                <div className="text-mono" style={{ fontSize: 16, marginTop: 2, color: '#F8FAFC', fontWeight: 600 }}>
+                  {resendResult.password}
+                </div>
+              </div>
+            </div>
+
+            {resendResult.emailSent ? (
+              <div style={{ padding: '10px 12px', borderRadius: 8, background: 'rgba(34, 197, 94, 0.1)', border: '1px solid rgba(34, 197, 94, 0.3)', color: '#4ADE80', fontSize: 12, marginBottom: 20 }}>
+                ✅ Email successfully sent to <strong>{resendResult.email}</strong> via Resend API.
+              </div>
+            ) : (
+              <div style={{ padding: '10px 12px', borderRadius: 8, background: 'rgba(234, 179, 8, 0.1)', border: '1px solid rgba(234, 179, 8, 0.3)', color: '#FACC15', fontSize: 12, marginBottom: 20 }}>
+                ⚠️ Notice: {resendResult.emailError || 'Resend requires verified domain'}. Please copy credentials manually above.
+              </div>
+            )}
+
+            <button className="btn btn-gold" style={{ width: '100%', height: 40 }} onClick={() => setResendResult(null)}>
+              Done
+            </button>
+          </div>
+        </div>
+      )}
 
       <ConfirmDialog
         open={!!deleteTarget}

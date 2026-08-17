@@ -11,7 +11,7 @@ function getResend(): Resend {
 }
 
 function getFromEmail(): string {
-  return process.env.RESEND_FROM_EMAIL || 'no-reply@epms.27mediaagency.com';
+  return process.env.RESEND_FROM_EMAIL || 'no-reply@27mediaagency.com';
 }
 
 async function safeSend(resend: Resend, emailData: { from: string; to: string; subject: string; html: string }) {
