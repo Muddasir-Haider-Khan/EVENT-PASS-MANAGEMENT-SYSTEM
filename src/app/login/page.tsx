@@ -28,7 +28,14 @@ export default function LoginPage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ loginId, password }),
       });
-      const data = await res.json();
+      
+      let data;
+      try {
+        data = await res.json();
+      } catch {
+        setError(`Server returned status ${res.status}. Please check database connection.`);
+        return;
+      }
 
       if (!res.ok) {
         setError(data.error || 'Authentication failed');
