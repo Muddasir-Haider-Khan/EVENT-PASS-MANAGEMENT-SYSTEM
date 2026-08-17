@@ -1,0 +1,13 @@
+{
+  "entries": [
+    {
+      "path": ".agents/skills"
+    },
+    {
+      "path": "~/.gemini/skills"
+    },
+    {
+      "path": "~/.gemini/antigravity/skills"
+    }
+  ]
+}

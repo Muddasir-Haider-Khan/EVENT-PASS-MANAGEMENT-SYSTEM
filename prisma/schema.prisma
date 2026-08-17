@@ -1,0 +1,155 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+model SuperAdmin {
+  id                 String   @id @default(cuid())
+  email              String   @unique
+  passwordHash       String
+  mustChangePassword Boolean  @default(true)
+  createdAt          DateTime @default(now())
+}
+
+model Event {
+  id             String        @id @default(cuid())
+  name           String
+  venue          String
+  eventDate      DateTime?
+  description    String?
+  slug           String?       @unique
+  logoUrl        String?
+  logoFileId     String?
+  primaryColor   String        @default("#0F172A")
+  secondaryColor String        @default("#3B82F6")
+  accentColor    String        @default("#F59E0B")
+  status         EventStatus   @default(ACTIVE)
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
+
+  eventManager   EventManager?
+  formFields     FormField[]
+  submissions    Submission[]
+  participants   Participant[]
+  gates          Gate[]
+}
+
+enum EventStatus {
+  ACTIVE
+  ARCHIVED
+}
+
+model EventManager {
+  id                 String   @id @default(cuid())
+  eventId            String   @unique
+  event              Event    @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  loginId            String   @unique
+  passwordHash       String
+  mustChangePassword Boolean  @default(true)
+  accountNumber      String?
+  paymentPhone       String?
+  contactEmail       String
+  createdAt          DateTime @default(now())
+}
+
+model FormField {
+  id       String    @id @default(cuid())
+  eventId  String
+  event    Event     @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  label    String
+  type     FieldType
+  required Boolean   @default(false)
+  options  Json?
+  order    Int
+  isLocked Boolean   @default(false)
+}
+
+enum FieldType {
+  SHORT_TEXT
+  PARAGRAPH
+  EMAIL
+  NUMBER
+  DROPDOWN
+  RADIO
+  CHECKBOX
+  DATE
+}
+
+model Submission {
+  id          String           @id @default(cuid())
+  eventId     String
+  event       Event            @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  responses   Json
+  email       String
+  status      SubmissionStatus @default(PENDING)
+  submittedAt DateTime         @default(now())
+  reviewedAt  DateTime?
+  participant Participant?
+}
+
+enum SubmissionStatus {
+  PENDING
+  APPROVED
+  DECLINED
+}
+
+model Participant {
+  id           String      @id @default(cuid())
+  eventId      String
+  event        Event       @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  submissionId String      @unique
+  submission   Submission  @relation(fields: [submissionId], references: [id])
+  name         String?
+  email        String
+  qrToken      String      @unique
+  entryStatus  EntryStatus @default(NOT_ENTERED)
+  lastScanAt   DateTime?
+  createdAt    DateTime    @default(now())
+  scanLogs     ScanLog[]
+}
+
+enum EntryStatus {
+  NOT_ENTERED
+  INSIDE
+  EXITED
+}
+
+model Gate {
+  id        String    @id @default(cuid())
+  eventId   String
+  event     Event     @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  name      String
+  type      GateType
+  otpCode   String    @unique
+  createdAt DateTime  @default(now())
+  scanLogs  ScanLog[]
+}
+
+enum GateType {
+  ENTRY
+  EXIT
+}
+
+model ScanLog {
+  id            String      @id @default(cuid())
+  participantId String?
+  participant   Participant? @relation(fields: [participantId], references: [id])
+  gateId        String
+  gate          Gate        @relation(fields: [gateId], references: [id])
+  result        ScanResult
+  scannedAt     DateTime    @default(now())
+  qrTokenUsed   String?
+}
+
+enum ScanResult {
+  ENTRY_GRANTED
+  ENTRY_DENIED_ALREADY_INSIDE
+  EXIT_GRANTED
+  EXIT_DENIED_NOT_INSIDE
+  INVALID_QR
+}
