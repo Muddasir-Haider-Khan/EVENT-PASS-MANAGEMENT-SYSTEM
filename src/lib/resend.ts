@@ -11,23 +11,22 @@ function getResend(): Resend {
 }
 
 function getFromEmail(): string {
-  return process.env.RESEND_FROM_EMAIL || 'no-reply@27mediaagency.com';
+  const envFrom = process.env.RESEND_FROM_EMAIL;
+  if (envFrom && !envFrom.includes('epms.27mediaagency.com') && !envFrom.includes('resend.dev')) {
+    return envFrom;
+  }
+  return 'no-reply@27mediaagency.com';
 }
 
 async function safeSend(resend: Resend, emailData: { from: string; to: string; subject: string; html: string }) {
-  let res = await resend.emails.send(emailData);
+  const fromEmail = getFromEmail();
+  const res = await resend.emails.send({
+    ...emailData,
+    from: fromEmail,
+  });
+
   if (res.error) {
-    console.warn(`Resend email dispatch failed with sender "${emailData.from}":`, res.error);
-    if (emailData.from !== 'onboarding@resend.dev') {
-      console.info('Retrying email dispatch via fallback sender "onboarding@resend.dev"...');
-      res = await resend.emails.send({
-        ...emailData,
-        from: 'onboarding@resend.dev',
-      });
-    }
-  }
-  if (res.error) {
-    console.error('Final Resend error:', res.error);
+    console.error(`Resend email dispatch error (${fromEmail} -> ${emailData.to}):`, res.error);
     throw new Error(res.error.message || 'Resend email dispatch failed');
   }
   return res.data;
