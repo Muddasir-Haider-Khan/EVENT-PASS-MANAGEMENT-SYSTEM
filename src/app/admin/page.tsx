@@ -1,8 +1,8 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
-import { ToastProvider, useToast } from '@/components/Toast';
+import { useToast } from '@/components/Toast';
 import { ConfirmDialog } from '@/components/ConfirmDialog';
 
 interface EventItem {
@@ -20,25 +20,31 @@ interface EventItem {
   _count: { participants: number; submissions: number };
 }
 
-function AdminDashboardContent() {
+export default function AdminDashboardPage() {
   const router = useRouter();
   const { toast } = useToast();
   const [events, setEvents] = useState<EventItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [deleteTarget, setDeleteTarget] = useState<EventItem | null>(null);
   const [deleting, setDeleting] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
 
-  async function loadEvents() {
+  const loadEvents = useCallback(async () => {
     try {
       const res = await fetch('/api/admin/events');
       if (res.status === 401) { router.push('/login'); return; }
       const data = await res.json();
       setEvents(data.events || []);
-    } catch { toast('Failed to load events', 'error'); }
-    finally { setLoading(false); }
-  }
+    } catch {
+      toast('Failed to load events', 'error');
+    } finally {
+      setLoading(false);
+    }
+  }, [router, toast]);
 
-  useEffect(() => { loadEvents(); }, []);
+  useEffect(() => {
+    loadEvents();
+  }, [loadEvents]);
 
   async function handleDelete() {
     if (!deleteTarget) return;
@@ -46,138 +52,263 @@ function AdminDashboardContent() {
     try {
       const res = await fetch(`/api/admin/events/${deleteTarget.id}`, { method: 'DELETE' });
       if (res.ok) {
-        toast('Event deleted', 'success');
-        setEvents(events.filter(e => e.id !== deleteTarget.id));
+        toast('Event deleted successfully', 'success');
+        setEvents(prev => prev.filter(e => e.id !== deleteTarget.id));
       } else {
         toast('Failed to delete event', 'error');
       }
-    } catch { toast('Network error', 'error'); }
-    finally { setDeleting(false); setDeleteTarget(null); }
+    } catch {
+      toast('Network error while deleting event', 'error');
+    } finally {
+      setDeleting(false);
+      setDeleteTarget(null);
+    }
   }
 
-  async function handleLogout() {
-    await fetch('/api/auth/logout', { method: 'POST' });
-    router.push('/login');
-  }
+  const filteredEvents = events.filter(e =>
+    e.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    e.venue.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    (e.slug && e.slug.toLowerCase().includes(searchQuery.toLowerCase())) ||
+    (e.eventManager && e.eventManager.loginId.toLowerCase().includes(searchQuery.toLowerCase()))
+  );
 
   const totalParticipants = events.reduce((s, e) => s + e._count.participants, 0);
+  const totalSubmissions = events.reduce((s, e) => s + e._count.submissions, 0);
   const activeEvents = events.filter(e => e.status === 'ACTIVE').length;
 
   return (
-    <div style={{ minHeight: '100vh', background: 'var(--bg-root)' }}>
-      {/* Header */}
-      <header style={{ borderBottom: '1px solid var(--border-default)', padding: '14px 24px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+    <div style={{ padding: '32px 28px', maxWidth: 1300, margin: '0 auto' }}>
+      {/* Top Banner Header */}
+      <div
+        style={{
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          flexWrap: 'wrap',
+          gap: 16,
+          marginBottom: 32,
+          paddingBottom: 20,
+          borderBottom: '1px solid var(--border-default)',
+        }}
+      >
         <div>
-          <span className="text-overline" style={{ color: 'var(--text-muted)' }}>EPMS</span>
-          <h1 className="text-title" style={{ marginTop: 2 }}>Super Admin</h1>
+          <div className="text-overline" style={{ color: 'var(--gold-light)', letterSpacing: '0.12em' }}>
+            27 MEDIA AGENCY • SUPER ADMIN PORTAL
+          </div>
+          <h1 className="text-display gold-gradient-text" style={{ marginTop: 4 }}>
+            Event Pass Management
+          </h1>
+          <p className="text-caption" style={{ color: 'var(--text-secondary)', marginTop: 4 }}>
+            Monitor events, assign manager accounts, and oversee pass issuance across all active shows.
+          </p>
         </div>
-        <div style={{ display: 'flex', gap: 10 }}>
-          <button className="btn btn-primary btn-sm" onClick={() => router.push('/admin/events/new')}>
-            + New Event
-          </button>
-          <button className="btn btn-ghost btn-sm" onClick={handleLogout}>
-            Sign Out
-          </button>
-        </div>
-      </header>
 
-      <div style={{ maxWidth: 1200, margin: '0 auto', padding: '24px 24px' }}>
-        {/* Stats */}
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 16, marginBottom: 32 }}>
-          <div className="card" style={{ padding: 20 }}>
-            <div className="text-overline" style={{ color: 'var(--text-muted)' }}>Total Events</div>
-            <div className="text-display text-mono" style={{ marginTop: 4 }}>{events.length}</div>
+        <button className="btn btn-gold" onClick={() => router.push('/admin/events/new')}>
+          + Create New Event
+        </button>
+      </div>
+
+      {/* Analytics KPI Stat Cards */}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 20, marginBottom: 32 }}>
+        <div className="card card-gold-glow" style={{ padding: 22 }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <span className="text-overline" style={{ color: 'var(--text-muted)' }}>Total Events</span>
+            <span style={{ fontSize: 18 }}>🎫</span>
           </div>
-          <div className="card" style={{ padding: 20 }}>
-            <div className="text-overline" style={{ color: 'var(--text-muted)' }}>Active</div>
-            <div className="text-display text-mono" style={{ color: 'var(--success)', marginTop: 4 }}>{activeEvents}</div>
-          </div>
-          <div className="card" style={{ padding: 20 }}>
-            <div className="text-overline" style={{ color: 'var(--text-muted)' }}>Total Participants</div>
-            <div className="text-display text-mono" style={{ marginTop: 4 }}>{totalParticipants}</div>
+          <div className="text-display text-mono" style={{ marginTop: 8, color: '#F8FAFC' }}>
+            {events.length}
           </div>
         </div>
 
-        {/* Events Table */}
-        <div className="card" style={{ overflow: 'hidden' }}>
-          <div style={{ padding: '16px 20px', borderBottom: '1px solid var(--border-default)' }}>
-            <h2 className="text-title">Events</h2>
+        <div className="card card-gold-glow" style={{ padding: 22 }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <span className="text-overline" style={{ color: 'var(--text-muted)' }}>Active Events</span>
+            <span style={{ fontSize: 18 }}>🟢</span>
           </div>
-          {loading ? (
-            <div style={{ padding: 40, textAlign: 'center' }}>
-              <div className="spinner" style={{ margin: '0 auto' }} />
-            </div>
-          ) : events.length === 0 ? (
-            <div style={{ padding: 40, textAlign: 'center', color: 'var(--text-muted)' }}>
-              No events yet. Create your first event to get started.
-            </div>
-          ) : (
-            <div style={{ overflowX: 'auto' }}>
-              <table className="data-table">
-                <thead>
-                  <tr>
-                    <th>Event</th>
-                    <th>Venue</th>
-                    <th>Slug</th>
-                    <th>Manager</th>
-                    <th>Participants</th>
-                    <th>Status</th>
-                    <th>Actions</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {events.map((event) => (
-                    <tr key={event.id}>
-                      <td>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                          <div style={{ width: 8, height: 8, borderRadius: '50%', background: event.secondaryColor, flexShrink: 0 }} />
-                          <span style={{ fontWeight: 500 }}>{event.name}</span>
-                        </div>
-                      </td>
-                      <td style={{ color: 'var(--text-secondary)' }}>{event.venue}</td>
-                      <td>
-                        {event.slug ? (
-                          <span className="text-mono" style={{ fontSize: 12, color: 'var(--info)' }}>
-                            {event.slug}
-                          </span>
+          <div className="text-display text-mono" style={{ marginTop: 8, color: 'var(--success)' }}>
+            {activeEvents}
+          </div>
+        </div>
+
+        <div className="card card-gold-glow" style={{ padding: 22 }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <span className="text-overline" style={{ color: 'var(--text-muted)' }}>Pass Holders</span>
+            <span style={{ fontSize: 18 }}>🎟️</span>
+          </div>
+          <div className="text-display text-mono" style={{ marginTop: 8, color: 'var(--gold-light)' }}>
+            {totalParticipants}
+          </div>
+        </div>
+
+        <div className="card card-gold-glow" style={{ padding: 22 }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <span className="text-overline" style={{ color: 'var(--text-muted)' }}>Total Form Submissions</span>
+            <span style={{ fontSize: 18 }}>📥</span>
+          </div>
+          <div className="text-display text-mono" style={{ marginTop: 8, color: '#F8FAFC' }}>
+            {totalSubmissions}
+          </div>
+        </div>
+      </div>
+
+      {/* Events Control Panel */}
+      <div className="card" style={{ overflow: 'hidden' }}>
+        <div
+          style={{
+            padding: '20px 24px',
+            borderBottom: '1px solid var(--border-default)',
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            flexWrap: 'wrap',
+            gap: 16,
+          }}
+        >
+          <div>
+            <h2 className="text-title" style={{ color: '#F8FAFC' }}>
+              Master Event Roster
+            </h2>
+            <span className="text-caption" style={{ color: 'var(--text-muted)' }}>
+              Showing {filteredEvents.length} of {events.length} configured events
+            </span>
+          </div>
+
+          <div style={{ maxWidth: 300, width: '100%' }}>
+            <input
+              type="text"
+              className="input"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder="Search event, venue, slug..."
+              style={{ height: 38, fontSize: 13 }}
+            />
+          </div>
+        </div>
+
+        {loading ? (
+          <div style={{ padding: 60, textAlign: 'center' }}>
+            <div className="spinner" style={{ margin: '0 auto', borderTopColor: 'var(--gold-primary)' }} />
+            <div style={{ marginTop: 12, fontSize: 13, color: 'var(--text-muted)' }}>Loading events...</div>
+          </div>
+        ) : filteredEvents.length === 0 ? (
+          <div style={{ padding: 60, textAlign: 'center', color: 'var(--text-muted)' }}>
+            <div style={{ fontSize: 32, marginBottom: 8 }}>🎪</div>
+            {searchQuery ? 'No events matched your search query.' : 'No events created yet. Click "+ Create New Event" to get started.'}
+          </div>
+        ) : (
+          <div style={{ overflowX: 'auto' }}>
+            <table className="data-table">
+              <thead>
+                <tr>
+                  <th>Event Name & Branding</th>
+                  <th>Venue & Location</th>
+                  <th>Public Link Slug</th>
+                  <th>Assigned Manager</th>
+                  <th>Pass Holders</th>
+                  <th>Status</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {filteredEvents.map((event) => (
+                  <tr key={event.id}>
+                    <td>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                        {event.logoUrl ? (
+                          <img
+                            src={event.logoUrl}
+                            alt=""
+                            style={{ width: 36, height: 36, borderRadius: 8, objectFit: 'cover', border: '1px solid var(--border-default)' }}
+                          />
                         ) : (
-                          <span style={{ color: 'var(--text-dim)' }}>—</span>
+                          <div
+                            style={{
+                              width: 36,
+                              height: 36,
+                              borderRadius: 8,
+                              background: 'var(--gold-gradient)',
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                              color: '#070709',
+                              fontWeight: 800,
+                              fontSize: 14,
+                            }}
+                          >
+                            {event.name.charAt(0).toUpperCase()}
+                          </div>
                         )}
-                      </td>
-                      <td>
-                        <span className="text-mono" style={{ fontSize: 12 }}>
-                          {event.eventManager?.loginId || '—'}
-                        </span>
-                      </td>
-                      <td className="text-mono">{event._count.participants}</td>
-                      <td>
-                        <span className={`badge ${event.status === 'ACTIVE' ? 'badge-success' : 'badge-neutral'}`}>
-                          {event.status}
-                        </span>
-                      </td>
-                      <td>
-                        <div style={{ display: 'flex', gap: 6 }}>
-                          <button className="btn btn-ghost btn-sm" onClick={() => router.push(`/admin/events/${event.id}`)}>
-                            Edit
-                          </button>
-                          <button className="btn btn-ghost btn-sm" style={{ color: 'var(--error)' }} onClick={() => setDeleteTarget(event)}>
-                            Delete
-                          </button>
+                        <div>
+                          <div style={{ fontWeight: 600, color: '#F8FAFC' }}>{event.name}</div>
+                          <div style={{ fontSize: 11, color: 'var(--text-muted)' }}>
+                            ID: {event.id.slice(0, 8)}...
+                          </div>
                         </div>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          )}
-        </div>
+                      </div>
+                    </td>
+                    <td style={{ color: 'var(--text-secondary)' }}>{event.venue}</td>
+                    <td>
+                      {event.slug ? (
+                        <a
+                          href={`/event/${event.slug}`}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="text-mono"
+                          style={{ fontSize: 12, color: 'var(--gold-light)', textDecoration: 'none' }}
+                        >
+                          /{event.slug} ↗
+                        </a>
+                      ) : (
+                        <span style={{ color: 'var(--text-dim)' }}>Draft</span>
+                      )}
+                    </td>
+                    <td>
+                      <div className="text-mono" style={{ fontSize: 12, color: 'var(--text-primary)' }}>
+                        {event.eventManager?.loginId || 'Unassigned'}
+                      </div>
+                      {event.eventManager?.contactEmail && (
+                        <div style={{ fontSize: 11, color: 'var(--text-muted)' }}>
+                          {event.eventManager.contactEmail}
+                        </div>
+                      )}
+                    </td>
+                    <td className="text-mono" style={{ fontWeight: 600, color: 'var(--gold-light)' }}>
+                      {event._count.participants}
+                    </td>
+                    <td>
+                      <span className={`badge ${event.status === 'ACTIVE' ? 'badge-gold' : 'badge-neutral'}`}>
+                        {event.status}
+                      </span>
+                    </td>
+                    <td>
+                      <div style={{ display: 'flex', gap: 8 }}>
+                        <button
+                          className="btn btn-ghost btn-sm"
+                          onClick={() => router.push(`/admin/events/${event.id}`)}
+                        >
+                          Edit
+                        </button>
+                        <button
+                          className="btn btn-ghost btn-sm"
+                          style={{ color: 'var(--error)' }}
+                          onClick={() => setDeleteTarget(event)}
+                        >
+                          Delete
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
       </div>
 
       <ConfirmDialog
         open={!!deleteTarget}
         title="Delete Event"
-        message={`This will permanently delete "${deleteTarget?.name}" and all its data (submissions, participants, gates, form fields). This cannot be undone.`}
+        message={`Are you sure you want to delete "${deleteTarget?.name}"? All associated submissions, passes, and gate access keys will be permanently removed.`}
         confirmLabel="Delete Event"
         variant="danger"
         onConfirm={handleDelete}
@@ -185,13 +316,5 @@ function AdminDashboardContent() {
         loading={deleting}
       />
     </div>
-  );
-}
-
-export default function AdminPage() {
-  return (
-    <ToastProvider>
-      <AdminDashboardContent />
-    </ToastProvider>
   );
 }

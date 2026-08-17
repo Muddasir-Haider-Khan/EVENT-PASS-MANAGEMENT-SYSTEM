@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { Media27Logo } from '@/components/27MediaLogo';
 
 export default function GateOTPPage() {
   const router = useRouter();
@@ -20,40 +21,77 @@ export default function GateOTPPage() {
         body: JSON.stringify({ otpCode: otp.trim() }),
       });
       const data = await res.json();
-      if (!res.ok) { setError(data.error || 'Invalid OTP'); return; }
-      // Store gate info in sessionStorage for the scanner page
+      if (!res.ok) {
+        setError(data.error || 'Invalid scanner OTP code');
+        return;
+      }
       sessionStorage.setItem('gateSession', JSON.stringify(data));
       router.push('/gate/scan');
-    } catch { setError('Network error'); }
-    finally { setLoading(false); }
+    } catch {
+      setError('Network communication error');
+    } finally {
+      setLoading(false);
+    }
   }
 
   return (
-    <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20 }}>
-      <div className="card" style={{ maxWidth: 400, width: '100%', padding: 32, textAlign: 'center' }}>
-        <div className="text-overline" style={{ color: 'var(--text-muted)', marginBottom: 8 }}>Gate Access</div>
-        <h1 className="text-headline" style={{ marginBottom: 4 }}>Enter Gate OTP</h1>
-        <p className="text-caption" style={{ color: 'var(--text-secondary)', marginBottom: 24 }}>
-          Enter the OTP code provided by the event manager
+    <div style={{ minHeight: '100vh', background: '#070709', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20 }}>
+      <div className="card card-gold-glow" style={{ maxWidth: 420, width: '100%', padding: 36, textAlign: 'center' }}>
+        <div style={{ marginBottom: 20 }}>
+          <Media27Logo size="sm" />
+        </div>
+
+        <span className="badge badge-gold" style={{ marginBottom: 12 }}>
+          Mobile Gate Access Point
+        </span>
+
+        <h1 className="text-headline gold-gradient-text" style={{ marginBottom: 6 }}>
+          Enter Gate OTP
+        </h1>
+        <p className="text-caption" style={{ color: 'var(--text-secondary)', marginBottom: 28 }}>
+          Enter the 6-character OTP provided by your 27 Media Event Manager.
         </p>
+
         <form onSubmit={handleSubmit}>
           <input
             className="input text-mono"
-            style={{ textAlign: 'center', fontSize: 24, letterSpacing: '0.15em', padding: '14px 16px' }}
+            style={{
+              textAlign: 'center',
+              fontSize: 26,
+              letterSpacing: '0.22em',
+              padding: '14px 16px',
+              color: 'var(--gold-light)',
+              fontWeight: 800,
+              background: 'rgba(0,0,0,0.5)',
+              border: '1px solid var(--border-hover)',
+            }}
             value={otp}
             onChange={(e) => setOtp(e.target.value.toUpperCase())}
-            placeholder="GATE OTP"
+            placeholder="XXXXXX"
             required
             autoFocus
             autoComplete="off"
+            maxLength={6}
           />
+
           {error && (
-            <div style={{ color: 'var(--error)', fontSize: 13, marginTop: 12, padding: '10px', background: 'var(--error-bg)', borderRadius: 8 }}>
+            <div
+              style={{
+                color: 'var(--error)',
+                fontSize: 13,
+                marginTop: 14,
+                padding: '10px 14px',
+                background: 'rgba(239, 68, 68, 0.1)',
+                border: '1px solid rgba(239, 68, 68, 0.25)',
+                borderRadius: 8,
+              }}
+            >
               {error}
             </div>
           )}
-          <button type="submit" className="btn btn-primary" style={{ width: '100%', marginTop: 16 }} disabled={loading}>
-            {loading ? <span className="spinner" /> : 'Access Gate →'}
+
+          <button type="submit" className="btn btn-gold" style={{ width: '100%', height: 46, marginTop: 20, fontSize: 15 }} disabled={loading}>
+            {loading ? <span className="spinner" style={{ borderTopColor: '#070709' }} /> : 'Authenticate Gate Scanner →'}
           </button>
         </form>
       </div>

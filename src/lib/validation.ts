@@ -39,6 +39,7 @@ export const updateEventSchema = createEventSchema.partial().omit({ managerEmail
 export const managerSettingsSchema = z.object({
   accountNumber: z.string().max(100).optional().nullable(),
   paymentPhone: z.string().max(30).optional().nullable(),
+  logoUrl: z.string().optional().nullable(),
 });
 
 // ── Form Fields ──

@@ -4,15 +4,23 @@
 @tailwind components;
 @tailwind utilities;
 
-/* ── Design System Tokens ── */
+/* ── 27 Media Agency Official Design System Tokens ── */
 :root {
-  /* Neutrals */
-  --bg-root: #0C0F14;
-  --bg-surface: #161A22;
-  --bg-elevated: #1C2029;
-  --bg-hover: #242830;
-  --border-default: #1E2330;
-  --border-hover: #2A3040;
+  /* 27 Media Dark Void Neutrals */
+  --bg-root: #070709;
+  --bg-surface: #0E0F14;
+  --bg-elevated: #14151C;
+  --bg-hover: #1D1F2A;
+  --border-default: rgba(212, 175, 55, 0.14);
+  --border-hover: rgba(212, 175, 55, 0.35);
+  --border-strong: rgba(212, 175, 55, 0.5);
+  
+  /* 27 Media Gold Palette */
+  --gold-primary: #D4AF37;
+  --gold-light: #E5C158;
+  --gold-dark: #A6821E;
+  --gold-glow: rgba(212, 175, 55, 0.2);
+  --gold-gradient: linear-gradient(135deg, #E5C158 0%, #D4AF37 50%, #9B7718 100%);
   
   /* Text */
   --text-primary: #F8FAFC;
@@ -30,10 +38,10 @@
   --info: #3B82F6;
   --info-bg: rgba(59, 130, 246, 0.12);
   
-  /* Event branding (overridden at runtime via ThemeProvider) */
-  --color-primary: #0F172A;
-  --color-secondary: #3B82F6;
-  --color-accent: #F59E0B;
+  /* Event branding default */
+  --color-primary: #070709;
+  --color-secondary: #D4AF37;
+  --color-accent: #E5C158;
 }
 
 /* ── Base Reset ── */
@@ -85,11 +93,40 @@ body {
   background: var(--bg-surface);
   border: 1px solid var(--border-default);
   border-radius: 12px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
 }
 .card-elevated {
   background: var(--bg-elevated);
   border: 1px solid var(--border-default);
   border-radius: 12px;
+}
+.card-gold-glow {
+  background: linear-gradient(180deg, rgba(212, 175, 55, 0.04) 0%, rgba(14, 15, 20, 0.95) 100%);
+  border: 1px solid var(--border-hover);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.6), inset 0 1px 0 rgba(229, 193, 88, 0.2);
+}
+
+/* ── 27 Media Custom Brand Utilities ── */
+.gold-gradient-text {
+  background: var(--gold-gradient);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+.btn-gold {
+  background: var(--gold-gradient);
+  color: #070709;
+  font-weight: 600;
+  box-shadow: 0 4px 14px rgba(212, 175, 55, 0.3);
+}
+.btn-gold:hover:not(:disabled) {
+  filter: brightness(1.1);
+  box-shadow: 0 6px 20px rgba(212, 175, 55, 0.45);
+  transform: translateY(-1px);
+}
+.badge-gold {
+  background: rgba(212, 175, 55, 0.12);
+  color: #E5C158;
+  border: 1px solid rgba(212, 175, 55, 0.3);
 }
 
 /* ── Buttons ── */

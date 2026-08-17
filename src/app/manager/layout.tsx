@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import { ThemeProvider } from '@/components/ThemeProvider';
 import { ToastProvider } from '@/components/Toast';
+import { Media27Logo } from '@/components/27MediaLogo';
 
 interface EventData {
   id: string;
@@ -12,16 +13,19 @@ interface EventData {
   primaryColor: string;
   secondaryColor: string;
   accentColor: string;
+  slug: string | null;
+  status: string;
 }
 
-const NAV_ITEMS = [
-  { href: '/manager', label: 'Dashboard', icon: '◈' },
-  { href: '/manager/settings', label: 'Settings', icon: '⚙' },
+const MANAGER_NAV_ITEMS = [
+  { href: '/manager', label: 'Dashboard Overview', icon: '◈' },
+  { href: '/manager/settings', label: 'Event Branding & Settings', icon: '⚙' },
   { href: '/manager/form-builder', label: 'Form Builder', icon: '▤' },
-  { href: '/manager/publish', label: 'Publish', icon: '◉' },
-  { href: '/manager/submissions', label: 'Submissions', icon: '◫' },
-  { href: '/manager/participants', label: 'Participants', icon: '◑' },
-  { href: '/manager/gates', label: 'Gates', icon: '⊞' },
+  { href: '/manager/submissions', label: 'Submissions Triage', icon: '◫' },
+  { href: '/manager/participants', label: 'Pass Holders & Attendees', icon: '◑' },
+  { href: '/manager/gates', label: 'Gate Control & Scanner Accounts', icon: '⊞' },
+  { href: '/manager/publish', label: 'Publish & QR Distribution', icon: '◉' },
+  { href: '/gate', label: 'Open Gate Scanner', icon: '📱' },
 ];
 
 export default function ManagerLayout({ children }: { children: React.ReactNode }) {
@@ -38,8 +42,11 @@ export default function ManagerLayout({ children }: { children: React.ReactNode 
         if (res.status === 401) { router.push('/login'); return; }
         const data = await res.json();
         setEvent(data.event);
-      } catch { router.push('/login'); }
-      finally { setLoading(false); }
+      } catch {
+        router.push('/login');
+      } finally {
+        setLoading(false);
+      }
     }
     check();
   }, [router]);
@@ -51,8 +58,11 @@ export default function ManagerLayout({ children }: { children: React.ReactNode 
 
   if (loading || !event) {
     return (
-      <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-        <div className="spinner" />
+      <div style={{ minHeight: '100vh', background: 'var(--bg-root)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <div style={{ textAlign: 'center' }}>
+          <div className="spinner" style={{ borderTopColor: 'var(--gold-primary)', margin: '0 auto' }} />
+          <div style={{ marginTop: 16, fontSize: 13, color: 'var(--text-muted)' }}>Loading 27 Media Manager Portal...</div>
+        </div>
       </div>
     );
   }
@@ -60,46 +70,88 @@ export default function ManagerLayout({ children }: { children: React.ReactNode 
   return (
     <ThemeProvider primaryColor={event.primaryColor} secondaryColor={event.secondaryColor} accentColor={event.accentColor}>
       <ToastProvider>
-        <div style={{ display: 'flex', minHeight: '100vh' }}>
-          {/* Sidebar Overlay (mobile) */}
+        <div style={{ display: 'flex', minHeight: '100vh', background: 'var(--bg-root)' }}>
+          {/* Mobile Overlay */}
           {sidebarOpen && (
             <div
-              style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.6)', zIndex: 40 }}
+              style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.7)', zIndex: 40, backdropFilter: 'blur(4px)' }}
               onClick={() => setSidebarOpen(false)}
             />
           )}
 
-          {/* Sidebar */}
+          {/* Manager Sidebar */}
           <aside
+            className="manager-sidebar"
             style={{
-              width: 240,
+              width: 270,
               background: 'var(--bg-surface)',
               borderRight: '1px solid var(--border-default)',
               display: 'flex',
               flexDirection: 'column',
               position: 'fixed',
               top: 0,
-              left: sidebarOpen ? 0 : -240,
+              left: sidebarOpen ? 0 : -270,
               bottom: 0,
               zIndex: 50,
               transition: 'left 200ms ease',
             }}
-            className="sidebar-desktop"
           >
-            <div style={{ padding: '20px 16px', borderBottom: '1px solid var(--border-default)' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                {event.logoUrl && (
-                  <img src={event.logoUrl} alt="" style={{ width: 32, height: 32, borderRadius: 6, objectFit: 'cover' }} />
+            {/* Header Brand */}
+            <div style={{ padding: '20px 18px', borderBottom: '1px solid var(--border-default)' }}>
+              <Media27Logo size="sm" />
+              <div
+                style={{
+                  marginTop: 16,
+                  padding: 12,
+                  borderRadius: 10,
+                  background: 'var(--bg-elevated)',
+                  border: '1px solid var(--border-default)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 10,
+                }}
+              >
+                {event.logoUrl ? (
+                  <img
+                    src={event.logoUrl}
+                    alt=""
+                    style={{ width: 34, height: 34, borderRadius: 8, objectFit: 'cover', border: '1px solid var(--border-default)' }}
+                  />
+                ) : (
+                  <div
+                    style={{
+                      width: 34,
+                      height: 34,
+                      borderRadius: 8,
+                      background: 'var(--gold-gradient)',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      color: '#070709',
+                      fontWeight: 800,
+                      fontSize: 14,
+                    }}
+                  >
+                    {event.name.charAt(0).toUpperCase()}
+                  </div>
                 )}
-                <div>
-                  <div className="text-body" style={{ fontWeight: 600, lineHeight: 1.2 }}>{event.name}</div>
-                  <div className="text-caption" style={{ color: 'var(--text-muted)' }}>Manager Portal</div>
+                <div style={{ overflow: 'hidden' }}>
+                  <div className="truncate" style={{ fontWeight: 600, fontSize: 13, color: '#F8FAFC' }}>
+                    {event.name}
+                  </div>
+                  <div style={{ fontSize: 11, color: 'var(--gold-light)' }}>
+                    ● {event.status} Manager
+                  </div>
                 </div>
               </div>
             </div>
 
-            <nav style={{ flex: 1, padding: '12px 8px' }}>
-              {NAV_ITEMS.map((item) => {
+            {/* All Tabs Navigation */}
+            <nav style={{ flex: 1, padding: '16px 12px', overflowY: 'auto' }}>
+              <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: '0.12em', color: 'var(--text-muted)', padding: '0 10px 8px', textTransform: 'uppercase' }}>
+                Event Management Tabs
+              </div>
+              {MANAGER_NAV_ITEMS.map((item) => {
                 const active = pathname === item.href;
                 return (
                   <button
@@ -108,57 +160,97 @@ export default function ManagerLayout({ children }: { children: React.ReactNode 
                     style={{
                       display: 'flex',
                       alignItems: 'center',
-                      gap: 10,
+                      gap: 12,
                       width: '100%',
                       padding: '10px 12px',
                       borderRadius: 8,
-                      border: 'none',
-                      background: active ? 'var(--bg-hover)' : 'transparent',
-                      color: active ? 'var(--text-primary)' : 'var(--text-secondary)',
+                      border: active ? '1px solid var(--border-hover)' : '1px solid transparent',
+                      background: active ? 'rgba(212, 175, 55, 0.12)' : 'transparent',
+                      color: active ? 'var(--gold-light)' : 'var(--text-secondary)',
                       cursor: 'pointer',
-                      fontSize: 14,
-                      fontFamily: 'inherit',
+                      fontSize: 13.5,
+                      fontWeight: active ? 600 : 400,
+                      marginBottom: 3,
                       textAlign: 'left',
-                      marginBottom: 2,
-                      transition: 'all 100ms ease',
+                      transition: 'all 120ms ease',
                     }}
                   >
-                    <span style={{ fontSize: 16, width: 20, textAlign: 'center' }}>{item.icon}</span>
-                    {item.label}
+                    <span style={{ fontSize: 15, width: 20, textAlign: 'center' }}>{item.icon}</span>
+                    <span className="truncate">{item.label}</span>
                   </button>
                 );
               })}
             </nav>
 
-            <div style={{ padding: '12px 16px', borderTop: '1px solid var(--border-default)' }}>
-              <button className="btn btn-ghost btn-sm" style={{ width: '100%' }} onClick={handleLogout}>
+            {/* Footer */}
+            <div style={{ padding: '14px 16px', borderTop: '1px solid var(--border-default)', display: 'flex', flexDirection: 'column', gap: 8 }}>
+              {event.slug && (
+                <a
+                  href={`/event/${event.slug}`}
+                  target="_blank"
+                  rel="noreferrer"
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: 6,
+                    padding: '8px',
+                    fontSize: 12,
+                    color: 'var(--gold-light)',
+                    textDecoration: 'none',
+                    background: 'var(--bg-root)',
+                    borderRadius: 8,
+                    border: '1px solid var(--border-default)',
+                  }}
+                >
+                  🌐 View Public Pass Form ↗
+                </a>
+              )}
+              <button className="btn btn-ghost btn-sm" style={{ width: '100%', color: 'var(--error)' }} onClick={handleLogout}>
                 Sign Out
               </button>
             </div>
           </aside>
 
-          {/* Main Content */}
-          <main style={{ flex: 1, marginLeft: 0 }} className="main-with-sidebar">
-            {/* Mobile header */}
-            <div className="mobile-header" style={{ padding: '10px 16px', borderBottom: '1px solid var(--border-default)', display: 'none', alignItems: 'center', gap: 10 }}>
-              <button onClick={() => setSidebarOpen(true)} style={{ background: 'none', border: 'none', color: 'var(--text-primary)', fontSize: 20, cursor: 'pointer' }}>
-                ☰
-              </button>
-              <span className="text-title">{event.name}</span>
+          {/* Main Content Area */}
+          <main className="manager-main" style={{ flex: 1, marginLeft: 270, minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
+            {/* Mobile Header */}
+            <div
+              className="manager-mobile-header"
+              style={{
+                padding: '12px 16px',
+                background: 'var(--bg-surface)',
+                borderBottom: '1px solid var(--border-default)',
+                display: 'none',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+              }}
+            >
+              <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                <button
+                  onClick={() => setSidebarOpen(true)}
+                  style={{ background: 'none', border: 'none', color: 'var(--text-primary)', fontSize: 22, cursor: 'pointer' }}
+                >
+                  ☰
+                </button>
+                <Media27Logo size="sm" showSubtitle={false} />
+              </div>
+              <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--gold-light)' }} className="truncate">
+                {event.name}
+              </div>
             </div>
-            {children}
-          </main>
-        </div>
 
-        <style>{`
-          @media (min-width: 769px) {
-            .sidebar-desktop { left: 0 !important; }
-            .main-with-sidebar { margin-left: 240px !important; }
-          }
-          @media (max-width: 768px) {
-            .mobile-header { display: flex !important; }
-          }
-        `}</style>
+            <div style={{ flex: 1 }}>{children}</div>
+          </main>
+
+          <style>{`
+            @media (max-width: 768px) {
+              .manager-sidebar { left: ${sidebarOpen ? '0' : '-270px'} !important; }
+              .manager-main { margin-left: 0 !important; }
+              .manager-mobile-header { display: flex !important; }
+            }
+          `}</style>
+        </div>
       </ToastProvider>
     </ThemeProvider>
   );

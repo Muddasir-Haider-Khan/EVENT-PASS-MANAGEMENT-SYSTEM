@@ -2,16 +2,24 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { ToastProvider, useToast } from '@/components/Toast';
+import { useToast } from '@/components/Toast';
+import { ImageUpload } from '@/components/ImageUpload';
 
-function CreateEventContent() {
+export default function CreateEventPage() {
   const router = useRouter();
   const { toast } = useToast();
   const [loading, setLoading] = useState(false);
   const [form, setForm] = useState({
-    name: '', venue: '', eventDate: '', description: '',
-    primaryColor: '#0F172A', secondaryColor: '#3B82F6', accentColor: '#F59E0B',
-    managerEmail: '', logoUrl: '', logoFileId: '',
+    name: '',
+    venue: '',
+    eventDate: '',
+    description: '',
+    primaryColor: '#070709',
+    secondaryColor: '#D4AF37',
+    accentColor: '#E5C158',
+    managerEmail: '',
+    logoUrl: '',
+    logoFileId: '',
   });
   const [credentials, setCredentials] = useState<{ loginId: string; password: string } | null>(null);
 
@@ -38,35 +46,44 @@ function CreateEventContent() {
 
       setCredentials(data.managerCredentials);
       toast('Event created successfully', 'success');
-    } catch { toast('Network error', 'error'); }
-    finally { setLoading(false); }
+    } catch {
+      toast('Network error while creating event', 'error');
+    } finally {
+      setLoading(false);
+    }
   }
 
   if (credentials) {
     return (
-      <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20 }}>
-        <div className="card" style={{ maxWidth: 500, width: '100%', padding: 32 }}>
-          <div style={{ marginBottom: 20 }}>
-            <span className="badge badge-success" style={{ marginBottom: 8 }}>✓ Event Created</span>
-            <h2 className="text-headline">Manager Credentials</h2>
-            <p className="text-caption" style={{ color: 'var(--text-secondary)', marginTop: 4 }}>
-              These credentials have been emailed to {form.managerEmail}. Save them now — the password won&apos;t be shown again.
+      <div style={{ padding: '40px 24px', maxWidth: 560, margin: '0 auto' }}>
+        <div className="card card-gold-glow" style={{ padding: 36 }}>
+          <div style={{ marginBottom: 24, textAlign: 'center' }}>
+            <span className="badge badge-gold" style={{ marginBottom: 12 }}>
+              ✓ Event Configured & Manager Assigned
+            </span>
+            <h2 className="text-headline gold-gradient-text">Manager Credentials</h2>
+            <p className="text-caption" style={{ color: 'var(--text-secondary)', marginTop: 6 }}>
+              Login credentials have been generated for <strong>{form.managerEmail}</strong>. Please copy or save these credentials.
             </p>
           </div>
 
-          <div className="card-elevated" style={{ padding: 20, marginBottom: 24 }}>
-            <div style={{ marginBottom: 12 }}>
-              <span className="text-overline" style={{ color: 'var(--text-muted)' }}>Login ID</span>
-              <div className="text-mono" style={{ fontSize: 16, marginTop: 4 }}>{credentials.loginId}</div>
+          <div className="card-elevated" style={{ padding: 20, marginBottom: 28, border: '1px solid var(--border-hover)' }}>
+            <div style={{ marginBottom: 16 }}>
+              <span className="text-overline" style={{ color: 'var(--gold-light)' }}>Manager Login ID</span>
+              <div className="text-mono" style={{ fontSize: 18, marginTop: 4, color: '#F8FAFC', fontWeight: 600 }}>
+                {credentials.loginId}
+              </div>
             </div>
             <div>
-              <span className="text-overline" style={{ color: 'var(--text-muted)' }}>Temporary Password</span>
-              <div className="text-mono" style={{ fontSize: 16, marginTop: 4 }}>{credentials.password}</div>
+              <span className="text-overline" style={{ color: 'var(--gold-light)' }}>Temporary Password</span>
+              <div className="text-mono" style={{ fontSize: 18, marginTop: 4, color: '#F8FAFC', fontWeight: 600 }}>
+                {credentials.password}
+              </div>
             </div>
           </div>
 
-          <button className="btn btn-primary" style={{ width: '100%' }} onClick={() => router.push('/admin')}>
-            ← Back to Dashboard
+          <button className="btn btn-gold" style={{ width: '100%', height: 44 }} onClick={() => router.push('/admin')}>
+            ← Return to Super Admin Roster
           </button>
         </div>
       </div>
@@ -74,95 +91,158 @@ function CreateEventContent() {
   }
 
   return (
-    <div style={{ minHeight: '100vh' }}>
-      <header style={{ borderBottom: '1px solid var(--border-default)', padding: '14px 24px', display: 'flex', alignItems: 'center', gap: 12 }}>
-        <button className="btn btn-ghost btn-sm" onClick={() => router.push('/admin')}>← Back</button>
-        <h1 className="text-title">Create Event</h1>
-      </header>
-
-      <div style={{ maxWidth: 640, margin: '0 auto', padding: '32px 24px' }}>
-        <form onSubmit={handleSubmit}>
-          {/* Event Details */}
-          <div className="card" style={{ padding: 24, marginBottom: 20 }}>
-            <h3 className="text-title" style={{ marginBottom: 16 }}>Event Details</h3>
-            <div style={{ display: 'grid', gap: 16 }}>
-              <div>
-                <label className="input-label">Event Name *</label>
-                <input className="input" value={form.name} onChange={(e) => update('name', e.target.value)} required placeholder="e.g. LYMUN 2026" />
-              </div>
-              <div>
-                <label className="input-label">Venue *</label>
-                <input className="input" value={form.venue} onChange={(e) => update('venue', e.target.value)} required placeholder="e.g. Grand Ballroom, Marriott" />
-              </div>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
-                <div>
-                  <label className="input-label">Event Date</label>
-                  <input type="datetime-local" className="input" value={form.eventDate} onChange={(e) => update('eventDate', e.target.value)} />
-                </div>
-                <div>
-                  <label className="input-label">Manager Email *</label>
-                  <input type="email" className="input" value={form.managerEmail} onChange={(e) => update('managerEmail', e.target.value)} required placeholder="manager@example.com" />
-                </div>
-              </div>
-              <div>
-                <label className="input-label">Description</label>
-                <textarea className="input" rows={3} value={form.description} onChange={(e) => update('description', e.target.value)} placeholder="Optional event description..." style={{ resize: 'vertical' }} />
-              </div>
-            </div>
-          </div>
-
-          {/* Branding */}
-          <div className="card" style={{ padding: 24, marginBottom: 20 }}>
-            <h3 className="text-title" style={{ marginBottom: 16 }}>Branding</h3>
-            <div>
-              <label className="input-label">Logo URL</label>
-              <input className="input" value={form.logoUrl} onChange={(e) => update('logoUrl', e.target.value)} placeholder="https://ik.imagekit.io/..." />
-              <p className="text-caption" style={{ color: 'var(--text-dim)', marginTop: 4 }}>Upload your logo to ImageKit and paste the URL here</p>
-            </div>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 12, marginTop: 16 }}>
-              <div>
-                <label className="input-label">Primary Color</label>
-                <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
-                  <input type="color" value={form.primaryColor} onChange={(e) => update('primaryColor', e.target.value)} style={{ width: 40, height: 36, border: 'none', cursor: 'pointer', borderRadius: 6 }} />
-                  <input className="input text-mono" value={form.primaryColor} onChange={(e) => update('primaryColor', e.target.value)} style={{ fontSize: 13 }} />
-                </div>
-              </div>
-              <div>
-                <label className="input-label">Secondary Color</label>
-                <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
-                  <input type="color" value={form.secondaryColor} onChange={(e) => update('secondaryColor', e.target.value)} style={{ width: 40, height: 36, border: 'none', cursor: 'pointer', borderRadius: 6 }} />
-                  <input className="input text-mono" value={form.secondaryColor} onChange={(e) => update('secondaryColor', e.target.value)} style={{ fontSize: 13 }} />
-                </div>
-              </div>
-              <div>
-                <label className="input-label">Accent Color</label>
-                <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
-                  <input type="color" value={form.accentColor} onChange={(e) => update('accentColor', e.target.value)} style={{ width: 40, height: 36, border: 'none', cursor: 'pointer', borderRadius: 6 }} />
-                  <input className="input text-mono" value={form.accentColor} onChange={(e) => update('accentColor', e.target.value)} style={{ fontSize: 13 }} />
-                </div>
-              </div>
-            </div>
-            {/* Preview */}
-            <div style={{ marginTop: 16, padding: 16, borderRadius: 8, background: form.primaryColor, display: 'flex', gap: 8, alignItems: 'center' }}>
-              <div style={{ width: 20, height: 20, borderRadius: 4, background: form.secondaryColor }} />
-              <div style={{ width: 20, height: 20, borderRadius: 4, background: form.accentColor }} />
-              <span style={{ color: '#fff', fontSize: 13, marginLeft: 8, opacity: 0.8 }}>Preview</span>
-            </div>
-          </div>
-
-          <button type="submit" className="btn btn-primary" style={{ width: '100%' }} disabled={loading}>
-            {loading ? <span className="spinner" /> : 'Create Event & Send Credentials →'}
-          </button>
-        </form>
+    <div style={{ padding: '32px 28px', maxWidth: 800, margin: '0 auto' }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 28 }}>
+        <button className="btn btn-ghost btn-sm" onClick={() => router.push('/admin')}>
+          ← Back
+        </button>
+        <div>
+          <span className="text-overline" style={{ color: 'var(--gold-light)' }}>SUPER ADMIN ACTION</span>
+          <h1 className="text-headline gold-gradient-text">Initialize New Event</h1>
+        </div>
       </div>
-    </div>
-  );
-}
 
-export default function CreateEventPage() {
-  return (
-    <ToastProvider>
-      <CreateEventContent />
-    </ToastProvider>
+      <form onSubmit={handleSubmit}>
+        {/* Basic Details */}
+        <div className="card" style={{ padding: 28, marginBottom: 24 }}>
+          <h3 className="text-title" style={{ color: '#F8FAFC', marginBottom: 20 }}>
+            1. Event Specifications
+          </h3>
+          <div style={{ display: 'grid', gap: 18 }}>
+            <div>
+              <label className="input-label">Event Name *</label>
+              <input
+                className="input"
+                value={form.name}
+                onChange={(e) => update('name', e.target.value)}
+                required
+                placeholder="e.g. 27 Media Annual Music Gala 2026"
+              />
+            </div>
+
+            <div>
+              <label className="input-label">Venue & Location *</label>
+              <input
+                className="input"
+                value={form.venue}
+                onChange={(e) => update('venue', e.target.value)}
+                required
+                placeholder="e.g. PC Hotel Arena, Lahore"
+              />
+            </div>
+
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
+              <div>
+                <label className="input-label">Event Date & Time</label>
+                <input
+                  type="datetime-local"
+                  className="input"
+                  value={form.eventDate}
+                  onChange={(e) => update('eventDate', e.target.value)}
+                />
+              </div>
+              <div>
+                <label className="input-label">Manager Contact Email *</label>
+                <input
+                  type="email"
+                  className="input"
+                  value={form.managerEmail}
+                  onChange={(e) => update('managerEmail', e.target.value)}
+                  required
+                  placeholder="manager@27mediaagency.com"
+                />
+              </div>
+            </div>
+
+            <div>
+              <label className="input-label">Event Overview / Description</label>
+              <textarea
+                className="input"
+                rows={3}
+                value={form.description}
+                onChange={(e) => update('description', e.target.value)}
+                placeholder="Details regarding artist lineup, VIP pass guidelines..."
+                style={{ resize: 'vertical' }}
+              />
+            </div>
+          </div>
+        </div>
+
+        {/* ImageKit Logo Upload & Colors */}
+        <div className="card" style={{ padding: 28, marginBottom: 28 }}>
+          <h3 className="text-title" style={{ color: '#F8FAFC', marginBottom: 20 }}>
+            2. Event Branding & ImageKit Assets
+          </h3>
+
+          <ImageUpload
+            label="Event Logo (Uploaded directly to ImageKit)"
+            value={form.logoUrl}
+            onChange={(url) => update('logoUrl', url)}
+            folder="/epms/events/logos"
+            helpText="Recommended: Transparent PNG or SVG logo file"
+          />
+
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 16, marginTop: 24 }}>
+            <div>
+              <label className="input-label">Primary Background Color</label>
+              <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+                <input
+                  type="color"
+                  value={form.primaryColor}
+                  onChange={(e) => update('primaryColor', e.target.value)}
+                  style={{ width: 40, height: 38, border: 'none', cursor: 'pointer', borderRadius: 6, background: 'none' }}
+                />
+                <input
+                  className="input text-mono"
+                  value={form.primaryColor}
+                  onChange={(e) => update('primaryColor', e.target.value)}
+                  style={{ fontSize: 13 }}
+                />
+              </div>
+            </div>
+
+            <div>
+              <label className="input-label">Secondary Brand Color</label>
+              <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+                <input
+                  type="color"
+                  value={form.secondaryColor}
+                  onChange={(e) => update('secondaryColor', e.target.value)}
+                  style={{ width: 40, height: 38, border: 'none', cursor: 'pointer', borderRadius: 6, background: 'none' }}
+                />
+                <input
+                  className="input text-mono"
+                  value={form.secondaryColor}
+                  onChange={(e) => update('secondaryColor', e.target.value)}
+                  style={{ fontSize: 13 }}
+                />
+              </div>
+            </div>
+
+            <div>
+              <label className="input-label">Accent Highlight Color</label>
+              <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+                <input
+                  type="color"
+                  value={form.accentColor}
+                  onChange={(e) => update('accentColor', e.target.value)}
+                  style={{ width: 40, height: 38, border: 'none', cursor: 'pointer', borderRadius: 6, background: 'none' }}
+                />
+                <input
+                  className="input text-mono"
+                  value={form.accentColor}
+                  onChange={(e) => update('accentColor', e.target.value)}
+                  style={{ fontSize: 13 }}
+                />
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <button type="submit" className="btn btn-gold" style={{ width: '100%', height: 46, fontSize: 15 }} disabled={loading}>
+          {loading ? <span className="spinner" style={{ borderTopColor: '#070709' }} /> : 'Create Event & Provision Credentials →'}
+        </button>
+      </form>
+    </div>
   );
 }
