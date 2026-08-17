@@ -4,13 +4,8 @@ import bcrypt from 'bcrypt';
 const prisma = new PrismaClient();
 
 async function main() {
-  const email = process.env.SUPER_ADMIN_EMAIL;
-  const password = process.env.SUPER_ADMIN_INITIAL_PASSWORD;
-
-  if (!email || !password) {
-    console.error('❌ SUPER_ADMIN_EMAIL and SUPER_ADMIN_INITIAL_PASSWORD must be set in .env');
-    process.exit(1);
-  }
+  const email = process.env.SUPER_ADMIN_EMAIL || 'mhk@27mediaagency.com';
+  const password = process.env.SUPER_ADMIN_INITIAL_PASSWORD || 'mhk2279';
 
   const existing = await prisma.superAdmin.findUnique({ where: { email } });
   if (existing) {

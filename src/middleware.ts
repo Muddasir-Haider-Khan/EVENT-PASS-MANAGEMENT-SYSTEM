@@ -39,7 +39,7 @@ export function middleware(req: NextRequest) {
     return NextResponse.next();
   }
 
-  if (subdomain === 'gate') {
+  if (subdomain === 'gate' || subdomain === 'gates') {
     // Gate portal
     url.pathname = `/gate${url.pathname === '/' ? '' : url.pathname}`;
     return NextResponse.rewrite(url);
