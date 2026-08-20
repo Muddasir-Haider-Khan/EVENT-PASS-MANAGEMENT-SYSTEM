@@ -65,8 +65,9 @@ export default function ParticipantsPage() {
       {/* Page Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <span className="text-[10px] font-bold uppercase tracking-wider text-indigo-400">
-            Attendee Roster
+          <span className="inline-flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider text-indigo-400">
+            <Users className="w-3.5 h-3.5" />
+            <span>Attendee Roster</span>
           </span>
           <h1 className="text-2xl font-black text-white tracking-tight sm:text-3xl mt-0.5">
             Pass Holders ({participants.length})

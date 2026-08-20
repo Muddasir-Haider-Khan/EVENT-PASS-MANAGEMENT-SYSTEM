@@ -10,6 +10,8 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'Unauthorized — invalid gate session' }, { status: 401 });
   }
 
+  const gateId = session.gateId;
+
   try {
     const body = await req.json();
     const parsed = scanSchema.safeParse(body);
@@ -36,7 +38,7 @@ export async function POST(req: NextRequest) {
     if (!participant) {
       await prisma.scanLog.create({
         data: {
-          gateId: session.gateId,
+          gateId,
           result: 'INVALID_QR',
           qrTokenUsed: rawToken,
         },
@@ -52,7 +54,7 @@ export async function POST(req: NextRequest) {
     if (participant.eventId !== session.eventId) {
       await prisma.scanLog.create({
         data: {
-          gateId: session.gateId,
+          gateId,
           participantId: participant.id,
           result: 'INVALID_QR',
           qrTokenUsed: rawToken,
@@ -133,7 +135,7 @@ export async function POST(req: NextRequest) {
         await tx.scanLog.create({
           data: {
             participantId: participant.id,
-            gateId: session.gateId,
+            gateId,
             result: finalResult as ScanResult,
             qrTokenUsed: rawToken,
           },
@@ -143,7 +145,7 @@ export async function POST(req: NextRequest) {
       await prisma.scanLog.create({
         data: {
           participantId: participant.id,
-          gateId: session.gateId,
+          gateId,
           result: result as ScanResult,
           qrTokenUsed: rawToken,
         },
