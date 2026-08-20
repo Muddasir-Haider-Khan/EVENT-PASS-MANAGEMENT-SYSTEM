@@ -1,6 +1,8 @@
 import QRCode from 'qrcode';
-import { nanoid } from 'nanoid';
+import { customAlphabet } from 'nanoid';
 import crypto from 'crypto';
+
+const gateOtpGenerator = customAlphabet('23456789ABCDEFGHJKLMNPQRSTUVWXYZ', 6);
 
 /**
  * Generate a cryptographically random QR token.
@@ -44,8 +46,8 @@ export async function generateQRCodeBuffer(token: string): Promise<Buffer> {
 }
 
 /**
- * Generate a 6-digit alphanumeric OTP for gate access.
+ * Generate a 6-character clean alphanumeric OTP for gate access.
  */
 export function generateGateOTP(): string {
-  return nanoid(8).toUpperCase();
+  return gateOtpGenerator();
 }

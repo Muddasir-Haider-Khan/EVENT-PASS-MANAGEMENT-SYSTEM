@@ -49,7 +49,7 @@ export default function GateOTPPage() {
           Enter Gate OTP
         </h1>
         <p className="text-caption" style={{ color: 'var(--text-secondary)', marginBottom: 28 }}>
-          Enter the 6-character OTP provided by your 27 Media Event Manager.
+          Enter the Gate Access OTP provided by your 27 Media Event Manager.
         </p>
 
         <form onSubmit={handleSubmit}>
@@ -57,8 +57,8 @@ export default function GateOTPPage() {
             className="input text-mono"
             style={{
               textAlign: 'center',
-              fontSize: 26,
-              letterSpacing: '0.22em',
+              fontSize: 24,
+              letterSpacing: '0.18em',
               padding: '14px 16px',
               color: 'var(--gold-light)',
               fontWeight: 800,
@@ -66,12 +66,12 @@ export default function GateOTPPage() {
               border: '1px solid var(--border-hover)',
             }}
             value={otp}
-            onChange={(e) => setOtp(e.target.value.toUpperCase())}
-            placeholder="XXXXXX"
+            onChange={(e) => setOtp(e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, ''))}
+            placeholder="ENTER OTP"
             required
             autoFocus
             autoComplete="off"
-            maxLength={6}
+            maxLength={12}
           />
 
           {error && (
