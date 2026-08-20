@@ -54,7 +54,7 @@ export async function POST(req: NextRequest) {
         primaryColor,
         secondaryColor,
         accentColor,
-        fontFamily: fontFamily || 'Inter',
+        fontFamily: (fontFamily as string) || 'Inter',
         eventManager: {
           create: {
             loginId,
