@@ -18,7 +18,16 @@ function getFromEmail(): string {
   return 'no-reply@27mediaagency.com';
 }
 
-async function safeSend(resend: Resend, emailData: { from: string; to: string; subject: string; html: string }) {
+async function safeSend(
+  resend: Resend,
+  emailData: {
+    from: string;
+    to: string;
+    subject: string;
+    html: string;
+    attachments?: Array<{ filename: string; content?: Buffer | string; path?: string; content_id?: string }>;
+  }
+) {
   const fromEmail = getFromEmail();
   const res = await resend.emails.send({
     ...emailData,
@@ -127,10 +136,21 @@ export async function sendQRPass(params: {
       })
     : '';
 
+  // Extract base64 buffer for inline CID attachment (Gmail/Outlook compatible)
+  const base64Data = params.qrDataUrl.replace(/^data:image\/\w+;base64,/, '');
+  const qrBuffer = Buffer.from(base64Data, 'base64');
+
   return safeSend(resend, {
     from: getFromEmail(),
     to: params.to,
     subject: `Your Event Pass — ${params.eventName}`,
+    attachments: [
+      {
+        filename: 'event-pass-qr.png',
+        content: qrBuffer,
+        content_id: 'qr-code',
+      },
+    ],
     html: `
       <!DOCTYPE html>
       <html>
@@ -149,7 +169,7 @@ export async function sendQRPass(params: {
               </p>
               
               <div style="background:#fff;border-radius:14px;padding:20px;display:inline-block;margin:0 0 24px;">
-                <img src="${params.qrDataUrl}" alt="QR Pass" style="width:200px;height:200px;display:block;" />
+                <img src="cid:qr-code" alt="QR Pass Code" style="width:200px;height:200px;display:block;" />
               </div>
               
               <div style="background:#070709;border:1px solid rgba(255,255,255,0.1);border-radius:10px;padding:20px;text-align:left;margin:0 0 20px;">
