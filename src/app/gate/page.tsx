@@ -57,21 +57,23 @@ export default function GateOTPPage() {
             className="input text-mono"
             style={{
               textAlign: 'center',
-              fontSize: 24,
-              letterSpacing: '0.18em',
+              fontSize: 22,
+              letterSpacing: '0.12em',
               padding: '14px 16px',
               color: 'var(--gold-light)',
               fontWeight: 800,
-              background: 'rgba(0,0,0,0.5)',
+              background: 'rgba(0,0,0,0.6)',
               border: '1px solid var(--border-hover)',
+              width: '100%',
+              boxSizing: 'border-box',
             }}
             value={otp}
             onChange={(e) => setOtp(e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, ''))}
-            placeholder="ENTER OTP"
+            placeholder="ENTER OTP CODE"
             required
             autoFocus
             autoComplete="off"
-            maxLength={12}
+            maxLength={16}
           />
 
           {error && (

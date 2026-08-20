@@ -21,7 +21,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: parsed.error.errors[0].message }, { status: 400 });
     }
 
-    const cleanOtp = parsed.data.otpCode.trim().toUpperCase();
+    const cleanOtp = parsed.data.otpCode.replace(/[^A-Z0-9]/gi, '').toUpperCase();
 
     const gate = await prisma.gate.findFirst({
       where: {
