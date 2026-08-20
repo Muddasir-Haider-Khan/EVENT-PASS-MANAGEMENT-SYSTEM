@@ -29,6 +29,7 @@ model Event {
   primaryColor   String        @default("#0F172A")
   secondaryColor String        @default("#3B82F6")
   accentColor    String        @default("#F59E0B")
+  fontFamily     String        @default("Inter")
   status         EventStatus   @default(ACTIVE)
   createdAt      DateTime      @default(now())
   updatedAt      DateTime      @updatedAt

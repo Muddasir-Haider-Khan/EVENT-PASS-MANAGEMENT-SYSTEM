@@ -33,7 +33,7 @@ export async function POST(req: NextRequest) {
     const {
       name, venue, eventDate, description,
       logoUrl, logoFileId,
-      primaryColor, secondaryColor, accentColor,
+      primaryColor, secondaryColor, accentColor, fontFamily,
       managerEmail,
     } = parsed.data;
 
@@ -54,6 +54,7 @@ export async function POST(req: NextRequest) {
         primaryColor,
         secondaryColor,
         accentColor,
+        fontFamily: fontFamily || 'Inter',
         eventManager: {
           create: {
             loginId,

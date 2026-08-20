@@ -24,6 +24,7 @@ interface EventInfo {
   primaryColor: string;
   secondaryColor: string;
   accentColor: string;
+  fontFamily?: string;
 }
 
 export default function PublicEventPage() {
@@ -113,7 +114,7 @@ export default function PublicEventPage() {
 
   if (submitted) {
     return (
-      <ThemeProvider primaryColor={event.primaryColor} secondaryColor={event.secondaryColor} accentColor={event.accentColor}>
+      <ThemeProvider primaryColor={event.primaryColor} secondaryColor={event.secondaryColor} accentColor={event.accentColor} fontFamily={event.fontFamily}>
         <div style={{ minHeight: '100vh', background: 'var(--bg-root)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 24 }}>
           <div className="card card-gold-glow" style={{ maxWidth: 540, width: '100%', padding: 40, textAlign: 'center' }}>
             <div style={{ marginBottom: 20 }}>
@@ -188,7 +189,7 @@ export default function PublicEventPage() {
   }
 
   return (
-    <ThemeProvider primaryColor={event.primaryColor} secondaryColor={event.secondaryColor} accentColor={event.accentColor}>
+    <ThemeProvider primaryColor={event.primaryColor} secondaryColor={event.secondaryColor} accentColor={event.accentColor} fontFamily={event.fontFamily}>
       <div style={{ minHeight: '100vh', background: 'var(--bg-root)', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '40px 20px' }}>
         <div style={{ maxWidth: 600, width: '100%' }}>
           {/* Top Brand Banner */}

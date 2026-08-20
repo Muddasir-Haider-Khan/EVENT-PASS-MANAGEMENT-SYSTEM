@@ -28,6 +28,7 @@ export async function GET(
       primaryColor: event.primaryColor,
       secondaryColor: event.secondaryColor,
       accentColor: event.accentColor,
+      fontFamily: event.fontFamily || 'Inter',
     },
     fields: event.formFields,
     payment: {

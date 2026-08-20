@@ -32,16 +32,23 @@ export async function PUT(req: NextRequest) {
       return NextResponse.json({ error: parsed.error.errors[0].message }, { status: 400 });
     }
 
-    const { accountNumber, paymentPhone, logoUrl } = parsed.data;
+    const { accountNumber, paymentPhone, logoUrl, primaryColor, secondaryColor, accentColor, fontFamily } = parsed.data;
+
+    const eventUpdateData: Record<string, string | null> = {};
+    if (logoUrl !== undefined) eventUpdateData.logoUrl = logoUrl;
+    if (primaryColor !== undefined) eventUpdateData.primaryColor = primaryColor;
+    if (secondaryColor !== undefined) eventUpdateData.secondaryColor = secondaryColor;
+    if (accentColor !== undefined) eventUpdateData.accentColor = accentColor;
+    if (fontFamily !== undefined) eventUpdateData.fontFamily = fontFamily;
 
     const updated = await prisma.eventManager.update({
       where: { id: session.sub },
       data: {
         accountNumber,
         paymentPhone,
-        ...(logoUrl !== undefined && {
+        ...(Object.keys(eventUpdateData).length > 0 && {
           event: {
-            update: { logoUrl },
+            update: eventUpdateData,
           },
         }),
       },

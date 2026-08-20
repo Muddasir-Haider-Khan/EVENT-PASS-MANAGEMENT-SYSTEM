@@ -65,8 +65,6 @@ export async function POST(
         venue: submission.event.venue,
         eventDate: submission.event.eventDate?.toISOString() || null,
         qrDataUrl,
-        primaryColor: submission.event.primaryColor,
-        secondaryColor: submission.event.secondaryColor,
       });
     } catch (emailError) {
       console.error('Failed to send QR pass email:', emailError);

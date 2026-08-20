@@ -29,6 +29,7 @@ export const createEventSchema = z.object({
   primaryColor: z.string().regex(/^#[0-9A-Fa-f]{6}$/).default('#0F172A'),
   secondaryColor: z.string().regex(/^#[0-9A-Fa-f]{6}$/).default('#3B82F6'),
   accentColor: z.string().regex(/^#[0-9A-Fa-f]{6}$/).default('#F59E0B'),
+  fontFamily: z.string().default('Inter'),
   managerEmail: z.string().email('Valid manager email is required'),
 });
 
@@ -40,6 +41,10 @@ export const managerSettingsSchema = z.object({
   accountNumber: z.string().max(100).optional().nullable(),
   paymentPhone: z.string().max(30).optional().nullable(),
   logoUrl: z.string().optional().nullable(),
+  primaryColor: z.string().regex(/^#[0-9A-Fa-f]{6}$/).optional().nullable(),
+  secondaryColor: z.string().regex(/^#[0-9A-Fa-f]{6}$/).optional().nullable(),
+  accentColor: z.string().regex(/^#[0-9A-Fa-f]{6}$/).optional().nullable(),
+  fontFamily: z.string().optional().nullable(),
 });
 
 // ── Form Fields ──
