@@ -17,13 +17,20 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: parsed.error.errors[0].message }, { status: 400 });
     }
 
-    const { qrToken } = parsed.data;
+    const rawToken = parsed.data.qrToken.trim().replaceAll('"', '').replaceAll("'", "");
 
-    // Look up participant by QR token
-    const participant = await prisma.participant.findUnique({
-      where: { qrToken },
+    // Fast lookup participant by QR token (with insensitive fallback)
+    let participant = await prisma.participant.findUnique({
+      where: { qrToken: rawToken },
       include: { event: true },
     });
+
+    if (!participant) {
+      participant = await prisma.participant.findFirst({
+        where: { qrToken: { equals: rawToken, mode: 'insensitive' } },
+        include: { event: true },
+      });
+    }
 
     // Invalid or unknown token
     if (!participant) {
@@ -31,12 +38,12 @@ export async function POST(req: NextRequest) {
         data: {
           gateId: session.gateId,
           result: 'INVALID_QR',
-          qrTokenUsed: qrToken,
+          qrTokenUsed: rawToken,
         },
       });
       return NextResponse.json({
         result: 'INVALID_QR',
-        message: 'Invalid or unknown QR code',
+        message: 'Invalid or unknown QR code pass',
         color: 'red',
       });
     }
@@ -48,7 +55,7 @@ export async function POST(req: NextRequest) {
           gateId: session.gateId,
           participantId: participant.id,
           result: 'INVALID_QR',
-          qrTokenUsed: qrToken,
+          qrTokenUsed: rawToken,
         },
       });
       return NextResponse.json({
@@ -72,12 +79,12 @@ export async function POST(req: NextRequest) {
       if (currentStatus === 'NOT_ENTERED' || currentStatus === 'EXITED') {
         result = 'ENTRY_GRANTED';
         newStatus = 'INSIDE';
-        message = 'Entry granted';
+        message = 'ENTRY ALLOWED — Pass Activated (Inside Venue)';
         color = 'green';
       } else {
         // Already INSIDE
         result = 'ENTRY_DENIED_ALREADY_INSIDE';
-        message = `Already inside since ${participant.lastScanAt?.toLocaleTimeString() || 'earlier'}`;
+        message = `ALREADY ENTERED — Pass is currently ACTIVE inside venue`;
         color = 'amber';
         newStatus = currentStatus;
       }
@@ -86,11 +93,11 @@ export async function POST(req: NextRequest) {
       if (currentStatus === 'INSIDE') {
         result = 'EXIT_GRANTED';
         newStatus = 'EXITED';
-        message = 'Exit granted';
+        message = 'EXIT APPROVED — Pass Deactivated (Outside Venue)';
         color = 'green';
       } else {
         result = 'EXIT_DENIED_NOT_INSIDE';
-        message = 'Not currently inside the event';
+        message = 'ALREADY OUTSIDE — Pass is currently DEACTIVE';
         color = 'amber';
         newStatus = currentStatus;
       }
@@ -113,7 +120,7 @@ export async function POST(req: NextRequest) {
         participantId: participant.id,
         gateId: session.gateId,
         result: result as ScanResult,
-        qrTokenUsed: qrToken,
+        qrTokenUsed: rawToken,
       },
     });
 
