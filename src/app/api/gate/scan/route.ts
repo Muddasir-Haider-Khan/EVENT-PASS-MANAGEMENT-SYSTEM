@@ -103,26 +103,79 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    // Update participant status if changed
+    let statusUpdated = true;
+
+    // Atomic conditional update to prevent double-scan race conditions
     if (newStatus !== currentStatus) {
-      await prisma.participant.update({
-        where: { id: participant.id },
+      await prisma.$transaction(async (tx) => {
+        const updateResult = await tx.participant.updateMany({
+          where: {
+            id: participant.id,
+            entryStatus: currentStatus as EntryStatus,
+          },
+          data: {
+            entryStatus: newStatus as EntryStatus,
+            lastScanAt: now,
+          },
+        });
+
+        if (updateResult.count === 0) {
+          // A concurrent scan updated entryStatus first!
+          statusUpdated = false;
+        }
+
+        const finalResult = statusUpdated
+          ? result
+          : isEntryGate
+          ? 'ENTRY_DENIED_ALREADY_INSIDE'
+          : 'EXIT_DENIED_NOT_INSIDE';
+
+        await tx.scanLog.create({
+          data: {
+            participantId: participant.id,
+            gateId: session.gateId,
+            result: finalResult as ScanResult,
+            qrTokenUsed: rawToken,
+          },
+        });
+      });
+    } else {
+      await prisma.scanLog.create({
         data: {
-          entryStatus: newStatus as EntryStatus,
-          lastScanAt: now,
+          participantId: participant.id,
+          gateId: session.gateId,
+          result: result as ScanResult,
+          qrTokenUsed: rawToken,
         },
       });
     }
 
-    // Log the scan
-    await prisma.scanLog.create({
-      data: {
-        participantId: participant.id,
-        gateId: session.gateId,
-        result: result as ScanResult,
-        qrTokenUsed: rawToken,
-      },
-    });
+    // Handle race condition fallback response if concurrent update failed
+    if (!statusUpdated) {
+      if (isEntryGate) {
+        return NextResponse.json({
+          result: 'ENTRY_DENIED_ALREADY_INSIDE',
+          message: 'ALREADY IN EVENT — Pass is active inside venue',
+          color: 'amber',
+          participant: {
+            name: participant.name || participant.email,
+            email: participant.email,
+            entryStatus: 'INSIDE',
+          },
+        });
+      } else {
+        return NextResponse.json({
+          result: 'EXIT_DENIED_NOT_INSIDE',
+          message: 'ALREADY OUTSIDE — Pass is deactive',
+          color: 'amber',
+          participant: {
+            name: participant.name || participant.email,
+            email: participant.email,
+            entryStatus: 'EXITED',
+          },
+        });
+      }
+    }
 
     return NextResponse.json({
       result,

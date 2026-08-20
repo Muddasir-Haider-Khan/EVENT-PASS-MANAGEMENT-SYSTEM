@@ -3,6 +3,18 @@
 import { useEffect, useState, useRef, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { ThemeProvider } from '@/components/ThemeProvider';
+import { Button } from '@/components/ui/Button';
+import { Badge } from '@/components/ui/Badge';
+import {
+  CheckCircle2,
+  XCircle,
+  AlertTriangle,
+  Camera,
+  Keyboard,
+  QrCode,
+  History,
+  ShieldAlert,
+} from 'lucide-react';
 
 interface ScanResult {
   result: string;
@@ -34,7 +46,6 @@ function playAudioFeedback(type: 'SUCCESS' | 'DENIED' | 'WARNING') {
     const ctx = new AudioCtx();
 
     if (type === 'SUCCESS') {
-      // Pleasant high dual chime (D5 -> A5)
       const osc1 = ctx.createOscillator();
       const gain1 = ctx.createGain();
       osc1.type = 'sine';
@@ -47,7 +58,6 @@ function playAudioFeedback(type: 'SUCCESS' | 'DENIED' | 'WARNING') {
       osc1.start();
       osc1.stop(ctx.currentTime + 0.35);
     } else if (type === 'DENIED') {
-      // Low warning buzz (Sawtooth 150Hz -> 100Hz)
       const osc = ctx.createOscillator();
       const gain = ctx.createGain();
       osc.type = 'sawtooth';
@@ -60,7 +70,6 @@ function playAudioFeedback(type: 'SUCCESS' | 'DENIED' | 'WARNING') {
       osc.start();
       osc.stop(ctx.currentTime + 0.4);
     } else {
-      // Warning amber tone (Square 440Hz -> 330Hz)
       const osc = ctx.createOscillator();
       const gain = ctx.createGain();
       osc.type = 'square';
@@ -95,7 +104,6 @@ export default function ScanPage() {
     try { setGateSession(JSON.parse(saved)); } catch { router.push('/gate'); }
   }, [router]);
 
-  // Continuously refocus the hidden input for hardware scanners
   useEffect(() => {
     if (!useCam) {
       const interval = setInterval(() => inputRef.current?.focus(), 500);
@@ -109,13 +117,12 @@ export default function ScanPage() {
     let cleanToken = token.trim();
     if (!cleanToken) return;
 
-    // Extract token if scanned as a URL
     if (cleanToken.includes('http')) {
       try {
         const urlObj = new URL(cleanToken);
         cleanToken = urlObj.searchParams.get('token') || urlObj.pathname.split('/').pop() || cleanToken;
       } catch {
-        // keep cleanToken as is
+        // keep cleanToken
       }
     }
 
@@ -133,7 +140,6 @@ export default function ScanPage() {
       setLastScan(data);
       setScanCount((c) => c + 1);
 
-      // Play synthesized audio feedback
       if (data.color === 'green') {
         playAudioFeedback('SUCCESS');
       } else if (data.color === 'red') {
@@ -142,7 +148,6 @@ export default function ScanPage() {
         playAudioFeedback('WARNING');
       }
 
-      // Record scan in live history log
       const historyItem: ScanHistoryItem = {
         id: Math.random().toString(36).substring(2, 9),
         time: now,
@@ -154,7 +159,6 @@ export default function ScanPage() {
 
       setScanHistory((prev) => [historyItem, ...prev.slice(0, 4)]);
 
-      // Auto-clear prominent status box after 5 seconds
       setTimeout(() => setLastScan(null), 5000);
     } catch {
       setLastScan({ result: 'ERROR', message: 'Network communication error', color: 'red' });
@@ -165,7 +169,6 @@ export default function ScanPage() {
     }
   }, [scanning]);
 
-  // Hardware scanner input handler (fast burst detection)
   function handleKeyDown(e: React.KeyboardEvent<HTMLInputElement>) {
     if (e.key === 'Enter') {
       e.preventDefault();
@@ -181,7 +184,6 @@ export default function ScanPage() {
     bufferRef.current = e.target.value;
   }
 
-  // Camera scanner via html5-qrcode (exception-safe)
   useEffect(() => {
     if (!useCam) return;
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -207,7 +209,7 @@ export default function ScanPage() {
               }, 2500);
             });
           },
-          () => {} // silent on frame scan miss
+          () => {}
         );
       } catch (err) {
         console.error('Camera initialization error:', err);
@@ -226,127 +228,168 @@ export default function ScanPage() {
 
   if (!gateSession) {
     return (
-      <div style={{ minHeight: '100vh', background: '#070709', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-        <div className="spinner" style={{ borderTopColor: '#D4AF37' }} />
+      <div className="min-h-screen bg-slate-950 flex items-center justify-center">
+        <div className="w-8 h-8 border-2 border-indigo-500 border-t-transparent rounded-full animate-spin" />
       </div>
     );
   }
 
-  const bgColor = lastScan ? (lastScan.color === 'green' ? '#06200B' : lastScan.color === 'red' ? '#260606' : '#261C04') : 'var(--bg-root)';
-  const borderColor = lastScan ? (lastScan.color === 'green' ? 'var(--success)' : lastScan.color === 'red' ? 'var(--error)' : 'var(--warning)') : 'var(--border-default)';
+  const bgColor = lastScan
+    ? lastScan.color === 'green'
+      ? 'bg-emerald-950/90'
+      : lastScan.color === 'red'
+      ? 'bg-red-950/90'
+      : 'bg-amber-950/90'
+    : 'bg-slate-950';
+
+  const borderColor = lastScan
+    ? lastScan.color === 'green'
+      ? 'border-emerald-500'
+      : lastScan.color === 'red'
+      ? 'border-red-500'
+      : 'border-amber-500'
+    : 'border-slate-800';
 
   return (
-    <ThemeProvider primaryColor={gateSession.event.primaryColor} secondaryColor={gateSession.event.secondaryColor} accentColor={gateSession.event.accentColor}>
-      <div style={{ minHeight: '100vh', background: bgColor, transition: 'background 300ms ease', color: '#F8FAFC', display: 'flex', flexDirection: 'column' }}>
+    <ThemeProvider
+      primaryColor={gateSession.event.primaryColor}
+      secondaryColor={gateSession.event.secondaryColor}
+      accentColor={gateSession.event.accentColor}
+    >
+      <div className={`min-h-screen ${bgColor} transition-colors duration-300 text-slate-100 flex flex-col antialiased`}>
         {/* Header */}
-        <div style={{ padding: '14px 20px', borderBottom: '1px solid var(--border-default)', background: 'rgba(0,0,0,0.4)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <header className="px-4 py-3 bg-slate-900/80 border-b border-slate-800 backdrop-blur-md flex items-center justify-between">
           <div>
-            <div className="text-overline" style={{ color: 'var(--gold-light)' }}>{gateSession.event.name}</div>
-            <div style={{ fontSize: 18, fontWeight: 700, display: 'flex', alignItems: 'center', gap: 8, marginTop: 2 }}>
-              {gateSession.gate.name}
-              <span className={`badge ${gateSession.gate.type === 'ENTRY' ? 'badge-gold' : 'badge-warning'}`}>
+            <p className="text-[10px] font-bold uppercase tracking-wider text-indigo-400">
+              {gateSession.event.name}
+            </p>
+            <div className="flex items-center gap-2 mt-0.5">
+              <h1 className="text-base font-bold text-white">{gateSession.gate.name}</h1>
+              <Badge
+                variant={gateSession.gate.type === 'ENTRY' ? 'indigo' : 'amber'}
+                size="sm"
+              >
                 {gateSession.gate.type} GATE
-              </span>
+              </Badge>
             </div>
           </div>
-          <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
-            <span className="text-mono" style={{ fontSize: 13, color: 'var(--text-muted)' }}>{scanCount} total scans</span>
-            <button className="btn btn-ghost btn-sm" style={{ border: '1px solid var(--border-default)', background: useCam ? 'var(--bg-elevated)' : 'transparent' }} onClick={() => setUseCam(!useCam)}>
-              {useCam ? '⌨ Hardware Mode' : '📷 Camera Mode'}
-            </button>
+          <div className="flex items-center gap-3">
+            <span className="text-xs font-mono text-slate-400 hidden sm:inline">
+              {scanCount} total scans
+            </span>
+            <Button
+              variant="outline"
+              size="sm"
+              leftIcon={useCam ? <Keyboard className="w-3.5 h-3.5" /> : <Camera className="w-3.5 h-3.5" />}
+              onClick={() => setUseCam(!useCam)}
+            >
+              {useCam ? 'Hardware Mode' : 'Camera Mode'}
+            </Button>
           </div>
-        </div>
+        </header>
 
-        {/* Scan Display Area */}
-        <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '24px 20px' }}>
+        {/* Main Scanner Viewport */}
+        <main className="flex-1 flex flex-col items-center justify-center p-6 text-center">
           {lastScan ? (
             <div
-              style={{
-                textAlign: 'center',
-                animation: 'modal-in 200ms ease',
-                border: `3px solid ${borderColor}`,
-                background: 'rgba(0,0,0,0.6)',
-                borderRadius: 24,
-                padding: '44px 32px',
-                maxWidth: 520,
-                width: '100%',
-                boxShadow: '0 20px 50px rgba(0,0,0,0.7)',
-              }}
+              className={`w-full max-w-lg p-8 rounded-3xl bg-slate-900/90 border-2 ${borderColor} shadow-2xl backdrop-blur-xl animate-in zoom-in-95 duration-150`}
             >
-              <div style={{ fontSize: 72, marginBottom: 12, lineHeight: 1 }}>
-                {lastScan.color === 'green' ? '✓' : lastScan.color === 'red' ? '✕' : '⚠️'}
+              <div className="flex justify-center mb-4">
+                {lastScan.color === 'green' ? (
+                  <CheckCircle2 className="w-20 h-20 text-emerald-400 animate-bounce" />
+                ) : lastScan.color === 'red' ? (
+                  <XCircle className="w-20 h-20 text-red-400" />
+                ) : (
+                  <AlertTriangle className="w-20 h-20 text-amber-400" />
+                )}
               </div>
 
               {lastScan.participant && (
-                <div style={{ fontSize: '2.4rem', fontWeight: 800, color: borderColor, marginBottom: 6, lineHeight: 1.1, letterSpacing: '-0.02em' }}>
+                <h2 className="text-3xl font-black text-white tracking-tight mb-2">
                   {lastScan.participant.name}
-                </div>
+                </h2>
               )}
 
-              <div style={{ fontSize: '1.3rem', fontWeight: 600, color: '#F8FAFC', marginTop: 8 }}>
+              <p className="text-lg font-semibold text-slate-200 mb-6">
                 {lastScan.message}
-              </div>
+              </p>
 
-              <div style={{ marginTop: 20 }}>
-                <span className={`badge ${lastScan.color === 'green' ? 'badge-gold' : lastScan.color === 'red' ? 'badge-error' : 'badge-warning'}`} style={{ padding: '6px 16px', fontSize: 13 }}>
-                  RESULT: {lastScan.result}
-                </span>
-              </div>
+              <Badge
+                variant={
+                  lastScan.color === 'green'
+                    ? 'green'
+                    : lastScan.color === 'red'
+                    ? 'red'
+                    : 'amber'
+                }
+                size="md"
+              >
+                RESULT: {lastScan.result}
+              </Badge>
             </div>
           ) : (
-            <div style={{ textAlign: 'center', color: 'var(--text-muted)', padding: '20px' }}>
-              <div style={{ fontSize: 56, marginBottom: 16, opacity: 0.4 }}>📱</div>
-              <h2 className="text-headline" style={{ color: '#F8FAFC' }}>Ready for Gate Scanning</h2>
-              <p className="text-body" style={{ color: 'var(--text-secondary)', marginTop: 6, maxWidth: 380 }}>
-                {useCam ? 'Align attendee pass QR code within camera viewfinder.' : 'Scan pass using rapid barcode/QR scanner laser.'}
+            <div className="flex flex-col items-center max-w-sm">
+              <div className="w-20 h-20 rounded-3xl bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center text-indigo-400 mb-6 shadow-inner">
+                <QrCode className="w-10 h-10" />
+              </div>
+              <h2 className="text-xl font-bold text-white mb-2">Ready for Pass Scan</h2>
+              <p className="text-xs text-slate-400 leading-relaxed">
+                {useCam
+                  ? 'Align attendee QR code within the camera viewfinder.'
+                  : 'Point hardware laser scanner at attendee QR code.'}
               </p>
             </div>
           )}
 
-          {useCam && <div id="qr-reader" style={{ width: 280, marginTop: 20, borderRadius: 16, overflow: 'hidden', border: '2px solid var(--gold-primary)' }} />}
-        </div>
+          {useCam && (
+            <div
+              id="qr-reader"
+              className="w-72 mt-6 rounded-2xl overflow-hidden border-2 border-indigo-500 shadow-xl"
+            />
+          )}
+        </main>
 
-        {/* Live Recent 5 Scan History Feed */}
+        {/* Live Recent 5 Activity Feed */}
         {scanHistory.length > 0 && (
-          <div style={{ padding: '16px 20px 24px', borderTop: '1px solid var(--border-default)', background: 'var(--bg-surface)' }}>
-            <div style={{ maxWidth: 640, margin: '0 auto' }}>
-              <div className="text-overline" style={{ color: 'var(--text-muted)', marginBottom: 10 }}>RECENT GATE ACTIVITY LOG</div>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+          <footer className="p-4 bg-slate-900 border-t border-slate-800">
+            <div className="max-w-2xl mx-auto space-y-2">
+              <div className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-1">
+                <History className="w-3 h-3" />
+                <span>Recent Activity Log</span>
+              </div>
+              <div className="space-y-1.5">
                 {scanHistory.map((item) => (
                   <div
                     key={item.id}
-                    style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'space-between',
-                      padding: '8px 14px',
-                      borderRadius: 8,
-                      background: 'var(--bg-elevated)',
-                      border: '1px solid var(--border-default)',
-                      fontSize: 13,
-                    }}
+                    className="flex items-center justify-between p-2.5 rounded-xl bg-slate-950/70 border border-slate-800/80 text-xs"
                   >
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                      <span style={{ color: item.color === 'green' ? 'var(--success)' : item.color === 'red' ? 'var(--error)' : 'var(--warning)', fontWeight: 700 }}>
-                        {item.color === 'green' ? '✓' : item.color === 'red' ? '✕' : '⚠'}
-                      </span>
-                      <span style={{ fontWeight: 600, color: '#F8FAFC' }}>{item.name}</span>
-                      <span style={{ color: 'var(--text-muted)' }}>— {item.statusMessage}</span>
+                    <div className="flex items-center gap-2.5 truncate">
+                      {item.color === 'green' ? (
+                        <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
+                      ) : item.color === 'red' ? (
+                        <XCircle className="w-4 h-4 text-red-400 shrink-0" />
+                      ) : (
+                        <ShieldAlert className="w-4 h-4 text-amber-400 shrink-0" />
+                      )}
+                      <span className="font-semibold text-white truncate">{item.name}</span>
+                      <span className="text-slate-400 truncate">— {item.statusMessage}</span>
                     </div>
-                    <span className="text-mono text-caption" style={{ color: 'var(--text-muted)' }}>{item.time}</span>
+                    <span className="font-mono text-[10px] text-slate-500 shrink-0 ml-2">
+                      {item.time}
+                    </span>
                   </div>
                 ))}
               </div>
             </div>
-          </div>
+          </footer>
         )}
 
-        {/* Hidden input for hardware scanner */}
+        {/* Hardware scanner hidden input */}
         {!useCam && (
           <input
             ref={inputRef}
             type="text"
-            style={{ position: 'fixed', top: -100, left: -100, opacity: 0 }}
+            className="fixed -top-32 -left-32 opacity-0"
             onKeyDown={handleKeyDown}
             onChange={handleInput}
             autoFocus
@@ -357,4 +400,3 @@ export default function ScanPage() {
     </ThemeProvider>
   );
 }
-

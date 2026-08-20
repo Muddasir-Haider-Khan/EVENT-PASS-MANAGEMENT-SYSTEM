@@ -5,6 +5,20 @@ import { useRouter, usePathname } from 'next/navigation';
 import { ThemeProvider } from '@/components/ThemeProvider';
 import { ToastProvider } from '@/components/Toast';
 import { Media27Logo } from '@/components/27MediaLogo';
+import {
+  LayoutDashboard,
+  Sliders,
+  FileEdit,
+  Inbox,
+  Users,
+  Shield,
+  Share2,
+  QrCode,
+  Globe,
+  LogOut,
+  Menu,
+  X,
+} from 'lucide-react';
 
 interface EventData {
   id: string;
@@ -18,14 +32,14 @@ interface EventData {
 }
 
 const MANAGER_NAV_ITEMS = [
-  { href: '/manager', label: 'Dashboard Overview', icon: '◈' },
-  { href: '/manager/settings', label: 'Event Branding & Settings', icon: '⚙' },
-  { href: '/manager/form-builder', label: 'Form Builder', icon: '▤' },
-  { href: '/manager/submissions', label: 'Submissions Triage', icon: '◫' },
-  { href: '/manager/participants', label: 'Pass Holders & Attendees', icon: '◑' },
-  { href: '/manager/gates', label: 'Gate Control & Scanner Accounts', icon: '⊞' },
-  { href: '/manager/publish', label: 'Publish & QR Distribution', icon: '◉' },
-  { href: '/gate', label: 'Open Gate Scanner', icon: '📱' },
+  { href: '/manager', label: 'Dashboard Overview', icon: LayoutDashboard },
+  { href: '/manager/settings', label: 'Event Branding & Settings', icon: Sliders },
+  { href: '/manager/form-builder', label: 'Form Builder', icon: FileEdit },
+  { href: '/manager/submissions', label: 'Submissions Triage', icon: Inbox },
+  { href: '/manager/participants', label: 'Pass Holders & Attendees', icon: Users },
+  { href: '/manager/gates', label: 'Gate Control & Scanner Accounts', icon: Shield },
+  { href: '/manager/publish', label: 'Publish & QR Distribution', icon: Share2 },
+  { href: '/gate', label: 'Open Gate Scanner', icon: QrCode },
 ];
 
 export default function ManagerLayout({ children }: { children: React.ReactNode }) {
@@ -39,7 +53,10 @@ export default function ManagerLayout({ children }: { children: React.ReactNode 
     async function check() {
       try {
         const res = await fetch('/api/manager/dashboard');
-        if (res.status === 401) { router.push('/login'); return; }
+        if (res.status === 401) {
+          router.push('/login');
+          return;
+        }
         const data = await res.json();
         setEvent(data.event);
       } catch {
@@ -58,124 +75,94 @@ export default function ManagerLayout({ children }: { children: React.ReactNode 
 
   if (loading || !event) {
     return (
-      <div style={{ minHeight: '100vh', background: 'var(--bg-root)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-        <div style={{ textAlign: 'center' }}>
-          <div className="spinner" style={{ borderTopColor: 'var(--gold-primary)', margin: '0 auto' }} />
-          <div style={{ marginTop: 16, fontSize: 13, color: 'var(--text-muted)' }}>Loading 27 Media Manager Portal...</div>
+      <div className="min-h-screen bg-slate-950 flex flex-col items-center justify-center">
+        <div className="flex flex-col items-center gap-3">
+          <div className="w-8 h-8 border-2 border-indigo-500 border-t-transparent rounded-full animate-spin" />
+          <p className="text-xs font-medium text-slate-400">Loading Manager Portal...</p>
         </div>
       </div>
     );
   }
 
   return (
-    <ThemeProvider primaryColor={event.primaryColor} secondaryColor={event.secondaryColor} accentColor={event.accentColor}>
+    <ThemeProvider
+      primaryColor={event.primaryColor}
+      secondaryColor={event.secondaryColor}
+      accentColor={event.accentColor}
+    >
       <ToastProvider>
-        <div style={{ display: 'flex', minHeight: '100vh', background: 'var(--bg-root)' }}>
+        <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col md:flex-row antialiased">
           {/* Mobile Overlay */}
           {sidebarOpen && (
             <div
-              style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.7)', zIndex: 40, backdropFilter: 'blur(4px)' }}
+              className="fixed inset-0 bg-black/80 z-40 backdrop-blur-sm md:hidden"
               onClick={() => setSidebarOpen(false)}
             />
           )}
 
           {/* Manager Sidebar */}
           <aside
-            className="manager-sidebar"
-            style={{
-              width: 270,
-              background: 'var(--bg-surface)',
-              borderRight: '1px solid var(--border-default)',
-              display: 'flex',
-              flexDirection: 'column',
-              position: 'fixed',
-              top: 0,
-              left: sidebarOpen ? 0 : -270,
-              bottom: 0,
-              zIndex: 50,
-              transition: 'left 200ms ease',
-            }}
+            className={`fixed top-0 bottom-0 left-0 z-50 w-64 bg-slate-900 border-r border-slate-800 flex flex-col transition-transform duration-200 ease-in-out md:translate-x-0 ${
+              sidebarOpen ? 'translate-x-0' : '-translate-x-full'
+            }`}
           >
             {/* Header Brand */}
-            <div style={{ padding: '20px 18px', borderBottom: '1px solid var(--border-default)' }}>
-              <Media27Logo size="sm" />
-              <div
-                style={{
-                  marginTop: 16,
-                  padding: 12,
-                  borderRadius: 10,
-                  background: 'var(--bg-elevated)',
-                  border: '1px solid var(--border-default)',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: 10,
-                }}
-              >
+            <div className="p-5 border-b border-slate-800 space-y-4">
+              <div className="flex items-center justify-between">
+                <Media27Logo size="sm" />
+                <button
+                  onClick={() => setSidebarOpen(false)}
+                  className="md:hidden text-slate-400 hover:text-white p-1"
+                  aria-label="Close menu"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+
+              <div className="flex items-center gap-3 p-2.5 rounded-xl bg-slate-950/80 border border-slate-800">
                 {event.logoUrl ? (
                   <img
                     src={event.logoUrl}
-                    alt=""
-                    style={{ width: 34, height: 34, borderRadius: 8, objectFit: 'cover', border: '1px solid var(--border-default)' }}
+                    alt={event.name}
+                    className="w-8 h-8 rounded-lg object-cover border border-slate-700"
                   />
                 ) : (
-                  <div
-                    style={{
-                      width: 34,
-                      height: 34,
-                      borderRadius: 8,
-                      background: 'var(--gold-gradient)',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      color: '#070709',
-                      fontWeight: 800,
-                      fontSize: 14,
-                    }}
-                  >
+                  <div className="w-8 h-8 rounded-lg bg-indigo-600 flex items-center justify-center font-bold text-white text-xs">
                     {event.name.charAt(0).toUpperCase()}
                   </div>
                 )}
-                <div style={{ overflow: 'hidden' }}>
-                  <div className="truncate" style={{ fontWeight: 600, fontSize: 13, color: '#F8FAFC' }}>
-                    {event.name}
-                  </div>
-                  <div style={{ fontSize: 11, color: 'var(--gold-light)' }}>
-                    ● {event.status} Manager
-                  </div>
+                <div className="min-w-0 flex-1">
+                  <p className="text-xs font-semibold text-white truncate">{event.name}</p>
+                  <p className="text-[10px] font-medium text-emerald-400 flex items-center gap-1">
+                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                    {event.status} Manager
+                  </p>
                 </div>
               </div>
             </div>
 
-            {/* All Tabs Navigation */}
-            <nav style={{ flex: 1, padding: '16px 12px', overflowY: 'auto' }}>
-              <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: '0.12em', color: 'var(--text-muted)', padding: '0 10px 8px', textTransform: 'uppercase' }}>
-                Event Management Tabs
+            {/* Navigation Tabs */}
+            <nav className="flex-1 p-3 space-y-1 overflow-y-auto">
+              <div className="text-[10px] font-bold tracking-wider text-slate-400 px-3 pb-2 uppercase">
+                Event Management
               </div>
               {MANAGER_NAV_ITEMS.map((item) => {
+                const Icon = item.icon;
                 const active = pathname === item.href;
                 return (
                   <button
                     key={item.href}
-                    onClick={() => { router.push(item.href); setSidebarOpen(false); }}
-                    style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: 12,
-                      width: '100%',
-                      padding: '10px 12px',
-                      borderRadius: 8,
-                      border: active ? '1px solid var(--border-hover)' : '1px solid transparent',
-                      background: active ? 'rgba(212, 175, 55, 0.12)' : 'transparent',
-                      color: active ? 'var(--gold-light)' : 'var(--text-secondary)',
-                      cursor: 'pointer',
-                      fontSize: 13.5,
-                      fontWeight: active ? 600 : 400,
-                      marginBottom: 3,
-                      textAlign: 'left',
-                      transition: 'all 120ms ease',
+                    onClick={() => {
+                      router.push(item.href);
+                      setSidebarOpen(false);
                     }}
+                    className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl border text-xs font-medium transition-all duration-150 cursor-pointer ${
+                      active
+                        ? 'bg-indigo-500/10 border-indigo-500/30 text-indigo-300 shadow-sm'
+                        : 'border-transparent text-slate-400 hover:text-slate-100 hover:bg-slate-800/60'
+                    }`}
                   >
-                    <span style={{ fontSize: 15, width: 20, textAlign: 'center' }}>{item.icon}</span>
+                    <Icon className={`w-4 h-4 ${active ? 'text-indigo-400' : 'text-slate-400'}`} />
                     <span className="truncate">{item.label}</span>
                   </button>
                 );
@@ -183,187 +170,83 @@ export default function ManagerLayout({ children }: { children: React.ReactNode 
             </nav>
 
             {/* Footer */}
-            <div style={{ padding: '14px 16px', borderTop: '1px solid var(--border-default)', display: 'flex', flexDirection: 'column', gap: 8 }}>
+            <div className="p-3 border-t border-slate-800 space-y-2">
               {event.slug && (
                 <a
                   href={`/event/${event.slug}`}
                   target="_blank"
                   rel="noreferrer"
-                  style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    gap: 6,
-                    padding: '8px',
-                    fontSize: 12,
-                    color: 'var(--gold-light)',
-                    textDecoration: 'none',
-                    background: 'var(--bg-root)',
-                    borderRadius: 8,
-                    border: '1px solid var(--border-default)',
-                  }}
+                  className="flex items-center justify-center gap-2 w-full p-2 text-xs font-medium text-indigo-400 hover:text-indigo-300 bg-indigo-500/10 border border-indigo-500/20 rounded-xl transition"
                 >
-                  🌐 View Public Pass Form ↗
+                  <Globe className="w-3.5 h-3.5" />
+                  <span>Public Pass Form ↗</span>
                 </a>
               )}
-              <button className="btn btn-ghost btn-sm" style={{ width: '100%', color: 'var(--error)' }} onClick={handleLogout}>
-                Sign Out
+              <button
+                onClick={handleLogout}
+                className="flex items-center justify-center gap-2 w-full p-2 text-xs font-medium text-red-400 hover:text-red-300 bg-red-500/10 hover:bg-red-500/20 border border-red-500/20 rounded-xl transition cursor-pointer"
+              >
+                <LogOut className="w-3.5 h-3.5" />
+                <span>Sign Out</span>
               </button>
             </div>
           </aside>
 
-          {/* Main Content & Mobile Viewport Container */}
-          <main className="manager-main" style={{ flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0 }}>
-            {/* Mobile App Header */}
-            <div
-              className="manager-mobile-header"
-              style={{
-                position: 'sticky',
-                top: 0,
-                zIndex: 30,
-                padding: '10px 16px',
-                background: 'rgba(14, 15, 20, 0.92)',
-                backdropFilter: 'blur(16px)',
-                WebkitBackdropFilter: 'blur(16px)',
-                borderBottom: '1px solid var(--border-default)',
-                display: 'none',
-                alignItems: 'center',
-                justifyContent: 'space-between',
-              }}
-            >
-              <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+          {/* Main Content & Mobile Viewport */}
+          <main className="flex-1 md:ml-64 min-h-screen flex flex-col pb-20 md:pb-0 min-w-0">
+            {/* Mobile Top Header */}
+            <header className="md:hidden sticky top-0 z-30 px-4 py-3 bg-slate-900/90 border-b border-slate-800 backdrop-blur-md flex items-center justify-between">
+              <div className="flex items-center gap-3">
                 <button
                   onClick={() => setSidebarOpen(true)}
-                  style={{
-                    background: 'var(--bg-elevated)',
-                    border: '1px solid var(--border-default)',
-                    color: 'var(--text-primary)',
-                    width: 36,
-                    height: 36,
-                    borderRadius: 10,
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    fontSize: 18,
-                    cursor: 'pointer',
-                  }}
-                  aria-label="Open Navigation Menu"
+                  className="p-2 rounded-xl bg-slate-800 border border-slate-700 text-slate-200 hover:text-white"
+                  aria-label="Open Navigation"
                 >
-                  ☰
+                  <Menu className="w-5 h-5" />
                 </button>
-                <div style={{ overflow: 'hidden' }}>
-                  <div className="truncate" style={{ fontSize: 13, fontWeight: 700, color: '#F8FAFC' }}>
-                    {event.name}
-                  </div>
-                  <div style={{ fontSize: 10, color: 'var(--gold-light)' }}>
-                    Enterprise Event Portal
-                  </div>
+                <div className="min-w-0">
+                  <h1 className="text-xs font-bold text-white truncate max-w-[160px]">{event.name}</h1>
+                  <p className="text-[10px] text-indigo-400 font-medium">Enterprise Portal</p>
                 </div>
               </div>
 
               <button
                 onClick={() => router.push('/gate')}
-                style={{
-                  background: 'var(--gold-gradient)',
-                  color: '#070709',
-                  border: 'none',
-                  borderRadius: 20,
-                  padding: '6px 14px',
-                  fontSize: 11.5,
-                  fontWeight: 700,
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: 6,
-                  cursor: 'pointer',
-                  boxShadow: '0 2px 10px rgba(212, 175, 55, 0.3)',
-                }}
+                className="flex items-center gap-1.5 px-3 py-1.5 bg-indigo-600 text-white text-xs font-semibold rounded-full shadow-lg shadow-indigo-600/30"
               >
-                <span>📱</span> Gate Scan
+                <QrCode className="w-3.5 h-3.5" />
+                <span>Gate Scan</span>
               </button>
-            </div>
+            </header>
 
-            <div style={{ flex: 1 }}>{children}</div>
+            <div className="flex-1 p-4 sm:p-6 lg:p-8">{children}</div>
 
-            {/* Mobile Bottom App Navigation Bar (Fluent Native App Dock) */}
-            <nav
-              className="manager-mobile-dock"
-              style={{
-                display: 'none',
-                position: 'fixed',
-                bottom: 0,
-                left: 0,
-                right: 0,
-                height: 64,
-                background: 'rgba(14, 15, 20, 0.94)',
-                backdropFilter: 'blur(20px)',
-                WebkitBackdropFilter: 'blur(20px)',
-                borderTop: '1px solid var(--border-default)',
-                zIndex: 35,
-                justifyContent: 'space-around',
-                alignItems: 'center',
-                paddingBottom: 'env(safe-area-inset-bottom)',
-              }}
-            >
+            {/* Mobile Bottom Navigation Bar */}
+            <nav className="md:hidden fixed bottom-0 left-0 right-0 h-16 bg-slate-900/95 border-t border-slate-800 backdrop-blur-lg z-30 flex items-center justify-around px-2 pb-[env(safe-area-inset-bottom)]">
               {[
-                { href: '/manager', label: 'Overview', icon: '📊' },
-                { href: '/manager/submissions', label: 'Requests', icon: '📥' },
-                { href: '/manager/participants', label: 'Attendees', icon: '🎟️' },
-                { href: '/manager/gates', label: 'Gates', icon: '🚪' },
-                { href: '/manager/settings', label: 'Branding', icon: '⚙️' },
+                { href: '/manager', label: 'Overview', icon: LayoutDashboard },
+                { href: '/manager/submissions', label: 'Requests', icon: Inbox },
+                { href: '/manager/participants', label: 'Attendees', icon: Users },
+                { href: '/manager/gates', label: 'Gates', icon: Shield },
+                { href: '/manager/settings', label: 'Branding', icon: Sliders },
               ].map((tab) => {
+                const Icon = tab.icon;
                 const active = pathname === tab.href;
                 return (
                   <button
                     key={tab.href}
                     onClick={() => router.push(tab.href)}
-                    style={{
-                      flex: 1,
-                      display: 'flex',
-                      flexDirection: 'column',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      height: '100%',
-                      background: 'transparent',
-                      border: 'none',
-                      color: active ? 'var(--gold-light)' : 'var(--text-muted)',
-                      cursor: 'pointer',
-                      position: 'relative',
-                      gap: 2,
-                    }}
+                    className={`flex-1 flex flex-col items-center justify-center py-1 cursor-pointer transition ${
+                      active ? 'text-indigo-400 font-semibold' : 'text-slate-400 hover:text-slate-300'
+                    }`}
                   >
-                    <span style={{ fontSize: 18, transform: active ? 'scale(1.15)' : 'scale(1)', transition: 'transform 150ms ease' }}>
-                      {tab.icon}
-                    </span>
-                    <span style={{ fontSize: 10, fontWeight: active ? 700 : 400 }}>
-                      {tab.label}
-                    </span>
-                    {active && (
-                      <span
-                        style={{
-                          position: 'absolute',
-                          top: 4,
-                          width: 4,
-                          height: 4,
-                          borderRadius: '50%',
-                          background: 'var(--gold-primary)',
-                          boxShadow: '0 0 8px var(--gold-primary)',
-                        }}
-                      />
-                    )}
+                    <Icon className={`w-5 h-5 ${active ? 'scale-110 text-indigo-400' : ''}`} />
+                    <span className="text-[10px] mt-0.5">{tab.label}</span>
                   </button>
                 );
               })}
             </nav>
           </main>
-
-          <style>{`
-            @media (max-width: 768px) {
-              .manager-sidebar { left: ${sidebarOpen ? '0' : '-270px'} !important; }
-              .manager-main { margin-left: 0 !important; padding-bottom: 70px !important; }
-              .manager-mobile-header { display: flex !important; }
-              .manager-mobile-dock { display: flex !important; }
-            }
-          `}</style>
         </div>
       </ToastProvider>
     </ThemeProvider>

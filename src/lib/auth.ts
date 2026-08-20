@@ -131,6 +131,6 @@ export function generateLoginId(eventName: string): string {
     .replace(/[^a-z0-9]+/g, '-')
     .replace(/^-|-$/g, '')
     .slice(0, 20);
-  const suffix = Math.random().toString(36).slice(2, 6);
+  const suffix = crypto.randomBytes(3).toString('hex').slice(0, 4);
   return `${base}-${suffix}`;
 }

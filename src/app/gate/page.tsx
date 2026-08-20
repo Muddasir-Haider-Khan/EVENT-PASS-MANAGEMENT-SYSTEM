@@ -3,6 +3,10 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Media27Logo } from '@/components/27MediaLogo';
+import { Button } from '@/components/ui/Button';
+import { Card } from '@/components/ui/Card';
+import { Badge } from '@/components/ui/Badge';
+import { ShieldCheck, KeyRound, ArrowRight } from 'lucide-react';
 
 export default function GateOTPPage() {
   const router = useRouter();
@@ -35,68 +39,61 @@ export default function GateOTPPage() {
   }
 
   return (
-    <div style={{ minHeight: '100vh', background: '#070709', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20 }}>
-      <div className="card card-gold-glow" style={{ maxWidth: 420, width: '100%', padding: 36, textAlign: 'center' }}>
-        <div style={{ marginBottom: 20 }}>
+    <div className="min-h-screen bg-slate-950 flex items-center justify-center p-4 antialiased">
+      <Card variant="glass" className="max-w-md w-full p-8 text-center border-slate-800 shadow-2xl">
+        <div className="flex justify-center mb-6">
           <Media27Logo size="sm" />
         </div>
 
-        <span className="badge badge-gold" style={{ marginBottom: 12 }}>
-          Mobile Gate Access Point
-        </span>
+        <div className="mb-4">
+          <Badge variant="indigo" icon={<ShieldCheck className="w-3.5 h-3.5" />}>
+            Mobile Gate Access Point
+          </Badge>
+        </div>
 
-        <h1 className="text-headline gold-gradient-text" style={{ marginBottom: 6 }}>
+        <h1 className="text-2xl font-bold tracking-tight text-white mb-2">
           Enter Gate OTP
         </h1>
-        <p className="text-caption" style={{ color: 'var(--text-secondary)', marginBottom: 28 }}>
-          Enter the Gate Access OTP provided by your 27 Media Event Manager.
+        <p className="text-sm text-slate-400 mb-6">
+          Enter the Access OTP code provided by your Event Manager to initialize scanner.
         </p>
 
-        <form onSubmit={handleSubmit}>
-          <input
-            className="input text-mono"
-            style={{
-              textAlign: 'center',
-              fontSize: 22,
-              letterSpacing: '0.12em',
-              padding: '14px 16px',
-              color: 'var(--gold-light)',
-              fontWeight: 800,
-              background: 'rgba(0,0,0,0.6)',
-              border: '1px solid var(--border-hover)',
-              width: '100%',
-              boxSizing: 'border-box',
-            }}
-            value={otp}
-            onChange={(e) => setOtp(e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, ''))}
-            placeholder="ENTER OTP CODE"
-            required
-            autoFocus
-            autoComplete="off"
-            maxLength={16}
-          />
+        <form onSubmit={handleSubmit} className="space-y-5">
+          <div className="relative">
+            <div className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-500">
+              <KeyRound className="w-5 h-5" />
+            </div>
+            <input
+              type="text"
+              value={otp}
+              onChange={(e) => setOtp(e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, ''))}
+              placeholder="ENTER OTP CODE"
+              required
+              autoFocus
+              autoComplete="off"
+              maxLength={16}
+              className="w-full bg-slate-950/90 border border-slate-800 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500 text-center font-mono text-xl tracking-widest text-indigo-300 placeholder-slate-600 rounded-xl py-3.5 pl-11 pr-4 transition outline-none"
+            />
+          </div>
 
           {error && (
-            <div
-              style={{
-                color: 'var(--error)',
-                fontSize: 13,
-                marginTop: 14,
-                padding: '10px 14px',
-                background: 'rgba(239, 68, 68, 0.1)',
-                border: '1px solid rgba(239, 68, 68, 0.25)',
-                borderRadius: 8,
-              }}
-            >
+            <div className="p-3 text-xs font-semibold text-red-400 bg-red-500/10 border border-red-500/20 rounded-xl text-left">
               {error}
             </div>
           )}
 
-          <button type="submit" className="btn btn-gold" style={{ width: '100%', height: 46, marginTop: 20, fontSize: 15 }} disabled={loading}>
-            {loading ? <span className="spinner" style={{ borderTopColor: '#070709' }} /> : 'Authenticate Gate Scanner →'}
-          </button>
+          <Button
+            type="submit"
+            variant="primary"
+            size="lg"
+            isLoading={loading}
+            rightIcon={<ArrowRight className="w-4 h-4" />}
+            className="w-full"
+          >
+            Authenticate Gate Scanner
+          </Button>
         </form>
-      </div>
+      </Card>
     </div>
   );
 }

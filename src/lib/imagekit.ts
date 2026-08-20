@@ -102,11 +102,11 @@ export function validateImageFile(
   mimeType: string,
   sizeBytes: number
 ): { valid: boolean; error?: string } {
-  const allowedTypes = ['image/png', 'image/jpeg', 'image/webp', 'image/gif', 'image/svg+xml'];
+  const allowedTypes = ['image/png', 'image/jpeg', 'image/webp', 'image/gif'];
   const MAX_SIZE = 6 * 1024 * 1024; // 6MB
 
   if (!allowedTypes.includes(mimeType)) {
-    return { valid: false, error: 'Only image files (PNG, JPEG, WebP, GIF, SVG) are allowed' };
+    return { valid: false, error: 'Only image files (PNG, JPEG, WebP, GIF) are allowed' };
   }
   if (sizeBytes > MAX_SIZE) {
     return { valid: false, error: 'File size must be 6MB or less' };

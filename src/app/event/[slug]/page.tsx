@@ -4,6 +4,19 @@ import { useEffect, useState } from 'react';
 import { useParams } from 'next/navigation';
 import { ThemeProvider } from '@/components/ThemeProvider';
 import { Media27Logo } from '@/components/27MediaLogo';
+import { Button } from '@/components/ui/Button';
+import { Card } from '@/components/ui/Card';
+import { Badge } from '@/components/ui/Badge';
+import {
+  Ticket,
+  MapPin,
+  Calendar,
+  CheckCircle2,
+  Copy,
+  Check,
+  Send,
+  AlertCircle,
+} from 'lucide-react';
 
 interface Field {
   id: string;
@@ -92,159 +105,199 @@ export default function PublicEventPage() {
 
   if (loading) {
     return (
-      <div style={{ minHeight: '100vh', background: '#070709', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-        <div className="spinner" style={{ borderTopColor: '#D4AF37' }} />
+      <div className="min-h-screen bg-slate-950 flex items-center justify-center">
+        <div className="w-8 h-8 border-2 border-indigo-500 border-t-transparent rounded-full animate-spin" />
       </div>
     );
   }
 
   if (!event) {
     return (
-      <div style={{ minHeight: '100vh', background: '#070709', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20 }}>
-        <div className="card" style={{ maxWidth: 480, width: '100%', padding: 40, textAlign: 'center' }}>
+      <div className="min-h-screen bg-slate-950 flex items-center justify-center p-4">
+        <Card variant="glass" className="max-w-md w-full p-8 text-center border-slate-800">
           <Media27Logo size="sm" />
-          <h1 className="text-headline" style={{ marginTop: 20, color: '#F8FAFC' }}>Event Not Found</h1>
-          <p className="text-body" style={{ color: 'var(--text-secondary)', marginTop: 8 }}>
+          <h1 className="text-xl font-bold text-white mt-6 mb-2">Event Not Found</h1>
+          <p className="text-sm text-slate-400">
             This event pass registration page is either unavailable or has expired.
           </p>
-        </div>
+        </Card>
       </div>
     );
   }
 
   if (submitted) {
     return (
-      <ThemeProvider primaryColor={event.primaryColor} secondaryColor={event.secondaryColor} accentColor={event.accentColor} fontFamily={event.fontFamily}>
-        <div style={{ minHeight: '100vh', background: 'var(--bg-root)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 24 }}>
-          <div className="card card-gold-glow" style={{ maxWidth: 540, width: '100%', padding: 40, textAlign: 'center' }}>
-            <div style={{ marginBottom: 20 }}>
+      <ThemeProvider
+        primaryColor={event.primaryColor}
+        secondaryColor={event.secondaryColor}
+        accentColor={event.accentColor}
+        fontFamily={event.fontFamily}
+      >
+        <div className="min-h-screen bg-slate-950 flex items-center justify-center p-4 antialiased">
+          <Card variant="glass" className="max-w-lg w-full p-8 text-center border-slate-800 shadow-2xl space-y-6">
+            <div className="flex justify-center">
               <Media27Logo size="sm" />
             </div>
 
             {event.logoUrl ? (
-              <img src={event.logoUrl} alt="" style={{ width: 72, height: 72, borderRadius: 16, objectFit: 'cover', margin: '0 auto 20px', border: '1px solid var(--border-default)' }} />
+              <img
+                src={event.logoUrl}
+                alt={event.name}
+                className="w-20 h-20 rounded-2xl object-cover mx-auto border border-slate-700 shadow-lg"
+              />
             ) : (
-              <div style={{ fontSize: 48, marginBottom: 12 }}>🎫</div>
+              <div className="w-16 h-16 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400 mx-auto">
+                <Ticket className="w-8 h-8" />
+              </div>
             )}
 
-            <span className="badge badge-gold" style={{ marginBottom: 12 }}>✓ Registration Submitted</span>
-            <h1 className="text-headline gold-gradient-text">Registration Complete!</h1>
-            <p className="text-body" style={{ color: 'var(--text-secondary)', margin: '14px 0 24px', lineHeight: 1.6 }}>
-              Your registration for <strong>{event.name}</strong> has been received. Your digital pass and QR code will be generated upon review.
-            </p>
+            <div>
+              <Badge variant="green" icon={<CheckCircle2 className="w-3.5 h-3.5" />}>
+                Registration Submitted
+              </Badge>
+              <h1 className="text-2xl font-bold text-white tracking-tight mt-3 mb-2">
+                Registration Complete!
+              </h1>
+              <p className="text-sm text-slate-300 leading-relaxed">
+                Your registration for <strong className="text-white">{event.name}</strong> has been received.
+                Your digital pass and QR code will be generated upon review.
+              </p>
+            </div>
 
             {(payment.accountNumber || payment.paymentPhone) && (
-              <div className="card-elevated" style={{ padding: 24, textAlign: 'left', borderRadius: 12, border: '1px solid var(--border-hover)' }}>
-                <h3 className="text-title" style={{ color: 'var(--gold-light)', marginBottom: 14 }}>
+              <div className="p-5 rounded-2xl bg-slate-950/80 border border-slate-800 text-left space-y-4">
+                <h3 className="text-sm font-bold text-amber-300 uppercase tracking-wider">
                   Payment & Verification Instructions
                 </h3>
+
                 {payment.accountNumber && (
-                  <div style={{ marginBottom: 16 }}>
-                    <div className="text-overline" style={{ color: 'var(--text-muted)' }}>Bank Account / IBAN</div>
-                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: 4, background: 'var(--bg-root)', padding: '8px 12px', borderRadius: 8, border: '1px solid var(--border-default)' }}>
-                      <span className="text-mono" style={{ fontSize: 15, color: '#F8FAFC', fontWeight: 600 }}>
+                  <div>
+                    <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
+                      Bank Account / IBAN
+                    </span>
+                    <div className="flex items-center justify-between mt-1 p-3 bg-slate-900 border border-slate-800 rounded-xl">
+                      <span className="font-mono text-sm font-semibold text-white">
                         {payment.accountNumber}
                       </span>
-                      <button
-                        className="btn btn-ghost btn-sm"
-                        style={{ color: 'var(--gold-light)', fontSize: 12 }}
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        leftIcon={copiedAcc ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
                         onClick={() => {
                           navigator.clipboard.writeText(payment.accountNumber || '');
                           setCopiedAcc(true);
                           setTimeout(() => setCopiedAcc(false), 2000);
                         }}
                       >
-                        {copiedAcc ? '✓ Copied!' : '📋 Copy Account'}
-                      </button>
+                        {copiedAcc ? 'Copied' : 'Copy'}
+                      </Button>
                     </div>
                   </div>
                 )}
+
                 {payment.paymentPhone && (
                   <div>
-                    <div className="text-overline" style={{ color: 'var(--text-muted)' }}>Send Payment Receipt To</div>
-                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: 4, background: 'var(--bg-root)', padding: '8px 12px', borderRadius: 8, border: '1px solid var(--border-default)' }}>
-                      <span className="text-mono" style={{ fontSize: 15, color: 'var(--gold-light)', fontWeight: 600 }}>
+                    <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
+                      Send Receipt To
+                    </span>
+                    <div className="flex items-center justify-between mt-1 p-3 bg-slate-900 border border-slate-800 rounded-xl">
+                      <span className="font-mono text-sm font-semibold text-amber-300">
                         {payment.paymentPhone}
                       </span>
-                      <button
-                        className="btn btn-ghost btn-sm"
-                        style={{ color: 'var(--gold-light)', fontSize: 12 }}
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        leftIcon={copiedPhone ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
                         onClick={() => {
                           navigator.clipboard.writeText(payment.paymentPhone || '');
                           setCopiedPhone(true);
                           setTimeout(() => setCopiedPhone(false), 2000);
                         }}
                       >
-                        {copiedPhone ? '✓ Copied!' : '📋 Copy Number'}
-                      </button>
+                        {copiedPhone ? 'Copied' : 'Copy'}
+                      </Button>
                     </div>
                   </div>
                 )}
               </div>
             )}
-          </div>
+          </Card>
         </div>
       </ThemeProvider>
     );
   }
 
   return (
-    <ThemeProvider primaryColor={event.primaryColor} secondaryColor={event.secondaryColor} accentColor={event.accentColor} fontFamily={event.fontFamily}>
-      <div style={{ minHeight: '100vh', background: 'var(--bg-root)', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '40px 20px' }}>
-        <div style={{ maxWidth: 600, width: '100%' }}>
+    <ThemeProvider
+      primaryColor={event.primaryColor}
+      secondaryColor={event.secondaryColor}
+      accentColor={event.accentColor}
+      fontFamily={event.fontFamily}
+    >
+      <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col items-center justify-center p-4 sm:p-6 lg:p-8 antialiased">
+        <div className="max-w-xl w-full space-y-6">
           {/* Top Brand Banner */}
-          <div style={{ textAlign: 'center', marginBottom: 28 }}>
+          <div className="text-center space-y-4">
             <Media27Logo size="sm" />
 
-            <div style={{ marginTop: 24 }}>
+            <div className="pt-2">
               {event.logoUrl && (
                 <img
                   src={event.logoUrl}
-                  alt=""
-                  style={{ width: 80, height: 80, borderRadius: 16, objectFit: 'cover', margin: '0 auto 16px', border: '1px solid var(--border-default)', boxShadow: '0 8px 24px rgba(0,0,0,0.5)' }}
+                  alt={event.name}
+                  className="w-20 h-20 rounded-2xl object-cover mx-auto mb-4 border border-slate-700 shadow-xl"
                 />
               )}
-              <h1 className="text-display gold-gradient-text" style={{ fontSize: '2.2rem' }}>
+              <h1 className="text-3xl font-black text-white tracking-tight sm:text-4xl">
                 {event.name}
               </h1>
-              <p className="text-body" style={{ color: 'var(--text-secondary)', marginTop: 6, fontWeight: 500 }}>
-                📍 {event.venue}
-              </p>
-              {event.eventDate && (
-                <p className="text-caption" style={{ color: 'var(--gold-light)', marginTop: 4, fontWeight: 600 }}>
-                  📅 {new Date(event.eventDate).toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
-                </p>
-              )}
+
+              <div className="flex flex-wrap items-center justify-center gap-4 mt-3 text-xs font-medium text-slate-300">
+                <span className="flex items-center gap-1.5 bg-slate-900 px-3 py-1.5 rounded-full border border-slate-800">
+                  <MapPin className="w-3.5 h-3.5 text-indigo-400" />
+                  <span>{event.venue}</span>
+                </span>
+                {event.eventDate && (
+                  <span className="flex items-center gap-1.5 bg-slate-900 px-3 py-1.5 rounded-full border border-slate-800">
+                    <Calendar className="w-3.5 h-3.5 text-indigo-400" />
+                    <span>
+                      {new Date(event.eventDate).toLocaleDateString('en-US', {
+                        month: 'short',
+                        day: 'numeric',
+                        year: 'numeric',
+                      })}
+                    </span>
+                  </span>
+                )}
+              </div>
+
               {event.description && (
-                <p className="text-caption" style={{ color: 'var(--text-muted)', marginTop: 10, maxWidth: 480, marginInline: 'auto', lineHeight: 1.5 }}>
+                <p className="text-xs text-slate-400 max-w-md mx-auto mt-3 leading-relaxed">
                   {event.description}
                 </p>
               )}
             </div>
           </div>
 
-          {/* Registration Form */}
-          <form onSubmit={handleSubmit} className="card card-gold-glow" style={{ padding: 32 }}>
-            <div style={{ borderBottom: '1px solid var(--border-default)', paddingBottom: 16, marginBottom: 24 }}>
-              <h2 className="text-title" style={{ color: '#F8FAFC', fontSize: 18 }}>
-                Attendee Pass Registration
-              </h2>
-              <p className="text-caption" style={{ color: 'var(--text-secondary)', marginTop: 2 }}>
+          {/* Registration Form Card */}
+          <Card variant="glass" className="p-6 sm:p-8 border-slate-800 shadow-2xl">
+            <div className="border-b border-slate-800 pb-4 mb-6">
+              <h2 className="text-base font-bold text-white">Attendee Pass Registration</h2>
+              <p className="text-xs text-slate-400 mt-1">
                 Please fill out all required details to issue your event entry pass.
               </p>
             </div>
 
-            <div style={{ display: 'grid', gap: 20 }}>
+            <form onSubmit={handleSubmit} className="space-y-5">
               {fields.map((field) => (
-                <div key={field.id}>
-                  <label className="input-label" style={{ marginBottom: 6 }}>
-                    {field.label} {field.required && <span style={{ color: 'var(--gold-light)' }}>*</span>}
+                <div key={field.id} className="space-y-1.5">
+                  <label className="block text-xs font-semibold uppercase tracking-wider text-slate-300">
+                    {field.label} {field.required && <span className="text-amber-400">*</span>}
                   </label>
 
                   {field.type === 'EMAIL' ? (
                     <input
                       type="email"
-                      className="input"
                       value={email}
                       onChange={(e) => {
                         setEmail(e.target.value);
@@ -252,47 +305,48 @@ export default function PublicEventPage() {
                       }}
                       required={field.required}
                       placeholder="your.email@example.com"
+                      className="w-full bg-slate-950/80 border border-slate-800 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500 text-base text-white placeholder-slate-500 rounded-xl px-4 py-3 transition outline-none"
                     />
                   ) : field.type === 'SHORT_TEXT' ? (
                     <input
-                      className="input"
+                      type="text"
                       value={(responses[field.id] as string) || ''}
                       onChange={(e) => updateResponse(field.id, e.target.value)}
                       required={field.required}
                       placeholder={`Enter ${field.label.toLowerCase()}...`}
+                      className="w-full bg-slate-950/80 border border-slate-800 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500 text-base text-white placeholder-slate-500 rounded-xl px-4 py-3 transition outline-none"
                     />
                   ) : field.type === 'PARAGRAPH' ? (
                     <textarea
-                      className="input"
                       rows={3}
                       value={(responses[field.id] as string) || ''}
                       onChange={(e) => updateResponse(field.id, e.target.value)}
                       required={field.required}
                       placeholder={`Enter ${field.label.toLowerCase()}...`}
-                      style={{ resize: 'vertical' }}
+                      className="w-full bg-slate-950/80 border border-slate-800 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500 text-base text-white placeholder-slate-500 rounded-xl p-4 transition outline-none resize-y"
                     />
                   ) : field.type === 'NUMBER' ? (
                     <input
                       type="number"
-                      className="input"
                       value={(responses[field.id] as string) || ''}
                       onChange={(e) => updateResponse(field.id, e.target.value)}
                       required={field.required}
+                      className="w-full bg-slate-950/80 border border-slate-800 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500 text-base text-white placeholder-slate-500 rounded-xl px-4 py-3 transition outline-none"
                     />
                   ) : field.type === 'DATE' ? (
                     <input
                       type="date"
-                      className="input"
                       value={(responses[field.id] as string) || ''}
                       onChange={(e) => updateResponse(field.id, e.target.value)}
                       required={field.required}
+                      className="w-full bg-slate-950/80 border border-slate-800 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500 text-base text-white placeholder-slate-500 rounded-xl px-4 py-3 transition outline-none"
                     />
                   ) : field.type === 'DROPDOWN' ? (
                     <select
-                      className="select"
                       value={(responses[field.id] as string) || ''}
                       onChange={(e) => updateResponse(field.id, e.target.value)}
                       required={field.required}
+                      className="w-full bg-slate-950/80 border border-slate-800 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500 text-base text-white rounded-xl px-4 py-3 transition outline-none"
                     >
                       <option value="">-- Choose Option --</option>
                       {(field.options || []).map((opt, i) => (
@@ -302,9 +356,9 @@ export default function PublicEventPage() {
                       ))}
                     </select>
                   ) : field.type === 'RADIO' ? (
-                    <div style={{ display: 'grid', gap: 8, marginTop: 4 }}>
+                    <div className="space-y-2 pt-1">
                       {(field.options || []).map((opt, i) => (
-                        <label key={i} style={{ display: 'flex', alignItems: 'center', gap: 10, cursor: 'pointer' }}>
+                        <label key={i} className="flex items-center gap-3 cursor-pointer text-sm text-slate-200">
                           <input
                             type="radio"
                             name={field.id}
@@ -312,16 +366,16 @@ export default function PublicEventPage() {
                             checked={responses[field.id] === opt}
                             onChange={() => updateResponse(field.id, opt)}
                             required={field.required}
-                            style={{ accentColor: 'var(--gold-primary)', width: 16, height: 16 }}
+                            className="w-4 h-4 accent-indigo-500 cursor-pointer"
                           />
-                          <span className="text-body" style={{ color: '#F8FAFC' }}>{opt}</span>
+                          <span>{opt}</span>
                         </label>
                       ))}
                     </div>
                   ) : field.type === 'CHECKBOX' ? (
-                    <div style={{ display: 'grid', gap: 8, marginTop: 4 }}>
+                    <div className="space-y-2 pt-1">
                       {(field.options || []).map((opt, i) => (
-                        <label key={i} style={{ display: 'flex', alignItems: 'center', gap: 10, cursor: 'pointer' }}>
+                        <label key={i} className="flex items-center gap-3 cursor-pointer text-sm text-slate-200">
                           <input
                             type="checkbox"
                             checked={((responses[field.id] as string[]) || []).includes(opt)}
@@ -332,37 +386,35 @@ export default function PublicEventPage() {
                                 e.target.checked ? [...cur, opt] : cur.filter((v: string) => v !== opt)
                               );
                             }}
-                            style={{ accentColor: 'var(--gold-primary)', width: 16, height: 16 }}
+                            className="w-4 h-4 accent-indigo-500 cursor-pointer"
                           />
-                          <span className="text-body" style={{ color: '#F8FAFC' }}>{opt}</span>
+                          <span>{opt}</span>
                         </label>
                       ))}
                     </div>
                   ) : null}
                 </div>
               ))}
-            </div>
 
-            {error && (
-              <div
-                style={{
-                  color: 'var(--error)',
-                  fontSize: 13,
-                  marginTop: 20,
-                  padding: '12px 16px',
-                  background: 'rgba(239, 68, 68, 0.1)',
-                  border: '1px solid rgba(239, 68, 68, 0.25)',
-                  borderRadius: 10,
-                }}
+              {error && (
+                <div className="flex items-center gap-2 p-3 text-xs font-semibold text-red-400 bg-red-500/10 border border-red-500/20 rounded-xl">
+                  <AlertCircle className="w-4 h-4 shrink-0" />
+                  <span>{error}</span>
+                </div>
+              )}
+
+              <Button
+                type="submit"
+                variant="primary"
+                size="lg"
+                isLoading={submitting}
+                rightIcon={<Send className="w-4 h-4" />}
+                className="w-full mt-4"
               >
-                {error}
-              </div>
-            )}
-
-            <button type="submit" className="btn btn-gold" style={{ width: '100%', height: 48, marginTop: 24, fontSize: 15 }} disabled={submitting}>
-              {submitting ? <span className="spinner" style={{ borderTopColor: '#070709' }} /> : 'Submit Event Pass Registration →'}
-            </button>
-          </form>
+                Submit Event Pass Registration
+              </Button>
+            </form>
+          </Card>
         </div>
       </div>
     </ThemeProvider>

@@ -4,11 +4,20 @@ import { useState } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import { ToastProvider } from '@/components/Toast';
 import { Media27Logo } from '@/components/27MediaLogo';
+import {
+  LayoutDashboard,
+  PlusCircle,
+  QrCode,
+  Globe,
+  LogOut,
+  Menu,
+  X,
+} from 'lucide-react';
 
 const ADMIN_NAV_ITEMS = [
-  { href: '/admin', label: 'Events Overview', icon: '📊' },
-  { href: '/admin/events/new', label: 'Create New Event', icon: '➕' },
-  { href: '/gate', label: 'Gate Scanner App', icon: '📱' },
+  { href: '/admin', label: 'Events Overview', icon: LayoutDashboard },
+  { href: '/admin/events/new', label: 'Create New Event', icon: PlusCircle },
+  { href: '/gate', label: 'Gate Scanner App', icon: QrCode },
 ];
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
@@ -23,156 +32,112 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
   return (
     <ToastProvider>
-      <div style={{ display: 'flex', minHeight: '100vh', background: 'var(--bg-root)' }}>
+      <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col md:flex-row antialiased">
         {/* Mobile Overlay */}
         {sidebarOpen && (
           <div
-            style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.7)', zIndex: 40, backdropFilter: 'blur(4px)' }}
+            className="fixed inset-0 bg-black/80 z-40 backdrop-blur-sm md:hidden"
             onClick={() => setSidebarOpen(false)}
           />
         )}
 
         {/* Super Admin Fixed Sidebar */}
         <aside
-          className="admin-sidebar"
-          style={{
-            width: 260,
-            background: 'var(--bg-surface)',
-            borderRight: '1px solid var(--border-default)',
-            display: 'flex',
-            flexDirection: 'column',
-            position: 'fixed',
-            top: 0,
-            left: sidebarOpen ? 0 : -260,
-            bottom: 0,
-            zIndex: 50,
-            transition: 'left 200ms ease',
-          }}
+          className={`fixed top-0 bottom-0 left-0 z-50 w-64 bg-slate-900 border-r border-slate-800 flex flex-col transition-transform duration-200 ease-in-out md:translate-x-0 ${
+            sidebarOpen ? 'translate-x-0' : '-translate-x-full'
+          }`}
         >
           {/* Brand Header */}
-          <div style={{ padding: '24px 20px', borderBottom: '1px solid var(--border-default)' }}>
-            <Media27Logo size="sm" />
-            <div
-              style={{
-                fontSize: 10,
-                fontWeight: 700,
-                letterSpacing: '0.12em',
-                color: 'var(--gold-light)',
-                background: 'rgba(212, 175, 55, 0.1)',
-                border: '1px solid rgba(212, 175, 55, 0.25)',
-                padding: '3px 8px',
-                borderRadius: 100,
-                marginTop: 12,
-                display: 'inline-block',
-                textTransform: 'uppercase',
-              }}
-            >
-              Master Super Admin Panel
+          <div className="p-6 border-b border-slate-800 flex flex-col items-start gap-2">
+            <div className="flex items-center justify-between w-full">
+              <Media27Logo size="sm" />
+              <button
+                onClick={() => setSidebarOpen(false)}
+                className="md:hidden text-slate-400 hover:text-white p-1"
+                aria-label="Close sidebar"
+              >
+                <X className="w-5 h-5" />
+              </button>
             </div>
+            <span className="text-[10px] font-bold tracking-widest text-amber-400 bg-amber-400/10 border border-amber-400/20 px-2.5 py-0.5 rounded-full uppercase">
+              Super Admin Portal
+            </span>
           </div>
 
           {/* Navigation Links */}
-          <nav style={{ flex: 1, padding: '16px 12px' }}>
-            <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.1em', color: 'var(--text-muted)', padding: '0 12px 10px', textTransform: 'uppercase' }}>
+          <nav className="flex-1 p-4 space-y-1">
+            <div className="text-[11px] font-bold tracking-wider text-slate-400 px-3 pb-2 uppercase">
               Management Tabs
             </div>
             {ADMIN_NAV_ITEMS.map((item) => {
+              const Icon = item.icon;
               const active = pathname === item.href;
               return (
                 <button
                   key={item.href}
-                  onClick={() => { router.push(item.href); setSidebarOpen(false); }}
-                  style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: 12,
-                    width: '100%',
-                    padding: '11px 14px',
-                    borderRadius: 10,
-                    border: active ? '1px solid var(--border-hover)' : '1px solid transparent',
-                    background: active ? 'rgba(212, 175, 55, 0.12)' : 'transparent',
-                    color: active ? 'var(--gold-light)' : 'var(--text-secondary)',
-                    cursor: 'pointer',
-                    fontSize: 14,
-                    fontWeight: active ? 600 : 400,
-                    marginBottom: 4,
-                    textAlign: 'left',
-                    transition: 'all 150ms ease',
+                  onClick={() => {
+                    router.push(item.href);
+                    setSidebarOpen(false);
                   }}
+                  className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl border text-sm font-medium transition-all duration-150 cursor-pointer ${
+                    active
+                      ? 'bg-amber-500/10 border-amber-500/30 text-amber-300 shadow-sm'
+                      : 'border-transparent text-slate-400 hover:text-slate-100 hover:bg-slate-800/60'
+                  }`}
                 >
-                  <span style={{ fontSize: 16 }}>{item.icon}</span>
-                  {item.label}
+                  <Icon className={`w-4 h-4 ${active ? 'text-amber-400' : 'text-slate-400'}`} />
+                  <span>{item.label}</span>
                 </button>
               );
             })}
           </nav>
 
           {/* Footer Controls */}
-          <div style={{ padding: '16px', borderTop: '1px solid var(--border-default)', display: 'flex', flexDirection: 'column', gap: 8 }}>
+          <div className="p-4 border-t border-slate-800 space-y-2">
             <a
               href="https://www.27mediaagency.com"
               target="_blank"
               rel="noreferrer"
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                gap: 6,
-                padding: '8px',
-                fontSize: 12,
-                color: 'var(--text-secondary)',
-                textDecoration: 'none',
-                background: 'var(--bg-root)',
-                borderRadius: 8,
-                border: '1px solid var(--border-default)',
-              }}
+              className="flex items-center justify-center gap-2 w-full p-2 text-xs font-medium text-slate-400 hover:text-slate-200 bg-slate-950 border border-slate-800 rounded-xl transition hover:border-slate-700"
             >
-              🌐 27mediaagency.com ↗
+              <Globe className="w-3.5 h-3.5 text-slate-400" />
+              <span>27mediaagency.com ↗</span>
             </a>
-            <button className="btn btn-ghost btn-sm" style={{ width: '100%', color: 'var(--error)' }} onClick={handleLogout}>
-              Sign Out
+            <button
+              onClick={handleLogout}
+              className="flex items-center justify-center gap-2 w-full p-2.5 text-xs font-medium text-red-400 hover:text-red-300 bg-red-500/10 hover:bg-red-500/20 border border-red-500/20 rounded-xl transition cursor-pointer"
+            >
+              <LogOut className="w-3.5 h-3.5" />
+              <span>Sign Out</span>
             </button>
           </div>
         </aside>
 
         {/* Main Content Area */}
-        <main className="admin-main" style={{ flex: 1, marginLeft: 260, minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
+        <main className="flex-1 md:ml-64 min-h-screen flex flex-col">
           {/* Mobile Top Navigation Header */}
-          <div
-            className="admin-mobile-header"
-            style={{
-              padding: '12px 20px',
-              background: 'var(--bg-surface)',
-              borderBottom: '1px solid var(--border-default)',
-              display: 'none',
-              alignItems: 'center',
-              justifyContent: 'space-between',
-            }}
-          >
-            <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+          <header className="md:hidden sticky top-0 z-30 px-4 py-3 bg-slate-900/90 border-b border-slate-800 backdrop-blur-md flex items-center justify-between">
+            <div className="flex items-center gap-3">
               <button
                 onClick={() => setSidebarOpen(true)}
-                style={{ background: 'none', border: 'none', color: 'var(--text-primary)', fontSize: 22, cursor: 'pointer' }}
+                className="text-slate-200 hover:text-white p-1 rounded-lg hover:bg-slate-800 transition"
+                aria-label="Open navigation sidebar"
               >
-                ☰
+                <Menu className="w-6 h-6" />
               </button>
               <Media27Logo size="sm" showSubtitle={false} />
             </div>
-            <button className="btn btn-gold btn-sm" onClick={() => router.push('/admin/events/new')}>
-              + New Event
+            <button
+              onClick={() => router.push('/admin/events/new')}
+              className="flex items-center gap-1.5 px-3 py-1.5 bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-medium rounded-xl transition shadow-sm"
+            >
+              <PlusCircle className="w-3.5 h-3.5" />
+              <span>New Event</span>
             </button>
-          </div>
+          </header>
 
-          <div style={{ flex: 1 }}>{children}</div>
+          <div className="flex-1 p-4 sm:p-6 lg:p-8">{children}</div>
         </main>
-
-        <style>{`
-          @media (max-width: 768px) {
-            .admin-sidebar { left: ${sidebarOpen ? '0' : '-260px'} !important; }
-            .admin-main { margin-left: 0 !important; }
-            .admin-mobile-header { display: flex !important; }
-          }
-        `}</style>
       </div>
     </ToastProvider>
   );

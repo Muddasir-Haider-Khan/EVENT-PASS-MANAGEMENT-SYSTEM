@@ -2,6 +2,13 @@
 
 import { useEffect, useState, useCallback } from 'react';
 import { useToast } from '@/components/Toast';
+import { Button } from '@/components/ui/Button';
+import { Card } from '@/components/ui/Card';
+import { Badge } from '@/components/ui/Badge';
+import { Input } from '@/components/ui/Input';
+import { EmptyState } from '@/components/ui/EmptyState';
+import { Skeleton } from '@/components/ui/Skeleton';
+import { Users, Download, Search, Mail, Clock, Ticket } from 'lucide-react';
 
 interface Participant {
   id: string;
@@ -41,10 +48,10 @@ export default function ParticipantsPage() {
     return () => clearTimeout(t);
   }, [search, loadParticipants]);
 
-  const badgeMap: Record<string, string> = {
-    NOT_ENTERED: 'badge-neutral',
-    INSIDE: 'badge-gold',
-    EXITED: 'badge-warning',
+  const badgeVariantMap: Record<string, 'slate' | 'green' | 'amber'> = {
+    NOT_ENTERED: 'slate',
+    INSIDE: 'green',
+    EXITED: 'amber',
   };
 
   const labelMap: Record<string, string> = {
@@ -54,77 +61,82 @@ export default function ParticipantsPage() {
   };
 
   return (
-    <div style={{ padding: '32px 28px', maxWidth: 1200, margin: '0 auto' }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 28, flexWrap: 'wrap', gap: 16 }}>
+    <div className="max-w-7xl mx-auto space-y-6 antialiased">
+      {/* Page Header */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <span className="text-overline" style={{ color: 'var(--gold-light)' }}>27 MEDIA AGENCY • ATTENDEE ROSTER</span>
-          <h1 className="text-headline gold-gradient-text" style={{ marginTop: 4 }}>
+          <span className="text-[10px] font-bold uppercase tracking-wider text-indigo-400">
+            Attendee Roster
+          </span>
+          <h1 className="text-2xl font-black text-white tracking-tight sm:text-3xl mt-0.5">
             Pass Holders ({participants.length})
           </h1>
-          <p className="text-caption" style={{ color: 'var(--text-secondary)', marginTop: 4 }}>
-            Real-time status of all generated digital passes and venue access logs.
+          <p className="text-xs text-slate-400 mt-1">
+            Real-time status of all generated digital passes and gate access records.
           </p>
         </div>
 
-        <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
-          <input
-            className="input"
-            style={{ maxWidth: 260, height: 38, fontSize: 13 }}
+        <div className="flex items-center gap-3">
+          <Input
+            placeholder="Search name, email..."
+            leftIcon={<Search className="w-4 h-4" />}
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            placeholder="Search name, email..."
+            className="w-full sm:w-64"
           />
-          <a
-            href="/api/manager/participants/export"
-            className="btn btn-gold btn-sm"
-            download
-            style={{ textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: 6 }}
-          >
-            ↓ Export Attendees CSV
+          <a href="/api/manager/participants/export" download className="shrink-0">
+            <Button
+              variant="outline"
+              size="md"
+              leftIcon={<Download className="w-4 h-4 text-indigo-400" />}
+            >
+              Export CSV
+            </Button>
           </a>
         </div>
       </div>
 
       {loading ? (
-        <div style={{ padding: 60, textAlign: 'center' }}>
-          <div className="spinner" style={{ margin: '0 auto', borderTopColor: 'var(--gold-primary)' }} />
+        <div className="space-y-3">
+          <Skeleton className="h-14 w-full" />
+          <Skeleton className="h-14 w-full" />
+          <Skeleton className="h-14 w-full" />
         </div>
       ) : participants.length === 0 ? (
-        <div className="card" style={{ padding: 60, textAlign: 'center', color: 'var(--text-muted)' }}>
-          <div style={{ fontSize: 32, marginBottom: 8 }}>🎟️</div>
-          No approved pass holders found matching your search.
-        </div>
+        <EmptyState
+          icon={<Ticket className="w-6 h-6" />}
+          title="No Pass Holders Found"
+          description="No approved pass holders matched your search criteria."
+        />
       ) : (
         <>
           {/* Desktop Table View */}
-          <div className="card desktop-only-table" style={{ overflow: 'hidden' }}>
-            <div style={{ overflowX: 'auto' }}>
-              <table className="data-table">
-                <thead>
+          <Card variant="glass" padding="none" className="hidden md:block overflow-hidden">
+            <div className="overflow-x-auto">
+              <table className="w-full text-left text-sm text-slate-300">
+                <thead className="bg-slate-950/60 border-b border-slate-800 text-[11px] font-bold uppercase tracking-wider text-slate-400">
                   <tr>
-                    <th>Attendee Name</th>
-                    <th>Email Address</th>
-                    <th>Venue Entry Status</th>
-                    <th>Last Gate Activity</th>
-                    <th>Issued Date</th>
+                    <th className="py-3.5 px-6">Attendee Name</th>
+                    <th className="py-3.5 px-6">Email Address</th>
+                    <th className="py-3.5 px-6">Venue Entry Status</th>
+                    <th className="py-3.5 px-6">Last Gate Activity</th>
+                    <th className="py-3.5 px-6">Issued Date</th>
                   </tr>
                 </thead>
-                <tbody>
+                <tbody className="divide-y divide-slate-800/60">
                   {participants.map((p) => (
-                    <tr key={p.id}>
-                      <td style={{ fontWeight: 600, color: '#F8FAFC' }}>{p.name || '—'}</td>
-                      <td className="text-mono" style={{ fontSize: 13, color: 'var(--gold-light)' }}>
-                        {p.email}
-                      </td>
-                      <td>
-                        <span className={`badge ${badgeMap[p.entryStatus]}`}>
+                    <tr key={p.id} className="hover:bg-slate-800/40 transition">
+                      <td className="py-4 px-6 font-semibold text-white">{p.name || '—'}</td>
+                      <td className="py-4 px-6 font-mono text-xs text-indigo-300">{p.email}</td>
+                      <td className="py-4 px-6">
+                        <Badge variant={badgeVariantMap[p.entryStatus]}>
                           {labelMap[p.entryStatus]}
-                        </span>
+                        </Badge>
                       </td>
-                      <td className="text-caption" style={{ color: 'var(--text-muted)' }}>
-                        {p.lastScanAt ? new Date(p.lastScanAt).toLocaleString() : 'No gate scan recorded'}
+                      <td className="py-4 px-6 text-xs text-slate-400">
+                        {p.lastScanAt ? new Date(p.lastScanAt).toLocaleString() : 'No scan recorded'}
                       </td>
-                      <td className="text-caption" style={{ color: 'var(--text-muted)' }}>
+                      <td className="py-4 px-6 text-xs text-slate-400">
                         {new Date(p.createdAt).toLocaleDateString()}
                       </td>
                     </tr>
@@ -132,37 +144,36 @@ export default function ParticipantsPage() {
                 </tbody>
               </table>
             </div>
-          </div>
+          </Card>
 
-          {/* Mobile Card View (Fluent App Experience) */}
-          <div className="mobile-only-cards" style={{ display: 'none', flexDirection: 'column', gap: 12 }}>
+          {/* Mobile Card Grid View */}
+          <div className="md:hidden space-y-3">
             {participants.map((p) => (
-              <div key={p.id} className="card card-elevated" style={{ padding: 16 }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
-                  <div style={{ fontWeight: 700, fontSize: 15, color: '#F8FAFC' }}>
+              <Card key={p.id} variant="glass" padding="sm" className="space-y-3">
+                <div className="flex items-center justify-between">
+                  <h3 className="font-bold text-white text-base">
                     {p.name || 'Anonymous Pass Holder'}
-                  </div>
-                  <span className={`badge ${badgeMap[p.entryStatus]}`}>
+                  </h3>
+                  <Badge variant={badgeVariantMap[p.entryStatus]}>
                     {labelMap[p.entryStatus]}
+                  </Badge>
+                </div>
+                <div className="flex items-center gap-2 font-mono text-xs text-indigo-300">
+                  <Mail className="w-3.5 h-3.5 text-slate-500 shrink-0" />
+                  <span className="truncate">{p.email}</span>
+                </div>
+                <div className="flex items-center justify-between text-[11px] text-slate-400 pt-2 border-t border-slate-800/80">
+                  <span className="flex items-center gap-1">
+                    <Clock className="w-3 h-3 text-slate-500" />
+                    {p.lastScanAt
+                      ? new Date(p.lastScanAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+                      : 'Never'}
                   </span>
-                </div>
-                <div className="text-mono" style={{ fontSize: 12.5, color: 'var(--gold-light)', marginBottom: 8 }}>
-                  ✉ {p.email}
-                </div>
-                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 11, color: 'var(--text-muted)', paddingTop: 8, borderTop: '1px solid var(--border-default)' }}>
-                  <span>Last Activity: {p.lastScanAt ? new Date(p.lastScanAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : 'Never'}</span>
                   <span>Issued: {new Date(p.createdAt).toLocaleDateString()}</span>
                 </div>
-              </div>
+              </Card>
             ))}
           </div>
-
-          <style>{`
-            @media (max-width: 768px) {
-              .desktop-only-table { display: none !important; }
-              .mobile-only-cards { display: flex !important; }
-            }
-          `}</style>
         </>
       )}
     </div>
