@@ -103,8 +103,23 @@ export default function ScanPage() {
     }
   }, [useCam]);
 
+  const isScanningActiveRef = useRef(false);
+
   const processScan = useCallback(async (token: string) => {
-    if (scanning || !token.trim()) return;
+    let cleanToken = token.trim();
+    if (!cleanToken) return;
+
+    // Extract token if scanned as a URL
+    if (cleanToken.includes('http')) {
+      try {
+        const urlObj = new URL(cleanToken);
+        cleanToken = urlObj.searchParams.get('token') || urlObj.pathname.split('/').pop() || cleanToken;
+      } catch {
+        // keep cleanToken as is
+      }
+    }
+
+    if (scanning) return;
     setScanning(true);
     const now = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
 
@@ -112,7 +127,7 @@ export default function ScanPage() {
       const res = await fetch('/api/gate/scan', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ qrToken: token.trim() }),
+        body: JSON.stringify({ qrToken: cleanToken }),
       });
       const data: ScanResult = await res.json();
       setLastScan(data);
@@ -166,31 +181,47 @@ export default function ScanPage() {
     bufferRef.current = e.target.value;
   }
 
-  // Camera scanner fallback via html5-qrcode
+  // Camera scanner via html5-qrcode (exception-safe)
   useEffect(() => {
     if (!useCam) return;
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     let scanner: any = null;
+    let isMounted = true;
+
     async function startCamera() {
       try {
         const { Html5Qrcode } = await import('html5-qrcode');
+        if (!isMounted) return;
+
         scanner = new Html5Qrcode('qr-reader');
         await scanner.start(
           { facingMode: 'environment' },
           { fps: 10, qrbox: { width: 240, height: 240 } },
           (text: string) => {
-            processScan(text);
-            scanner?.pause(true);
-            setTimeout(() => scanner?.resume(), 2500);
+            if (isScanningActiveRef.current) return;
+            isScanningActiveRef.current = true;
+
+            processScan(text).finally(() => {
+              setTimeout(() => {
+                isScanningActiveRef.current = false;
+              }, 2500);
+            });
           },
-          () => {}
+          () => {} // silent on frame scan miss
         );
       } catch (err) {
         console.error('Camera initialization error:', err);
       }
     }
+
     startCamera();
-    return () => { scanner?.stop().catch(() => {}); };
+
+    return () => {
+      isMounted = false;
+      if (scanner) {
+        scanner.stop().catch(() => {});
+      }
+    };
   }, [useCam, processScan]);
 
   if (!gateSession) {

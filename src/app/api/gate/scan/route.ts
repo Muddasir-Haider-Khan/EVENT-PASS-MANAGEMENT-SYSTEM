@@ -79,12 +79,12 @@ export async function POST(req: NextRequest) {
       if (currentStatus === 'NOT_ENTERED' || currentStatus === 'EXITED') {
         result = 'ENTRY_GRANTED';
         newStatus = 'INSIDE';
-        message = 'ENTRY ALLOWED — Pass Activated (Inside Venue)';
+        message = 'ENTRY APPROVED — Pass Activated';
         color = 'green';
       } else {
         // Already INSIDE
         result = 'ENTRY_DENIED_ALREADY_INSIDE';
-        message = `ALREADY ENTERED — Pass is currently ACTIVE inside venue`;
+        message = 'ALREADY IN EVENT — Pass is active inside venue';
         color = 'amber';
         newStatus = currentStatus;
       }
@@ -93,11 +93,11 @@ export async function POST(req: NextRequest) {
       if (currentStatus === 'INSIDE') {
         result = 'EXIT_GRANTED';
         newStatus = 'EXITED';
-        message = 'EXIT APPROVED — Pass Deactivated (Outside Venue)';
+        message = 'EXIT APPROVED — Pass Deactivated';
         color = 'green';
       } else {
         result = 'EXIT_DENIED_NOT_INSIDE';
-        message = 'ALREADY OUTSIDE — Pass is currently DEACTIVE';
+        message = 'ALREADY OUTSIDE — Pass is deactive';
         color = 'amber';
         newStatus = currentStatus;
       }
