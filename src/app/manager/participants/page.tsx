@@ -95,42 +95,75 @@ export default function ParticipantsPage() {
           No approved pass holders found matching your search.
         </div>
       ) : (
-        <div className="card" style={{ overflow: 'hidden' }}>
-          <div style={{ overflowX: 'auto' }}>
-            <table className="data-table">
-              <thead>
-                <tr>
-                  <th>Attendee Name</th>
-                  <th>Email Address</th>
-                  <th>Venue Entry Status</th>
-                  <th>Last Gate Activity</th>
-                  <th>Issued Date</th>
-                </tr>
-              </thead>
-              <tbody>
-                {participants.map((p) => (
-                  <tr key={p.id}>
-                    <td style={{ fontWeight: 600, color: '#F8FAFC' }}>{p.name || '—'}</td>
-                    <td className="text-mono" style={{ fontSize: 13, color: 'var(--gold-light)' }}>
-                      {p.email}
-                    </td>
-                    <td>
-                      <span className={`badge ${badgeMap[p.entryStatus]}`}>
-                        {labelMap[p.entryStatus]}
-                      </span>
-                    </td>
-                    <td className="text-caption" style={{ color: 'var(--text-muted)' }}>
-                      {p.lastScanAt ? new Date(p.lastScanAt).toLocaleString() : 'No gate scan recorded'}
-                    </td>
-                    <td className="text-caption" style={{ color: 'var(--text-muted)' }}>
-                      {new Date(p.createdAt).toLocaleDateString()}
-                    </td>
+        <>
+          {/* Desktop Table View */}
+          <div className="card desktop-only-table" style={{ overflow: 'hidden' }}>
+            <div style={{ overflowX: 'auto' }}>
+              <table className="data-table">
+                <thead>
+                  <tr>
+                    <th>Attendee Name</th>
+                    <th>Email Address</th>
+                    <th>Venue Entry Status</th>
+                    <th>Last Gate Activity</th>
+                    <th>Issued Date</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
+                </thead>
+                <tbody>
+                  {participants.map((p) => (
+                    <tr key={p.id}>
+                      <td style={{ fontWeight: 600, color: '#F8FAFC' }}>{p.name || '—'}</td>
+                      <td className="text-mono" style={{ fontSize: 13, color: 'var(--gold-light)' }}>
+                        {p.email}
+                      </td>
+                      <td>
+                        <span className={`badge ${badgeMap[p.entryStatus]}`}>
+                          {labelMap[p.entryStatus]}
+                        </span>
+                      </td>
+                      <td className="text-caption" style={{ color: 'var(--text-muted)' }}>
+                        {p.lastScanAt ? new Date(p.lastScanAt).toLocaleString() : 'No gate scan recorded'}
+                      </td>
+                      <td className="text-caption" style={{ color: 'var(--text-muted)' }}>
+                        {new Date(p.createdAt).toLocaleDateString()}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           </div>
-        </div>
+
+          {/* Mobile Card View (Fluent App Experience) */}
+          <div className="mobile-only-cards" style={{ display: 'none', flexDirection: 'column', gap: 12 }}>
+            {participants.map((p) => (
+              <div key={p.id} className="card card-elevated" style={{ padding: 16 }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
+                  <div style={{ fontWeight: 700, fontSize: 15, color: '#F8FAFC' }}>
+                    {p.name || 'Anonymous Pass Holder'}
+                  </div>
+                  <span className={`badge ${badgeMap[p.entryStatus]}`}>
+                    {labelMap[p.entryStatus]}
+                  </span>
+                </div>
+                <div className="text-mono" style={{ fontSize: 12.5, color: 'var(--gold-light)', marginBottom: 8 }}>
+                  ✉ {p.email}
+                </div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 11, color: 'var(--text-muted)', paddingTop: 8, borderTop: '1px solid var(--border-default)' }}>
+                  <span>Last Activity: {p.lastScanAt ? new Date(p.lastScanAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : 'Never'}</span>
+                  <span>Issued: {new Date(p.createdAt).toLocaleDateString()}</span>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          <style>{`
+            @media (max-width: 768px) {
+              .desktop-only-table { display: none !important; }
+              .mobile-only-cards { display: flex !important; }
+            }
+          `}</style>
+        </>
       )}
     </div>
   );

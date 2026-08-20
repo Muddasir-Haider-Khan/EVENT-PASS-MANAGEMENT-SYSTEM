@@ -143,7 +143,7 @@ export async function sendQRPass(params: {
   return safeSend(resend, {
     from: getFromEmail(),
     to: params.to,
-    subject: `Your Event Pass — ${params.eventName}`,
+    subject: `Your Official Event Pass — ${params.eventName}`,
     attachments: [
       {
         filename: 'event-pass-qr.png',
@@ -153,52 +153,102 @@ export async function sendQRPass(params: {
     ],
     html: `
       <!DOCTYPE html>
-      <html>
+      <html xmlns="http://www.w3.org/1999/xhtml">
         <head>
           <meta charset="utf-8" />
           <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+          <title>Your Official Event Pass</title>
         </head>
-        <body style="margin:0;padding:0;background:#070709;font-family:'Segoe UI',system-ui,sans-serif;color:#F8FAFC;">
-          <div style="max-width:560px;margin:0 auto;padding:40px 24px;">
-            <div style="background:#0F0F14;border:1px solid rgba(212,175,55,0.3);border-radius:14px;padding:36px;text-align:center;">
-              <h1 style="color:#F8FAFC;font-size:24px;font-weight:700;margin:0 0 6px;">
-                You're In! 🎉
-              </h1>
-              <p style="color:#94A3B8;font-size:14px;margin:0 0 24px;">
-                Your registration pass for <strong style="color:#D4AF37;">${params.eventName}</strong> is confirmed.
-              </p>
-              
-              <div style="background:#fff;border-radius:14px;padding:20px;display:inline-block;margin:0 0 24px;">
-                <img src="cid:qr-code" alt="QR Pass Code" style="width:200px;height:200px;display:block;" />
-              </div>
-              
-              <div style="background:#070709;border:1px solid rgba(255,255,255,0.1);border-radius:10px;padding:20px;text-align:left;margin:0 0 20px;">
-                ${params.participantName ? `
-                <div style="margin:0 0 10px;">
-                  <span style="color:#D4AF37;font-size:11px;text-transform:uppercase;letter-spacing:0.1em;">Guest Name</span>
-                  <div style="color:#F8FAFC;font-size:15px;margin-top:2px;font-weight:600;">${params.participantName}</div>
-                </div>` : ''}
-                <div style="margin:0 0 10px;">
-                  <span style="color:#D4AF37;font-size:11px;text-transform:uppercase;letter-spacing:0.1em;">Venue</span>
-                  <div style="color:#F8FAFC;font-size:15px;margin-top:2px;">${params.venue}</div>
-                </div>
-                ${dateStr ? `
-                <div>
-                  <span style="color:#D4AF37;font-size:11px;text-transform:uppercase;letter-spacing:0.1em;">Date & Time</span>
-                  <div style="color:#F8FAFC;font-size:15px;margin-top:2px;">${dateStr}</div>
-                </div>` : ''}
-              </div>
-              
-              <p style="color:#94A3B8;font-size:13px;margin:0;line-height:1.5;">
-                Present this QR pass code at the entrance gate scanner.<br/>
-                Save or screenshot this pass for immediate verification.
-              </p>
-            </div>
-            
-            <p style="color:#64748B;font-size:12px;text-align:center;margin:20px 0 0;">
-              © ${new Date().getFullYear()} 27 MEDIA AGENCY — Event Pass Management System
-            </p>
-          </div>
+        <body style="margin: 0; padding: 0; background-color: #070709; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; -webkit-font-smoothing: antialiased;">
+          <table width="100%" border="0" cellspacing="0" cellpadding="0" style="background-color: #070709; padding: 32px 16px;">
+            <tr>
+              <td align="center">
+                <!-- Pass Container Card -->
+                <table width="100%" border="0" cellspacing="0" cellpadding="0" style="max-width: 520px; background-color: #0F0F14; border: 1px solid rgba(212, 175, 55, 0.35); border-radius: 16px; overflow: hidden; box-shadow: 0 20px 40px rgba(0,0,0,0.8);">
+                  
+                  <!-- Header Branding Bar -->
+                  <tr>
+                    <td style="background: linear-gradient(135deg, #181824 0%, #0D0D12 100%); padding: 24px 28px; border-bottom: 1px solid rgba(255,255,255,0.08);">
+                      <table width="100%" border="0" cellspacing="0" cellpadding="0">
+                        <tr>
+                          <td>
+                            <div style="font-size: 11px; font-weight: 700; color: #D4AF37; letter-spacing: 2px; text-transform: uppercase;">
+                              OFFICIAL EVENT PASS
+                            </div>
+                            <div style="font-size: 20px; font-weight: 800; color: #FFFFFF; margin-top: 4px; line-height: 1.2;">
+                              ${params.eventName}
+                            </div>
+                          </td>
+                          <td align="right" valign="top">
+                            <span style="display: inline-block; background: rgba(212, 175, 55, 0.15); border: 1px solid #D4AF37; color: #F5E6AD; font-size: 11px; font-weight: 700; padding: 4px 10px; border-radius: 20px; text-transform: uppercase;">
+                              CONFIRMED
+                            </span>
+                          </td>
+                        </tr>
+                      </table>
+                    </td>
+                  </tr>
+
+                  <!-- Pass Card Body -->
+                  <tr>
+                    <td style="padding: 32px 28px; text-align: center;">
+                      
+                      <div style="font-size: 14px; color: #94A3B8; margin-bottom: 20px;">
+                        Show this pass at the entrance gate scanner for entry
+                      </div>
+
+                      <!-- High-Contrast White QR Box -->
+                      <table align="center" border="0" cellspacing="0" cellpadding="0" style="margin: 0 auto 24px auto;">
+                        <tr>
+                          <td align="center" style="background-color: #FFFFFF; padding: 18px; border-radius: 16px; border: 2px solid #D4AF37; box-shadow: 0 8px 24px rgba(212, 175, 55, 0.25);">
+                            <img src="${params.qrDataUrl}" alt="Event QR Pass Code" width="210" height="210" style="display: block; width: 210px; height: 210px; border: 0; outline: none; text-decoration: none;" />
+                          </td>
+                        </tr>
+                      </table>
+
+                      <!-- Participant Details Grid -->
+                      <table width="100%" border="0" cellspacing="0" cellpadding="0" style="background: #070709; border: 1px solid rgba(255,255,255,0.08); border-radius: 12px; padding: 20px; text-align: left;">
+                        ${params.participantName ? `
+                        <tr>
+                          <td style="padding-bottom: 14px;">
+                            <div style="font-size: 10px; font-weight: 700; color: #D4AF37; text-transform: uppercase; letter-spacing: 1.5px;">PASS HOLDER</div>
+                            <div style="font-size: 16px; font-weight: 700; color: #FFFFFF; margin-top: 2px;">${params.participantName}</div>
+                          </td>
+                        </tr>` : ''}
+                        <tr>
+                          <td style="padding-bottom: 14px;">
+                            <div style="font-size: 10px; font-weight: 700; color: #D4AF37; text-transform: uppercase; letter-spacing: 1.5px;">VENUE</div>
+                            <div style="font-size: 14px; font-weight: 600; color: #E2E8F0; margin-top: 2px;">${params.venue}</div>
+                          </td>
+                        </tr>
+                        ${dateStr ? `
+                        <tr>
+                          <td>
+                            <div style="font-size: 10px; font-weight: 700; color: #D4AF37; text-transform: uppercase; letter-spacing: 1.5px;">DATE & TIME</div>
+                            <div style="font-size: 14px; font-weight: 600; color: #E2E8F0; margin-top: 2px;">${dateStr}</div>
+                          </td>
+                        </tr>` : ''}
+                      </table>
+
+                      <!-- Instructions -->
+                      <div style="font-size: 12px; color: #64748B; margin-top: 20px; line-height: 1.5;">
+                        🔒 Cryptographically verified event pass. Save or screenshot this ticket for fast gate verification.
+                      </div>
+
+                    </td>
+                  </tr>
+
+                  <!-- Footer Bar -->
+                  <tr>
+                    <td style="background-color: #0B0B0F; padding: 16px 28px; border-top: 1px solid rgba(255,255,255,0.05); text-align: center; font-size: 11px; color: #475569;">
+                      © ${new Date().getFullYear()} <strong>27 MEDIA AGENCY</strong> — Event Pass Management System
+                    </td>
+                  </tr>
+
+                </table>
+              </td>
+            </tr>
+          </table>
         </body>
       </html>
     `,

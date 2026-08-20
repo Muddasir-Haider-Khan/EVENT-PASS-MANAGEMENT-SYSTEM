@@ -212,42 +212,156 @@ export default function ManagerLayout({ children }: { children: React.ReactNode 
             </div>
           </aside>
 
-          {/* Main Content Area */}
-          <main className="manager-main" style={{ flex: 1, marginLeft: 270, minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
-            {/* Mobile Header */}
+          {/* Main Content & Mobile Viewport Container */}
+          <main className="manager-main" style={{ flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0 }}>
+            {/* Mobile App Header */}
             <div
               className="manager-mobile-header"
               style={{
-                padding: '12px 16px',
-                background: 'var(--bg-surface)',
+                position: 'sticky',
+                top: 0,
+                zIndex: 30,
+                padding: '10px 16px',
+                background: 'rgba(14, 15, 20, 0.92)',
+                backdropFilter: 'blur(16px)',
+                WebkitBackdropFilter: 'blur(16px)',
                 borderBottom: '1px solid var(--border-default)',
                 display: 'none',
                 alignItems: 'center',
                 justifyContent: 'space-between',
               }}
             >
-              <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
                 <button
                   onClick={() => setSidebarOpen(true)}
-                  style={{ background: 'none', border: 'none', color: 'var(--text-primary)', fontSize: 22, cursor: 'pointer' }}
+                  style={{
+                    background: 'var(--bg-elevated)',
+                    border: '1px solid var(--border-default)',
+                    color: 'var(--text-primary)',
+                    width: 36,
+                    height: 36,
+                    borderRadius: 10,
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    fontSize: 18,
+                    cursor: 'pointer',
+                  }}
+                  aria-label="Open Navigation Menu"
                 >
                   ☰
                 </button>
-                <Media27Logo size="sm" showSubtitle={false} />
+                <div style={{ overflow: 'hidden' }}>
+                  <div className="truncate" style={{ fontSize: 13, fontWeight: 700, color: '#F8FAFC' }}>
+                    {event.name}
+                  </div>
+                  <div style={{ fontSize: 10, color: 'var(--gold-light)' }}>
+                    Enterprise Event Portal
+                  </div>
+                </div>
               </div>
-              <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--gold-light)' }} className="truncate">
-                {event.name}
-              </div>
+
+              <button
+                onClick={() => router.push('/gate')}
+                style={{
+                  background: 'var(--gold-gradient)',
+                  color: '#070709',
+                  border: 'none',
+                  borderRadius: 20,
+                  padding: '6px 14px',
+                  fontSize: 11.5,
+                  fontWeight: 700,
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 6,
+                  cursor: 'pointer',
+                  boxShadow: '0 2px 10px rgba(212, 175, 55, 0.3)',
+                }}
+              >
+                <span>📱</span> Gate Scan
+              </button>
             </div>
 
             <div style={{ flex: 1 }}>{children}</div>
+
+            {/* Mobile Bottom App Navigation Bar (Fluent Native App Dock) */}
+            <nav
+              className="manager-mobile-dock"
+              style={{
+                display: 'none',
+                position: 'fixed',
+                bottom: 0,
+                left: 0,
+                right: 0,
+                height: 64,
+                background: 'rgba(14, 15, 20, 0.94)',
+                backdropFilter: 'blur(20px)',
+                WebkitBackdropFilter: 'blur(20px)',
+                borderTop: '1px solid var(--border-default)',
+                zIndex: 35,
+                justifyContent: 'space-around',
+                alignItems: 'center',
+                paddingBottom: 'env(safe-area-inset-bottom)',
+              }}
+            >
+              {[
+                { href: '/manager', label: 'Overview', icon: '📊' },
+                { href: '/manager/submissions', label: 'Requests', icon: '📥' },
+                { href: '/manager/participants', label: 'Attendees', icon: '🎟️' },
+                { href: '/manager/gates', label: 'Gates', icon: '🚪' },
+                { href: '/manager/settings', label: 'Branding', icon: '⚙️' },
+              ].map((tab) => {
+                const active = pathname === tab.href;
+                return (
+                  <button
+                    key={tab.href}
+                    onClick={() => router.push(tab.href)}
+                    style={{
+                      flex: 1,
+                      display: 'flex',
+                      flexDirection: 'column',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      height: '100%',
+                      background: 'transparent',
+                      border: 'none',
+                      color: active ? 'var(--gold-light)' : 'var(--text-muted)',
+                      cursor: 'pointer',
+                      position: 'relative',
+                      gap: 2,
+                    }}
+                  >
+                    <span style={{ fontSize: 18, transform: active ? 'scale(1.15)' : 'scale(1)', transition: 'transform 150ms ease' }}>
+                      {tab.icon}
+                    </span>
+                    <span style={{ fontSize: 10, fontWeight: active ? 700 : 400 }}>
+                      {tab.label}
+                    </span>
+                    {active && (
+                      <span
+                        style={{
+                          position: 'absolute',
+                          top: 4,
+                          width: 4,
+                          height: 4,
+                          borderRadius: '50%',
+                          background: 'var(--gold-primary)',
+                          boxShadow: '0 0 8px var(--gold-primary)',
+                        }}
+                      />
+                    )}
+                  </button>
+                );
+              })}
+            </nav>
           </main>
 
           <style>{`
             @media (max-width: 768px) {
               .manager-sidebar { left: ${sidebarOpen ? '0' : '-270px'} !important; }
-              .manager-main { margin-left: 0 !important; }
+              .manager-main { margin-left: 0 !important; padding-bottom: 70px !important; }
               .manager-mobile-header { display: flex !important; }
+              .manager-mobile-dock { display: flex !important; }
             }
           `}</style>
         </div>
