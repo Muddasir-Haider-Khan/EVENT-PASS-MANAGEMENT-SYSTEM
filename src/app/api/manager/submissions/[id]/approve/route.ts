@@ -3,6 +3,7 @@ import { prisma } from '@/lib/db';
 import { getSession } from '@/lib/auth';
 import { generateQRToken, generateQRCodeDataURL } from '@/lib/qr';
 import { sendQRPass } from '@/lib/resend';
+import { uploadFile } from '@/lib/imagekit';
 
 export async function POST(
   req: NextRequest,
@@ -31,6 +32,21 @@ export async function POST(
     const qrToken = generateQRToken();
     const qrDataUrl = await generateQRCodeDataURL(qrToken);
 
+    // Upload QR code to ImageKit for reliable CDN email rendering
+    let qrImageUrl = qrDataUrl;
+    try {
+      const uploadRes = await uploadFile(
+        qrDataUrl,
+        `qr_${qrToken}.png`,
+        `/epms/events/${session.eventId}/qrcodes`
+      );
+      if (uploadRes && uploadRes.url) {
+        qrImageUrl = uploadRes.url;
+      }
+    } catch (uploadError) {
+      console.error('ImageKit QR Upload Error (falling back to data URL):', uploadError);
+    }
+
     // Extract name from responses if available
     const responses = submission.responses as Record<string, string>;
     const nameField = Object.entries(responses).find(
@@ -56,7 +72,7 @@ export async function POST(
       }),
     ]);
 
-    // Send QR pass email
+    // Send QR pass email with hosted ImageKit QR URL
     try {
       await sendQRPass({
         to: submission.email,
@@ -64,7 +80,7 @@ export async function POST(
         eventName: submission.event.name,
         venue: submission.event.venue,
         eventDate: submission.event.eventDate?.toISOString() || null,
-        qrDataUrl,
+        qrImageUrl,
       });
     } catch (emailError) {
       console.error('Failed to send QR pass email:', emailError);

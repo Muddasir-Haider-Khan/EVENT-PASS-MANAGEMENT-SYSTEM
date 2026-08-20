@@ -121,7 +121,7 @@ export async function sendQRPass(params: {
   eventName: string;
   venue: string;
   eventDate?: string | null;
-  qrDataUrl: string;
+  qrImageUrl: string;
 }) {
   const resend = getResend();
 
@@ -134,21 +134,27 @@ export async function sendQRPass(params: {
       })
     : '';
 
-  // Extract base64 buffer for inline CID attachment (Gmail/Outlook compatible)
-  const base64Data = params.qrDataUrl.replace(/^data:image\/\w+;base64,/, '');
-  const qrBuffer = Buffer.from(base64Data, 'base64');
+  const attachments: Array<{ filename: string; content?: Buffer; path?: string; content_id?: string }> = [];
+
+  if (params.qrImageUrl.startsWith('http://') || params.qrImageUrl.startsWith('https://')) {
+    attachments.push({
+      filename: 'event-pass-qr.png',
+      path: params.qrImageUrl,
+    });
+  } else if (params.qrImageUrl.startsWith('data:image')) {
+    const base64Data = params.qrImageUrl.replace(/^data:image\/\w+;base64,/, '');
+    const qrBuffer = Buffer.from(base64Data, 'base64');
+    attachments.push({
+      filename: 'event-pass-qr.png',
+      content: qrBuffer,
+    });
+  }
 
   return safeSend(resend, {
     from: getFromEmail(),
     to: params.to,
     subject: `Your Event Pass — ${params.eventName}`,
-    attachments: [
-      {
-        filename: 'event-pass-qr.png',
-        content: qrBuffer,
-        content_id: 'qr-code',
-      },
-    ],
+    ...(attachments.length > 0 ? { attachments } : {}),
     html: `
       <!DOCTYPE html>
       <html>
@@ -200,7 +206,7 @@ export async function sendQRPass(params: {
                         <table align="center" border="0" cellspacing="0" cellpadding="0" style="margin: 0 auto;">
                           <tr>
                             <td align="center" style="background-color: #ffffff; padding: 14px; border-radius: 12px; border: 1px solid #cbd5e1;">
-                              <img src="${params.qrDataUrl}" alt="Event QR Pass Code" width="200" height="200" style="display: block; width: 200px; height: 200px; border: 0;" />
+                              <img src="${params.qrImageUrl}" alt="Event QR Pass Code" width="200" height="200" style="display: block; width: 200px; height: 200px; border: 0;" />
                             </td>
                           </tr>
                         </table>
