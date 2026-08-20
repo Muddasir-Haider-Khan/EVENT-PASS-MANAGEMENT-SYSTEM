@@ -6,7 +6,6 @@ import { Media27Logo } from '@/components/27MediaLogo';
 
 export default function LoginPage() {
   const router = useRouter();
-  const [activeTab, setActiveTab] = useState<'manager' | 'super_admin'>('manager');
   const [loginId, setLoginId] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
@@ -216,60 +215,11 @@ export default function LoginPage() {
           </div>
         </div>
 
-        {/* Role Selector Tabs */}
-        <div
-          style={{
-            display: 'grid',
-            gridTemplateColumns: '1fr 1fr',
-            gap: 4,
-            padding: 4,
-            background: 'rgba(255, 255, 255, 0.03)',
-            border: '1px solid var(--border-default)',
-            borderRadius: 10,
-            marginBottom: 24,
-          }}
-        >
-          <button
-            type="button"
-            onClick={() => setActiveTab('manager')}
-            style={{
-              padding: '8px 12px',
-              borderRadius: 8,
-              border: 'none',
-              fontSize: 13,
-              fontWeight: 600,
-              cursor: 'pointer',
-              background: activeTab === 'manager' ? 'var(--gold-gradient)' : 'transparent',
-              color: activeTab === 'manager' ? '#070709' : 'var(--text-secondary)',
-              transition: 'all 150ms ease',
-            }}
-          >
-            Event Manager
-          </button>
-          <button
-            type="button"
-            onClick={() => setActiveTab('super_admin')}
-            style={{
-              padding: '8px 12px',
-              borderRadius: 8,
-              border: 'none',
-              fontSize: 13,
-              fontWeight: 600,
-              cursor: 'pointer',
-              background: activeTab === 'super_admin' ? 'var(--gold-gradient)' : 'transparent',
-              color: activeTab === 'super_admin' ? '#070709' : 'var(--text-secondary)',
-              transition: 'all 150ms ease',
-            }}
-          >
-            Super Admin
-          </button>
-        </div>
-
-        {/* Login Form */}
+        {/* Unified Login Form */}
         <form onSubmit={handleLogin}>
           <div style={{ marginBottom: 18 }}>
             <label className="input-label" htmlFor="login-id">
-              {activeTab === 'super_admin' ? 'Master Admin Username / Email' : 'Event Manager Login ID'}
+              Login ID / Email Address
             </label>
             <input
               id="login-id"
@@ -277,7 +227,7 @@ export default function LoginPage() {
               className="input"
               value={loginId}
               onChange={(e) => setLoginId(e.target.value)}
-              placeholder={activeTab === 'super_admin' ? 'admin' : 'manager-login-id'}
+              placeholder="Enter your Login ID or Email"
               required
               autoComplete="username"
               autoFocus
@@ -309,7 +259,7 @@ export default function LoginPage() {
           )}
 
           <button type="submit" className="btn btn-gold" style={{ width: '100%', height: 46, fontSize: 14 }} disabled={loading}>
-            {loading ? <span className="spinner" style={{ borderTopColor: '#070709' }} /> : `Sign In to ${activeTab === 'super_admin' ? 'Super Admin' : 'Event Manager'} →`}
+            {loading ? <span className="spinner" style={{ borderTopColor: '#070709' }} /> : 'Sign In →'}
           </button>
         </form>
 
