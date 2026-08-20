@@ -38,6 +38,8 @@ export default function PublicEventPage() {
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState('');
   const [submitted, setSubmitted] = useState(false);
+  const [copiedAcc, setCopiedAcc] = useState(false);
+  const [copiedPhone, setCopiedPhone] = useState(false);
 
   useEffect(() => {
     async function load() {
@@ -136,18 +138,44 @@ export default function PublicEventPage() {
                   Payment & Verification Instructions
                 </h3>
                 {payment.accountNumber && (
-                  <div style={{ marginBottom: 12 }}>
+                  <div style={{ marginBottom: 16 }}>
                     <div className="text-overline" style={{ color: 'var(--text-muted)' }}>Bank Account / IBAN</div>
-                    <div className="text-mono" style={{ fontSize: 16, marginTop: 4, color: '#F8FAFC', fontWeight: 600 }}>
-                      {payment.accountNumber}
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: 4, background: 'var(--bg-root)', padding: '8px 12px', borderRadius: 8, border: '1px solid var(--border-default)' }}>
+                      <span className="text-mono" style={{ fontSize: 15, color: '#F8FAFC', fontWeight: 600 }}>
+                        {payment.accountNumber}
+                      </span>
+                      <button
+                        className="btn btn-ghost btn-sm"
+                        style={{ color: 'var(--gold-light)', fontSize: 12 }}
+                        onClick={() => {
+                          navigator.clipboard.writeText(payment.accountNumber || '');
+                          setCopiedAcc(true);
+                          setTimeout(() => setCopiedAcc(false), 2000);
+                        }}
+                      >
+                        {copiedAcc ? '✓ Copied!' : '📋 Copy Account'}
+                      </button>
                     </div>
                   </div>
                 )}
                 {payment.paymentPhone && (
                   <div>
                     <div className="text-overline" style={{ color: 'var(--text-muted)' }}>Send Payment Receipt To</div>
-                    <div className="text-mono" style={{ fontSize: 16, marginTop: 4, color: 'var(--gold-light)', fontWeight: 600 }}>
-                      {payment.paymentPhone}
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: 4, background: 'var(--bg-root)', padding: '8px 12px', borderRadius: 8, border: '1px solid var(--border-default)' }}>
+                      <span className="text-mono" style={{ fontSize: 15, color: 'var(--gold-light)', fontWeight: 600 }}>
+                        {payment.paymentPhone}
+                      </span>
+                      <button
+                        className="btn btn-ghost btn-sm"
+                        style={{ color: 'var(--gold-light)', fontSize: 12 }}
+                        onClick={() => {
+                          navigator.clipboard.writeText(payment.paymentPhone || '');
+                          setCopiedPhone(true);
+                          setTimeout(() => setCopiedPhone(false), 2000);
+                        }}
+                      >
+                        {copiedPhone ? '✓ Copied!' : '📋 Copy Number'}
+                      </button>
                     </div>
                   </div>
                 )}
