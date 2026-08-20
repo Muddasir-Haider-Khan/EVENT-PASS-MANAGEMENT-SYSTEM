@@ -21,8 +21,15 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: parsed.error.errors[0].message }, { status: 400 });
     }
 
-    const gate = await prisma.gate.findUnique({
-      where: { otpCode: parsed.data.otpCode },
+    const cleanOtp = parsed.data.otpCode.trim().toUpperCase();
+
+    const gate = await prisma.gate.findFirst({
+      where: {
+        otpCode: {
+          equals: cleanOtp,
+          mode: 'insensitive',
+        },
+      },
       include: { event: true },
     });
 
