@@ -4,23 +4,32 @@ import bcrypt from 'bcryptjs';
 const prisma = new PrismaClient();
 
 async function main() {
-  const email = process.env.SUPER_ADMIN_EMAIL || 'mhk@27mediaagency.com';
-  const password = process.env.SUPER_ADMIN_INITIAL_PASSWORD || 'mhk2279';
-
-  const passwordHash = await bcrypt.hash(password, 12);
-  await prisma.superAdmin.upsert({
-    where: { email },
-    update: {
-      passwordHash,
+  const superAdmins = [
+    {
+      email: process.env.SUPER_ADMIN_EMAIL || 'mhk@27mediaagency.com',
+      password: process.env.SUPER_ADMIN_INITIAL_PASSWORD || 'mhk2279',
     },
-    create: {
-      email,
-      passwordHash,
-      mustChangePassword: true,
+    {
+      email: 'habibullahwahaj@27mediaagency.com',
+      password: 'habib5765',
     },
-  });
+  ];
 
-  console.log(`✅ Super admin updated/seeded: ${email}`);
+  for (const admin of superAdmins) {
+    const passwordHash = await bcrypt.hash(admin.password, 12);
+    await prisma.superAdmin.upsert({
+      where: { email: admin.email.toLowerCase() },
+      update: {
+        passwordHash,
+      },
+      create: {
+        email: admin.email.toLowerCase(),
+        passwordHash,
+        mustChangePassword: false,
+      },
+    });
+    console.log(`✅ Super admin updated/seeded: ${admin.email}`);
+  }
 }
 
 main()
