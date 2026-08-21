@@ -59,7 +59,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                 <X className="w-5 h-5" />
               </button>
             </div>
-            <span className="text-[10px] font-bold tracking-widest text-amber-400 bg-amber-400/10 border border-amber-400/20 px-2.5 py-0.5 rounded-full uppercase">
+            <span className="text-[10px] font-bold tracking-widest text-indigo-400 bg-indigo-500/10 border border-indigo-500/20 px-2.5 py-0.5 rounded-full uppercase">
               Super Admin Portal
             </span>
           </div>
@@ -81,11 +81,11 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                   }}
                   className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl border text-sm font-medium transition-all duration-150 cursor-pointer ${
                     active
-                      ? 'bg-amber-500/10 border-amber-500/30 text-amber-300 shadow-sm'
+                      ? 'bg-indigo-500/10 border-indigo-500/30 text-indigo-300 shadow-sm'
                       : 'border-transparent text-slate-400 hover:text-slate-100 hover:bg-slate-800/60'
                   }`}
                 >
-                  <Icon className={`w-4 h-4 ${active ? 'text-amber-400' : 'text-slate-400'}`} />
+                  <Icon className={`w-4 h-4 ${active ? 'text-indigo-400' : 'text-slate-400'}`} />
                   <span>{item.label}</span>
                 </button>
               );

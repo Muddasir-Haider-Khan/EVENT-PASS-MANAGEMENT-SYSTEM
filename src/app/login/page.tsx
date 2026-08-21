@@ -175,7 +175,7 @@ export default function LoginPage() {
         padding: 20,
         position: 'relative',
         overflow: 'hidden',
-        backgroundImage: 'radial-gradient(circle at 50% 30%, rgba(212, 175, 55, 0.1) 0%, rgba(7, 7, 9, 1) 70%)',
+        backgroundImage: 'radial-gradient(circle at 50% 30%, rgba(99, 102, 241, 0.12) 0%, rgba(2, 6, 23, 1) 70%)',
       }}
     >
       {/* Background Decorative Rings */}
@@ -185,7 +185,7 @@ export default function LoginPage() {
           width: 600,
           height: 600,
           borderRadius: '50%',
-          border: '1px solid rgba(212, 175, 55, 0.08)',
+          border: '1px solid rgba(99, 102, 241, 0.15)',
           pointerEvents: 'none',
           top: '50%',
           left: '50%',
@@ -202,9 +202,9 @@ export default function LoginPage() {
               fontSize: 12,
               fontWeight: 600,
               letterSpacing: '0.12em',
-              color: 'var(--gold-light)',
-              background: 'rgba(212, 175, 55, 0.1)',
-              border: '1px solid rgba(212, 175, 55, 0.25)',
+              color: '#818CF8',
+              background: 'rgba(99, 102, 241, 0.12)',
+              border: '1px solid rgba(99, 102, 241, 0.3)',
               padding: '4px 12px',
               borderRadius: 100,
               marginTop: 16,

@@ -14,9 +14,9 @@ export default function CreateEventPage() {
     venue: '',
     eventDate: '',
     description: '',
-    primaryColor: '#070709',
-    secondaryColor: '#D4AF37',
-    accentColor: '#E5C158',
+    primaryColor: '#020617',
+    secondaryColor: '#6366F1',
+    accentColor: '#38BDF8',
     managerEmail: '',
     logoUrl: '',
     logoFileId: '',
@@ -30,12 +30,12 @@ export default function CreateEventPage() {
   } | null>(null);
 
   const PALETTE_PRESETS = [
-    { name: 'Gold Luxe (27 Media)', primary: '#070709', secondary: '#D4AF37', accent: '#E5C158' },
-    { name: 'Cyberpunk Neon', primary: '#0A0A12', secondary: '#FF007A', accent: '#00F0FF' },
+    { name: 'Indigo Obsidian (27 Media Official)', primary: '#020617', secondary: '#6366F1', accent: '#38BDF8' },
     { name: 'Midnight Sapphire', primary: '#0A1128', secondary: '#0066FF', accent: '#38BDF8' },
     { name: 'Emerald Royale', primary: '#062016', secondary: '#10B981', accent: '#6EE7B7' },
-    { name: 'Sunset Crimson', primary: '#18080C', secondary: '#F43F5E', accent: '#FB923C' },
     { name: 'Violet Electric', primary: '#120924', secondary: '#8B5CF6', accent: '#C084FC' },
+    { name: 'Sunset Crimson', primary: '#18080C', secondary: '#F43F5E', accent: '#FB923C' },
+    { name: 'Gold Luxe (Legacy)', primary: '#070709', secondary: '#D4AF37', accent: '#E5C158' },
     { name: 'Minimal Slate', primary: '#0F172A', secondary: '#38BDF8', accent: '#818CF8' },
   ];
 

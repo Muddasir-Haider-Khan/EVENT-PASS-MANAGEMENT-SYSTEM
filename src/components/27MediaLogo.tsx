@@ -12,22 +12,22 @@ export function Media27Logo({ size = 'md', showSubtitle = true }: MediaLogoProps
 
   return (
     <div style={{ display: 'flex', alignItems: 'center', gap: 12, userSelect: 'none' }}>
-      {/* 27 Media Agency Luxury Crest Icon */}
+      {/* 27 Media Agency Enterprise Crest Icon */}
       <div
         style={{
           width: iconSizes[size],
           height: iconSizes[size],
           borderRadius: 8,
-          background: 'linear-gradient(135deg, #E5C158 0%, #D4AF37 50%, #8A6913 100%)',
+          background: 'linear-gradient(135deg, #6366F1 0%, #4F46E5 100%)',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
-          color: '#070709',
+          color: '#FFFFFF',
           fontWeight: 900,
           fontFamily: 'system-ui, sans-serif',
           fontSize: size === 'sm' ? 14 : size === 'md' ? 18 : 24,
           letterSpacing: '-0.05em',
-          boxShadow: '0 4px 14px rgba(212, 175, 55, 0.35)',
+          boxShadow: '0 4px 14px rgba(99, 102, 241, 0.35)',
           flexShrink: 0,
         }}
       >
@@ -49,7 +49,7 @@ export function Media27Logo({ size = 'md', showSubtitle = true }: MediaLogoProps
           }}
         >
           27 MEDIA
-          <span style={{ color: '#D4AF37', fontWeight: 300 }}>AGENCY</span>
+          <span style={{ color: '#818CF8', fontWeight: 500 }}>AGENCY</span>
         </div>
         {showSubtitle && (
           <div
