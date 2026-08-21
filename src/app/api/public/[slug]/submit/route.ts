@@ -33,6 +33,43 @@ export async function POST(
     }
 
     const { responses, email } = parsed.data;
+    const normalizedEmail = email.trim().toLowerCase();
+
+    // Check if an application/submission with this email already exists for this event
+    const existingSubmission = await prisma.submission.findFirst({
+      where: {
+        eventId: event.id,
+        email: {
+          equals: normalizedEmail,
+          mode: 'insensitive',
+        },
+      },
+    });
+
+    if (existingSubmission) {
+      return NextResponse.json(
+        { error: 'An application with this email address has already been submitted for this event.' },
+        { status: 400 }
+      );
+    }
+
+    // Check if a pass has already been issued for this email address
+    const existingParticipant = await prisma.participant.findFirst({
+      where: {
+        eventId: event.id,
+        email: {
+          equals: normalizedEmail,
+          mode: 'insensitive',
+        },
+      },
+    });
+
+    if (existingParticipant) {
+      return NextResponse.json(
+        { error: 'A pass has already been issued for this email address for this event.' },
+        { status: 400 }
+      );
+    }
 
     // Validate required fields
     for (const field of event.formFields) {
@@ -48,7 +85,7 @@ export async function POST(
       data: {
         eventId: event.id,
         responses,
-        email,
+        email: normalizedEmail,
         status: 'PENDING',
       },
     });
