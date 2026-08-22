@@ -93,15 +93,19 @@ enum FieldType {
 }
 
 model ParticipantType {
-  id          String   @id @default(cuid())
-  eventId     String
-  event       Event    @relation(fields: [eventId], references: [id], onDelete: Cascade)
-  name        String
-  description String?
-  order       Int      @default(0)
-  createdAt   DateTime @default(now())
+  id           String   @id @default(cuid())
+  eventId      String
+  event        Event    @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  name         String
+  description  String?
+  fee          Float    @default(0)
+  isGroupType  Boolean  @default(false)
+  minGroupSize Int      @default(1)
+  maxGroupSize Int      @default(10)
+  order        Int      @default(0)
+  createdAt    DateTime @default(now())
 
-  formFields   ParticipantTypeFormField[]
+  customFields ParticipantTypeFormField[]
   submissions  Submission[]
   participants Participant[]
   groups       ParticipantGroup[]
