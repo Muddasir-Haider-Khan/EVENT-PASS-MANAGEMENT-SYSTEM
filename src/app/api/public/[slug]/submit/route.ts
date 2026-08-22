@@ -89,7 +89,7 @@ export async function POST(
 
     // Handle delegation group creation if groupName provided
     if (!groupId && body.groupName && typeof body.groupName === 'string') {
-      const newGroup = await prisma.participantGroup.create({
+      const newGroup = await (prisma.participantGroup as any).create({
         data: {
           eventId: event.id,
           name: body.groupName.trim(),
@@ -100,7 +100,7 @@ export async function POST(
       groupId = newGroup.id;
     }
 
-    const submission = await prisma.submission.create({
+    const submission = await (prisma.submission as any).create({
       data: {
         eventId: event.id,
         responses,
