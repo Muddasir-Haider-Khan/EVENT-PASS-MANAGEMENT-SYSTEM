@@ -1,8 +1,10 @@
+import { EventType } from '@prisma/client';
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
 import { getSession, hashPassword, generatePassword, generateLoginId } from '@/lib/auth';
 import { createEventSchema } from '@/lib/validation';
 import { sendManagerCredentials } from '@/lib/resend';
+
 
 export async function GET() {
   const session = getSession('super_admin');
@@ -56,7 +58,8 @@ export async function POST(req: NextRequest) {
         secondaryColor,
         accentColor,
         fontFamily: (fontFamily as string) || 'Inter',
-        eventType: eventType || 'NORMAL',
+        eventType: (eventType as EventType) || EventType.NORMAL,
+
         customFontFileUrl,
         customFontUrl,
         eventManager: {
