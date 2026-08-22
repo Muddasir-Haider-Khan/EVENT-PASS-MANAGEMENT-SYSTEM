@@ -1,15 +1,35 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
 import { getSession } from '@/lib/auth';
-import { z } from 'zod';
+import { FieldType } from '@prisma/client';
 
-const createFieldSchema = z.object({
-  label: z.string().min(1, 'Label is required').max(200),
-  type: z.enum(['SHORT_TEXT', 'PARAGRAPH', 'EMAIL', 'NUMBER', 'DROPDOWN', 'RADIO', 'CHECKBOX', 'DATE']),
-  required: z.boolean().default(false),
-  options: z.array(z.string()).optional().nullable(),
-  order: z.number().int().default(0),
-});
+export async function GET(
+  req: NextRequest,
+  { params }: { params: { id: string } }
+) {
+  const session = getSession('event_manager');
+  if (!session || !session.eventId) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  }
+
+  try {
+    const type = await prisma.participantType.findFirst({
+      where: { id: params.id, eventId: session.eventId },
+      include: {
+        formFields: { orderBy: { order: 'asc' } },
+      },
+    });
+
+    if (!type) {
+      return NextResponse.json({ error: 'Participant category not found' }, { status: 404 });
+    }
+
+    return NextResponse.json({ fields: type.formFields });
+  } catch (error) {
+    console.error('Get category fields error:', error);
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+  }
+}
 
 export async function POST(
   req: NextRequest,
@@ -24,24 +44,46 @@ export async function POST(
     const type = await prisma.participantType.findFirst({
       where: { id: params.id, eventId: session.eventId },
     });
-    if (!type) return NextResponse.json({ error: 'Participant type not found' }, { status: 404 });
 
-    const body = await req.json();
-    const parsed = createFieldSchema.safeParse(body);
-    if (!parsed.success) {
-      return NextResponse.json({ error: parsed.error.errors[0].message }, { status: 400 });
+    if (!type) {
+      return NextResponse.json({ error: 'Participant category not found' }, { status: 404 });
     }
 
-    const newField = await prisma.participantTypeFormField.create({
-      data: {
-        participantTypeId: params.id,
-        ...parsed.data,
-      },
+    const body = await req.json();
+    const { fields } = body;
+
+    if (!Array.isArray(fields)) {
+      return NextResponse.json({ error: 'Fields must be an array' }, { status: 400 });
+    }
+
+    const eventId = session.eventId;
+
+    // Delete existing form fields for this category
+    await prisma.formField.deleteMany({
+      where: { participantTypeId: params.id, eventId },
     });
 
-    return NextResponse.json({ field: newField }, { status: 201 });
+    // Create new form fields for this category
+    const createdFields = await Promise.all(
+      fields.map((f: { label: string; type: FieldType; required?: boolean; options?: string[]; order: number; isLocked?: boolean }, index: number) =>
+        prisma.formField.create({
+          data: {
+            eventId,
+            participantTypeId: params.id,
+            label: f.label,
+            type: f.type,
+            required: !!f.required,
+            options: f.options && f.options.length > 0 ? f.options : undefined,
+            order: typeof f.order === 'number' ? f.order : index,
+            isLocked: !!f.isLocked,
+          },
+        })
+      )
+    );
+
+    return NextResponse.json({ fields: createdFields }, { status: 200 });
   } catch (error) {
-    console.error('Create type form field error:', error);
+    console.error('Save category fields error:', error);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }

@@ -24,15 +24,14 @@ export const createEventSchema = z.object({
   venue: z.string().min(1, 'Venue is required').max(500),
   eventDate: z.string().optional().nullable(),
   description: z.string().max(2000).optional().nullable(),
-  logoUrl: z.string().url().optional().nullable(),
+  logoUrl: z.string().url().optional().nullable().or(z.literal('')),
   logoFileId: z.string().optional().nullable(),
   primaryColor: z.string().regex(/^#[0-9A-Fa-f]{6}$/).default('#0F172A'),
   secondaryColor: z.string().regex(/^#[0-9A-Fa-f]{6}$/).default('#3B82F6'),
   accentColor: z.string().regex(/^#[0-9A-Fa-f]{6}$/).default('#F59E0B'),
   fontFamily: z.string().default('Inter'),
+  fontUrl: z.string().optional().nullable().or(z.literal('')),
   eventType: z.enum(['NORMAL', 'MUN']).default('NORMAL'),
-  customFontFileUrl: z.string().url().optional().nullable(),
-  customFontUrl: z.string().url().optional().nullable(),
   managerEmail: z.string().email('Valid manager email is required'),
 });
 
@@ -48,6 +47,7 @@ export const managerSettingsSchema = z.object({
   secondaryColor: z.string().regex(/^#[0-9A-Fa-f]{6}$/).optional().nullable(),
   accentColor: z.string().regex(/^#[0-9A-Fa-f]{6}$/).optional().nullable(),
   fontFamily: z.string().optional().nullable(),
+  fontUrl: z.string().optional().nullable(),
 });
 
 // ── Form Fields ──
@@ -86,6 +86,10 @@ export const publishSlugSchema = z.object({
 export const publicSubmissionSchema = z.object({
   responses: z.record(z.string(), z.any()),
   email: z.string().email('Valid email is required'),
+  photoUrl: z.string().url().optional().nullable().or(z.literal('')),
+  phone: z.string().optional().nullable().or(z.literal('')),
+  participantTypeId: z.string().optional().nullable().or(z.literal('')),
+  groupId: z.string().optional().nullable().or(z.literal('')),
 });
 
 // ── Gates ──

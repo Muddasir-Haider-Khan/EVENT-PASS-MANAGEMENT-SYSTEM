@@ -8,7 +8,6 @@ import { Media27Logo } from '@/components/27MediaLogo';
 import {
   LayoutDashboard,
   Sliders,
-  FileEdit,
   Inbox,
   Users,
   Shield,
@@ -18,6 +17,9 @@ import {
   LogOut,
   Menu,
   X,
+  Tags,
+  Building,
+  Mail,
 } from 'lucide-react';
 
 interface EventData {
@@ -27,34 +29,20 @@ interface EventData {
   primaryColor: string;
   secondaryColor: string;
   accentColor: string;
-  fontFamily: string;
-  customFontFileUrl?: string | null;
-  customFontUrl?: string | null;
-  eventType: 'NORMAL' | 'MUN';
   slug: string | null;
   status: string;
 }
 
-const NORMAL_NAV_ITEMS = [
+const MANAGER_NAV_ITEMS = [
   { href: '/manager', label: 'Dashboard Overview', icon: LayoutDashboard },
+  { href: '/manager/types', label: 'Participant Categories / Types', icon: Tags },
+  { href: '/manager/groups', label: 'Delegations & Groups', icon: Building },
+  { href: '/manager/broadcast', label: 'Targeted Email Broadcaster', icon: Mail },
   { href: '/manager/settings', label: 'Event Branding & Settings', icon: Sliders },
-  { href: '/manager/form-builder', label: 'Form Builder', icon: FileEdit },
   { href: '/manager/submissions', label: 'Submissions Triage', icon: Inbox },
   { href: '/manager/participants', label: 'Pass Holders & Attendees', icon: Users },
   { href: '/manager/gates', label: 'Gate Control & Scanner Accounts', icon: Shield },
   { href: '/manager/publish', label: 'Publish & QR Distribution', icon: Share2 },
-  { href: '/gate', label: 'Open Gate Scanner', icon: QrCode },
-];
-
-const MUN_NAV_ITEMS = [
-  { href: '/manager', label: 'MUN Overview', icon: LayoutDashboard },
-  { href: '/manager/types', label: 'Participant Types', icon: FileEdit },
-  { href: '/manager/submissions', label: 'Photo & Registration Triage', icon: Inbox },
-  { href: '/manager/participants', label: 'Verified Pass Holders', icon: Users },
-  { href: '/manager/groups', label: 'Group Delegations', icon: Users },
-  { href: '/manager/gates', label: 'Gate Scanners & Approvals', icon: Shield },
-  { href: '/manager/settings', label: 'Custom Branding & Fonts', icon: Sliders },
-  { href: '/manager/publish', label: 'Publish Registration Link', icon: Share2 },
   { href: '/gate', label: 'Open Gate Scanner', icon: QrCode },
 ];
 
@@ -100,16 +88,11 @@ export default function ManagerLayout({ children }: { children: React.ReactNode 
     );
   }
 
-  const navItems = event.eventType === 'MUN' ? MUN_NAV_ITEMS : NORMAL_NAV_ITEMS;
-
   return (
     <ThemeProvider
       primaryColor={event.primaryColor}
       secondaryColor={event.secondaryColor}
       accentColor={event.accentColor}
-      fontFamily={event.fontFamily}
-      customFontFileUrl={event.customFontFileUrl}
-      customFontUrl={event.customFontUrl}
     >
       <ToastProvider>
         <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col md:flex-row antialiased">
@@ -156,7 +139,7 @@ export default function ManagerLayout({ children }: { children: React.ReactNode 
                   <p className="text-xs font-semibold text-white truncate">{event.name}</p>
                   <p className="text-[10px] font-medium text-emerald-400 flex items-center gap-1">
                     <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
-                    {event.eventType === 'MUN' ? 'MUN Event' : 'Standard Event'} Manager
+                    {event.status} Manager
                   </p>
                 </div>
               </div>
@@ -165,9 +148,9 @@ export default function ManagerLayout({ children }: { children: React.ReactNode 
             {/* Navigation Tabs */}
             <nav className="flex-1 p-3 space-y-1 overflow-y-auto">
               <div className="text-[10px] font-bold tracking-wider text-slate-400 px-3 pb-2 uppercase">
-                {event.eventType === 'MUN' ? 'MUN Management Suite' : 'Event Management'}
+                Event Management
               </div>
-              {navItems.map((item) => {
+              {MANAGER_NAV_ITEMS.map((item) => {
                 const Icon = item.icon;
                 const active = pathname === item.href;
                 return (

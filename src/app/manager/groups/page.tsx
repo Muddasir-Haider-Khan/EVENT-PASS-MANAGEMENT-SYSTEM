@@ -1,47 +1,34 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
-import { useToast } from '@/components/Toast';
-import { Users, Plus, Building, Mail, Phone } from 'lucide-react';
+import { useEffect, useState } from 'react';
+import { Card } from '@/components/ui/Card';
+import { Button } from '@/components/ui/Button';
+import { Building, Plus, Trash2, CheckCircle2, AlertCircle, Users } from 'lucide-react';
 
-
-interface GroupItem {
+interface Group {
   id: string;
   name: string;
-  leaderName: string | null;
-  leaderEmail: string | null;
-  leaderPhone: string | null;
+  country: string | null;
   institution: string | null;
-  createdAt: string;
-  participants: {
-    id: string;
-    name: string;
-    email: string;
-    phone: string | null;
-    status: string;
-  }[];
-  submissions: {
-    id: string;
-    email: string;
-    status: string;
-  }[];
+  leader?: { id: string; name: string; email: string } | null;
+  members?: Array<{ id: string; name: string; email: string; phone: string | null; photoUrl: string | null }>;
+  _count: {
+    members?: number;
+    participants?: number;
+    submissions: number;
+  };
 }
 
 export default function ManagerGroupsPage() {
-  const { toast } = useToast();
-  const [groups, setGroups] = useState<GroupItem[]>([]);
+  const [groups, setGroups] = useState<Group[]>([]);
   const [loading, setLoading] = useState(true);
-  const [showModal, setShowModal] = useState(false);
+  const [creating, setCreating] = useState(false);
+  const [name, setName] = useState('');
+  const [country, setCountry] = useState('');
+  const [institution, setInstitution] = useState('');
+  const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
 
-  const [form, setForm] = useState({
-    name: '',
-    leaderName: '',
-    leaderEmail: '',
-    leaderPhone: '',
-    institution: '',
-  });
-
-  const loadGroups = useCallback(async () => {
+  async function loadGroups() {
     try {
       const res = await fetch('/api/manager/groups');
       if (res.ok) {
@@ -49,228 +36,220 @@ export default function ManagerGroupsPage() {
         setGroups(data.groups || []);
       }
     } catch {
-      toast('Failed to load groups', 'error');
+      // Handled silently
     } finally {
       setLoading(false);
     }
-  }, [toast]);
+  }
 
   useEffect(() => {
     loadGroups();
-  }, [loadGroups]);
+  }, []);
 
-  async function handleCreateGroup(e: React.FormEvent) {
+  async function handleCreate(e: React.FormEvent) {
     e.preventDefault();
+    if (!name.trim()) return;
+
+    setCreating(true);
+    setMessage(null);
     try {
       const res = await fetch('/api/manager/groups', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(form),
+        body: JSON.stringify({ name, country, institution }),
       });
-
-      if (!res.ok) {
-        const err = await res.json();
-        toast(err.error || 'Failed to create group', 'error');
-        return;
+      const data = await res.json();
+      if (res.ok) {
+        setMessage({ type: 'success', text: 'Delegation / Group created successfully!' });
+        setName('');
+        setCountry('');
+        setInstitution('');
+        loadGroups();
+      } else {
+        setMessage({ type: 'error', text: data.error || 'Failed to create group' });
       }
-
-      toast('Delegation group created', 'success');
-      setShowModal(false);
-      setForm({ name: '', leaderName: '', leaderEmail: '', leaderPhone: '', institution: '' });
-      loadGroups();
     } catch {
-      toast('Network error creating group', 'error');
+      setMessage({ type: 'error', text: 'Network request error' });
+    } finally {
+      setCreating(false);
     }
   }
 
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center min-h-[300px]">
-        <div className="w-8 h-8 border-2 border-indigo-500 border-t-transparent rounded-full animate-spin" />
-      </div>
-    );
+  async function handleDelete(id: string) {
+    if (!confirm('Are you sure you want to delete this delegation group?')) return;
+    try {
+      const res = await fetch(`/api/manager/groups?id=${id}`, {
+        method: 'DELETE',
+      });
+      if (res.ok) {
+        loadGroups();
+      }
+    } catch {
+      // Handled silently
+    }
   }
 
   return (
-    <div className="space-y-6 max-w-6xl mx-auto">
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-slate-900/60 p-6 rounded-2xl border border-slate-800 backdrop-blur-md">
-        <div>
-          <div className="flex items-center gap-2 text-xs font-semibold text-indigo-400 uppercase tracking-wider mb-1">
-            <Users className="w-4 h-4" />
-            <span>MUN Delegation Roster</span>
-          </div>
-          <h1 className="text-2xl font-bold text-white tracking-tight">Group Delegations & Schools</h1>
-          <p className="text-xs text-slate-400 mt-1">
-            Manage institutional delegations, head delegates, and group pass allocations.
-          </p>
-        </div>
-
-        <button
-          onClick={() => setShowModal(true)}
-          className="flex items-center justify-center gap-2 px-4 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold rounded-xl shadow-lg shadow-indigo-600/30 transition cursor-pointer"
-        >
-          <Plus className="w-4 h-4" />
-          <span>New Group Delegation</span>
-        </button>
+    <div className="max-w-5xl mx-auto space-y-6">
+      <div className="border-b border-slate-800 pb-4">
+        <h1 className="text-2xl font-bold text-white flex items-center gap-2">
+          <Building className="w-6 h-6 text-indigo-400" />
+          Delegations & Groups Management
+        </h1>
+        <p className="text-xs text-slate-400 mt-1">
+          Organize delegates into institutions, university delegations, or country groups for MUN operations.
+        </p>
       </div>
 
-      {groups.length === 0 ? (
-        <div className="bg-slate-900/40 border border-slate-800 rounded-2xl p-12 text-center space-y-3">
-          <Building className="w-12 h-12 text-slate-600 mx-auto" />
-          <h3 className="text-base font-semibold text-slate-300">No Group Delegations Formed</h3>
-          <p className="text-xs text-slate-500 max-w-md mx-auto">
-            Delegation groups can be created manually or formed automatically when delegates register with group credentials.
-          </p>
-          <button
-            onClick={() => setShowModal(true)}
-            className="inline-flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white text-xs font-semibold rounded-xl"
-          >
-            <Plus className="w-4 h-4" />
-            <span>Create First Delegation</span>
-          </button>
+      {message && (
+        <div
+          className={`p-4 rounded-xl text-xs font-semibold flex items-center gap-2 ${
+            message.type === 'success'
+              ? 'bg-emerald-500/10 border border-emerald-500/20 text-emerald-400'
+              : 'bg-red-500/10 border border-red-500/20 text-red-400'
+          }`}
+        >
+          {message.type === 'success' ? (
+            <CheckCircle2 className="w-4 h-4" />
+          ) : (
+            <AlertCircle className="w-4 h-4" />
+          )}
+          <span>{message.text}</span>
         </div>
-      ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {groups.map((g) => (
-            <div
-              key={g.id}
-              className="bg-slate-900/80 border border-slate-800 rounded-2xl p-6 space-y-4 shadow-xl"
-            >
-              <div className="flex items-start justify-between">
-                <div>
-                  <h2 className="text-lg font-bold text-white">{g.name}</h2>
-                  {g.institution && (
-                    <p className="text-xs text-indigo-400 font-medium flex items-center gap-1.5 mt-0.5">
-                      <Building className="w-3.5 h-3.5" />
-                      <span>{g.institution}</span>
-                    </p>
-                  )}
-                </div>
-                <span className="px-2.5 py-1 text-xs font-bold bg-indigo-500/10 text-indigo-300 border border-indigo-500/20 rounded-full">
-                  {g.participants.length} Delegates
-                </span>
-              </div>
+      )}
 
-              {/* Head Delegate Info */}
-              {(g.leaderName || g.leaderEmail) && (
-                <div className="bg-slate-950/60 p-3 rounded-xl border border-slate-800/80 text-xs space-y-1">
-                  <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Head Delegate / Faculty Leader</span>
-                  {g.leaderName && <p className="text-slate-200 font-semibold">{g.leaderName}</p>}
-                  <div className="flex flex-wrap items-center gap-3 text-[11px] text-slate-400">
-                    {g.leaderEmail && <span className="flex items-center gap-1"><Mail className="w-3 h-3" />{g.leaderEmail}</span>}
-                    {g.leaderPhone && <span className="flex items-center gap-1"><Phone className="w-3 h-3" />{g.leaderPhone}</span>}
+      {/* Create New Group */}
+      <Card variant="glass" className="p-6 border-slate-800 space-y-4">
+        <h2 className="text-sm font-bold text-white flex items-center gap-2">
+          <Plus className="w-4 h-4 text-indigo-400" />
+          Create New Delegation / Group
+        </h2>
+
+        <form onSubmit={handleCreate} className="grid grid-cols-1 sm:grid-cols-4 gap-4">
+          <div>
+            <label className="block text-xs font-semibold uppercase text-slate-300 mb-1">
+              Group / Delegation Name *
+            </label>
+            <input
+              type="text"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              required
+              placeholder="e.g. LUMS Delegation"
+              className="w-full bg-slate-950/80 border border-slate-800 focus:border-indigo-500 text-sm text-white rounded-xl px-4 py-2.5 outline-none"
+            />
+          </div>
+
+          <div>
+            <label className="block text-xs font-semibold uppercase text-slate-300 mb-1">
+              Institution / School
+            </label>
+            <input
+              type="text"
+              value={institution}
+              onChange={(e) => setInstitution(e.target.value)}
+              placeholder="e.g. LUMS University"
+              className="w-full bg-slate-950/80 border border-slate-800 focus:border-indigo-500 text-sm text-white rounded-xl px-4 py-2.5 outline-none"
+            />
+          </div>
+
+          <div>
+            <label className="block text-xs font-semibold uppercase text-slate-300 mb-1">
+              Assigned Country / Allocation
+            </label>
+            <input
+              type="text"
+              value={country}
+              onChange={(e) => setCountry(e.target.value)}
+              placeholder="e.g. United States of America"
+              className="w-full bg-slate-950/80 border border-slate-800 focus:border-indigo-500 text-sm text-white rounded-xl px-4 py-2.5 outline-none"
+            />
+          </div>
+
+          <div className="flex items-end">
+            <Button
+              type="submit"
+              variant="primary"
+              isLoading={creating}
+              className="w-full"
+              leftIcon={<Plus className="w-4 h-4" />}
+            >
+              Save Group
+            </Button>
+          </div>
+        </form>
+      </Card>
+
+      {/* Existing Groups */}
+      <div className="space-y-3">
+        <h2 className="text-sm font-bold text-slate-300 uppercase tracking-wider">
+          Delegation Groups ({groups.length})
+        </h2>
+
+        {loading ? (
+          <div className="p-8 text-center text-xs text-slate-400">Loading delegations...</div>
+        ) : groups.length === 0 ? (
+          <Card variant="glass" className="p-8 text-center text-slate-400 text-xs border-slate-800">
+            No delegation groups created yet. Add your first group above.
+          </Card>
+        ) : (
+          <div className="space-y-4">
+            {groups.map((group) => (
+              <Card key={group.id} variant="glass" className="p-5 border-slate-800 space-y-4">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h3 className="font-bold text-base text-white flex items-center gap-2">
+                      <Users className="w-4 h-4 text-indigo-400" />
+                      {group.name}
+                    </h3>
+                    <div className="flex items-center gap-3 text-xs text-slate-400 mt-1">
+                      {group.institution && <span>🏫 {group.institution}</span>}
+                      {group.country && <span>🇺🇳 Country: <strong className="text-white">{group.country}</strong></span>}
+                    </div>
+                  </div>
+
+                  <div className="flex items-center gap-3">
+                    <span className="text-xs font-mono bg-slate-900 px-3 py-1.5 rounded-full border border-slate-800 text-indigo-300">
+                      {group._count.members ?? group._count.participants ?? 0} Delegates
+                    </span>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => handleDelete(group.id)}
+                      className="text-red-400 hover:text-red-300"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </Button>
                   </div>
                 </div>
-              )}
 
-              {/* Roster of members */}
-              <div>
-                <span className="text-xs font-semibold text-slate-300 block mb-2">Delegation Roster ({g.participants.length})</span>
-                {g.participants.length === 0 ? (
-                  <p className="text-[11px] text-slate-500 italic">No delegates assigned to this group yet.</p>
-                ) : (
-                  <div className="space-y-1.5 max-h-40 overflow-y-auto pr-1">
-                    {g.participants.map((p) => (
-                      <div key={p.id} className="flex items-center justify-between p-2 bg-slate-950/40 rounded-lg text-xs border border-slate-800/60">
-                        <span className="font-medium text-slate-200">{p.name}</span>
-                        <span className="text-[10px] font-bold text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded border border-emerald-500/20">
-                          Verified Pass
-                        </span>
-                      </div>
-                    ))}
+                {(group.members && group.members.length > 0) && (
+                  <div className="pt-3 border-t border-slate-800/80">
+                    <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">
+                      Group Members:
+                    </span>
+                    <div className="flex flex-wrap gap-2 mt-2">
+                      {group.members.map((member) => (
+                        <div
+                          key={member.id}
+                          className="flex items-center gap-2 bg-slate-950 px-3 py-1.5 rounded-lg border border-slate-800 text-xs"
+                        >
+                          {member.photoUrl ? (
+                            <img src={member.photoUrl} alt={member.name} className="w-4 h-4 rounded-full object-cover" />
+                          ) : (
+                            <span className="w-2 h-2 rounded-full bg-emerald-400" />
+                          )}
+                          <span className="text-white font-medium">{member.name || member.email}</span>
+                        </div>
+                      ))}
+                    </div>
                   </div>
                 )}
-              </div>
-            </div>
-          ))}
-        </div>
-      )}
-
-      {/* Modal: Create Delegation */}
-      {showModal && (
-        <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-slate-900 border border-slate-800 rounded-2xl max-w-md w-full p-6 space-y-4 shadow-2xl">
-            <div className="flex items-center justify-between border-b border-slate-800 pb-3">
-              <h3 className="text-base font-bold text-white">Create Group Delegation</h3>
-              <button onClick={() => setShowModal(false)} className="text-slate-400 hover:text-white p-1">
-                ✕
-              </button>
-            </div>
-
-            <form onSubmit={handleCreateGroup} className="space-y-4">
-              <div>
-                <label className="text-xs font-semibold text-slate-300 block mb-1">Delegation Name *</label>
-                <input
-                  className="w-full px-3 py-2 bg-slate-950 border border-slate-800 rounded-xl text-xs text-white focus:outline-none focus:border-indigo-500"
-                  placeholder="e.g. Aitchison College Delegation"
-                  value={form.name}
-                  onChange={(e) => setForm({ ...form, name: e.target.value })}
-                  required
-                />
-              </div>
-
-              <div>
-                <label className="text-xs font-semibold text-slate-300 block mb-1">Institution / School / Society</label>
-                <input
-                  className="w-full px-3 py-2 bg-slate-950 border border-slate-800 rounded-xl text-xs text-white focus:outline-none focus:border-indigo-500"
-                  placeholder="e.g. Aitchison College Lahore"
-                  value={form.institution}
-                  onChange={(e) => setForm({ ...form, institution: e.target.value })}
-                />
-              </div>
-
-              <div>
-                <label className="text-xs font-semibold text-slate-300 block mb-1">Head Delegate Name</label>
-                <input
-                  className="w-full px-3 py-2 bg-slate-950 border border-slate-800 rounded-xl text-xs text-white focus:outline-none focus:border-indigo-500"
-                  placeholder="e.g. Muhammad Ali"
-                  value={form.leaderName}
-                  onChange={(e) => setForm({ ...form, leaderName: e.target.value })}
-                />
-              </div>
-
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="text-xs font-semibold text-slate-300 block mb-1">Leader Email</label>
-                  <input
-                    type="email"
-                    className="w-full px-3 py-2 bg-slate-950 border border-slate-800 rounded-xl text-xs text-white focus:outline-none focus:border-indigo-500"
-                    placeholder="head@aitchison.edu.pk"
-                    value={form.leaderEmail}
-                    onChange={(e) => setForm({ ...form, leaderEmail: e.target.value })}
-                  />
-                </div>
-                <div>
-                  <label className="text-xs font-semibold text-slate-300 block mb-1">Leader Phone</label>
-                  <input
-                    className="w-full px-3 py-2 bg-slate-950 border border-slate-800 rounded-xl text-xs text-white focus:outline-none focus:border-indigo-500"
-                    placeholder="+92 300 1234567"
-                    value={form.leaderPhone}
-                    onChange={(e) => setForm({ ...form, leaderPhone: e.target.value })}
-                  />
-                </div>
-              </div>
-
-              <div className="flex items-center justify-end gap-3 pt-3 border-t border-slate-800">
-                <button
-                  type="button"
-                  onClick={() => setShowModal(false)}
-                  className="px-4 py-2 bg-slate-800 text-slate-300 text-xs font-semibold rounded-xl"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  className="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold rounded-xl shadow-lg shadow-indigo-600/30"
-                >
-                  Save Delegation
-                </button>
-              </div>
-            </form>
+              </Card>
+            ))}
           </div>
-        </div>
-      )}
+        )}
+      </div>
     </div>
   );
 }

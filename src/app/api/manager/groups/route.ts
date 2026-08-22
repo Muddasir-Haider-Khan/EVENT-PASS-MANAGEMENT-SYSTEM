@@ -1,15 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
 import { getSession } from '@/lib/auth';
-import { z } from 'zod';
-
-const createGroupSchema = z.object({
-  name: z.string().min(1, 'Group name is required').max(150),
-  leaderName: z.string().optional().nullable(),
-  leaderEmail: z.string().email().optional().nullable(),
-  leaderPhone: z.string().optional().nullable(),
-  institution: z.string().optional().nullable(),
-});
 
 export async function GET() {
   const session = getSession('event_manager');
@@ -19,25 +10,15 @@ export async function GET() {
 
   const groups = await prisma.participantGroup.findMany({
     where: { eventId: session.eventId },
+    orderBy: { createdAt: 'desc' },
     include: {
-      participants: {
+      members: { select: { id: true, email: true, name: true, phone: true, photoUrl: true } },
+      _count: {
         select: {
-          id: { select: true },
-          name: true,
-          email: true,
-          phone: true,
-          status: true,
-        },
-      },
-      submissions: {
-        select: {
-          id: true,
-          email: true,
-          status: true,
+          members: true,
         },
       },
     },
-    orderBy: { createdAt: 'desc' },
   });
 
   return NextResponse.json({ groups });
@@ -50,22 +31,95 @@ export async function POST(req: NextRequest) {
   }
 
   try {
-    const body = await req.json();
-    const parsed = createGroupSchema.safeParse(body);
-    if (!parsed.success) {
-      return NextResponse.json({ error: parsed.error.errors[0].message }, { status: 400 });
+    const { name, leaderId } = await req.json();
+    if (!name || typeof name !== 'string' || !name.trim()) {
+      return NextResponse.json({ error: 'Group / Delegation name is required' }, { status: 400 });
     }
 
     const group = await prisma.participantGroup.create({
       data: {
         eventId: session.eventId,
-        ...parsed.data,
+        name: name.trim(),
+        leaderId: leaderId || null,
       },
     });
 
     return NextResponse.json({ group }, { status: 201 });
   } catch (error) {
-    console.error('Create participant group error:', error);
+    console.error('Create group error:', error);
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+  }
+}
+
+export async function PATCH(req: NextRequest) {
+  const session = getSession('event_manager');
+  if (!session || !session.eventId) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  }
+
+  try {
+    const { participantId, groupId, isLeader } = await req.json();
+    if (!participantId) {
+      return NextResponse.json({ error: 'Participant ID is required' }, { status: 400 });
+    }
+
+    // Verify participant belongs to manager's event
+    const participant = await prisma.participant.findFirst({
+      where: { id: participantId, eventId: session.eventId },
+    });
+
+    if (!participant) {
+      return NextResponse.json({ error: 'Participant not found' }, { status: 404 });
+    }
+
+    const updatedParticipant = await prisma.participant.update({
+      where: { id: participantId },
+      data: { groupId: groupId || null },
+    });
+
+    if (groupId && isLeader) {
+      await prisma.participantGroup.update({
+        where: { id: groupId },
+        data: { leaderId: participantId },
+      });
+    }
+
+    return NextResponse.json({ success: true, participant: updatedParticipant });
+  } catch (error) {
+    console.error('Update group membership error:', error);
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+  }
+}
+
+export async function DELETE(req: NextRequest) {
+  const session = getSession('event_manager');
+  if (!session || !session.eventId) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  }
+
+  try {
+    const { searchParams } = new URL(req.url);
+    const id = searchParams.get('id');
+
+    if (!id) {
+      return NextResponse.json({ error: 'Group ID is required' }, { status: 400 });
+    }
+
+    const group = await prisma.participantGroup.findFirst({
+      where: { id, eventId: session.eventId },
+    });
+
+    if (!group) {
+      return NextResponse.json({ error: 'Group not found' }, { status: 404 });
+    }
+
+    await prisma.participantGroup.delete({
+      where: { id },
+    });
+
+    return NextResponse.json({ success: true });
+  } catch (error) {
+    console.error('Delete group error:', error);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }

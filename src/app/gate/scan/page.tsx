@@ -23,14 +23,13 @@ interface ScanResult {
   participant?: {
     name: string;
     email: string;
-    entryStatus: string;
     photoUrl?: string | null;
-    participantTypeName?: string | null;
-    groupName?: string | null;
+    participantType?: string | null;
+    group?: string | null;
+    entryStatus: string;
   };
   scannedAt?: string;
 }
-
 
 interface ScanHistoryItem {
   id: string;
@@ -300,48 +299,50 @@ export default function ScanPage() {
         <main className="flex-1 flex flex-col items-center justify-center p-6 text-center">
           {lastScan ? (
             <div
-              className={`w-full max-w-lg p-8 rounded-3xl bg-slate-900/90 border-2 ${borderColor} shadow-2xl backdrop-blur-xl animate-in zoom-in-95 duration-150`}
+              className={`w-full max-w-lg p-6 sm:p-8 rounded-3xl bg-slate-900/90 border-2 ${borderColor} shadow-2xl backdrop-blur-xl animate-in zoom-in-95 duration-150 space-y-4`}
             >
-              <div className="flex justify-center mb-4">
+              <div className="flex justify-center">
                 {lastScan.color === 'green' ? (
-                  <CheckCircle2 className="w-20 h-20 text-emerald-400 animate-bounce" />
+                  <CheckCircle2 className="w-16 h-16 text-emerald-400 animate-bounce" />
                 ) : lastScan.color === 'red' ? (
-                  <XCircle className="w-20 h-20 text-red-400" />
+                  <XCircle className="w-16 h-16 text-red-400" />
                 ) : (
-                  <AlertTriangle className="w-20 h-20 text-amber-400" />
+                  <AlertTriangle className="w-16 h-16 text-amber-400" />
                 )}
               </div>
 
+              {/* Delegate Photo Verification */}
+              {lastScan.participant?.photoUrl && (
+                <div className="flex justify-center">
+                  <img
+                    src={lastScan.participant.photoUrl}
+                    alt={lastScan.participant.name}
+                    className="w-24 h-24 rounded-2xl object-cover border-2 border-slate-700 shadow-lg"
+                  />
+                </div>
+              )}
+
               {lastScan.participant && (
-                <div className="space-y-3 mb-4">
-                  {lastScan.participant.photoUrl && (
-                    <div className="w-28 h-28 mx-auto rounded-2xl overflow-hidden border-2 border-indigo-400 shadow-xl my-2">
-                      <img
-                        src={lastScan.participant.photoUrl}
-                        alt={lastScan.participant.name}
-                        className="w-full h-full object-cover"
-                      />
-                    </div>
-                  )}
-                  <h2 className="text-3xl font-black text-white tracking-tight">
+                <div>
+                  <h2 className="text-2xl font-black text-white tracking-tight">
                     {lastScan.participant.name}
                   </h2>
-                  <div className="flex flex-wrap items-center justify-center gap-2 text-xs">
-                    {lastScan.participant.participantTypeName && (
-                      <span className="px-2.5 py-1 bg-indigo-500/20 text-indigo-300 font-bold rounded-lg border border-indigo-500/30">
-                        {lastScan.participant.participantTypeName}
-                      </span>
+                  <div className="flex items-center justify-center gap-2 mt-1">
+                    {lastScan.participant.participantType && (
+                      <Badge variant="indigo" size="sm">
+                        {lastScan.participant.participantType}
+                      </Badge>
                     )}
-                    {lastScan.participant.groupName && (
-                      <span className="px-2.5 py-1 bg-slate-800 text-slate-300 font-bold rounded-lg border border-slate-700">
-                        {lastScan.participant.groupName}
-                      </span>
+                    {lastScan.participant.group && (
+                      <Badge variant="green" size="sm">
+                        {lastScan.participant.group}
+                      </Badge>
                     )}
                   </div>
                 </div>
               )}
 
-              <p className="text-lg font-semibold text-slate-200 mb-6">
+              <p className="text-base font-semibold text-slate-200">
                 {lastScan.message}
               </p>
 
@@ -358,7 +359,6 @@ export default function ScanPage() {
                 RESULT: {lastScan.result}
               </Badge>
             </div>
-
           ) : (
             <div className="flex flex-col items-center max-w-sm">
               <div className="w-20 h-20 rounded-3xl bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center text-indigo-400 mb-6 shadow-inner">

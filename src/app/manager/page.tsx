@@ -130,18 +130,6 @@ export default function ManagerDashboard() {
         <div
           className="card"
           style={{ padding: 24, cursor: 'pointer', transition: 'all 150ms ease' }}
-          onClick={() => router.push('/manager/form-builder')}
-        >
-          <div style={{ fontSize: 24, marginBottom: 10 }}>▤</div>
-          <h3 className="text-title" style={{ color: 'var(--gold-light)' }}>Customize Registration Form</h3>
-          <p className="text-caption" style={{ color: 'var(--text-secondary)', marginTop: 4 }}>
-            Add custom form fields, file uploads, text questions, and attendee selection options.
-          </p>
-        </div>
-
-        <div
-          className="card"
-          style={{ padding: 24, cursor: 'pointer', transition: 'all 150ms ease' }}
           onClick={() => router.push('/manager/gates')}
         >
           <div style={{ fontSize: 24, marginBottom: 10 }}>⊞</div>

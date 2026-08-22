@@ -4,7 +4,6 @@ import { getSession, hashPassword, generatePassword, generateLoginId } from '@/l
 import { createEventSchema } from '@/lib/validation';
 import { sendManagerCredentials } from '@/lib/resend';
 
-
 export async function GET() {
   const session = getSession('super_admin');
   if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
@@ -34,8 +33,7 @@ export async function POST(req: NextRequest) {
     const {
       name, venue, eventDate, description,
       logoUrl, logoFileId,
-      primaryColor, secondaryColor, accentColor, fontFamily,
-      eventType, customFontFileUrl, customFontUrl,
+      primaryColor, secondaryColor, accentColor, fontFamily, fontUrl, eventType,
       managerEmail,
     } = parsed.data;
 
@@ -51,16 +49,14 @@ export async function POST(req: NextRequest) {
         venue,
         eventDate: eventDate ? new Date(eventDate) : null,
         description,
-        logoUrl,
-        logoFileId,
+        logoUrl: logoUrl || null,
+        logoFileId: logoFileId || null,
         primaryColor,
         secondaryColor,
         accentColor,
         fontFamily: (fontFamily as string) || 'Inter',
+        fontUrl: fontUrl || null,
         eventType: eventType || 'NORMAL',
-
-        customFontFileUrl,
-        customFontUrl,
         eventManager: {
           create: {
             loginId,
@@ -79,7 +75,17 @@ export async function POST(req: NextRequest) {
             order: 0,
           },
         },
-      } as any,
+        ...(eventType === 'MUN'
+          ? {
+              participantTypes: {
+                create: [
+                  { name: 'Delegate', description: 'Standard committee delegate participant' },
+                  { name: 'Executive Board', description: 'Committee chair and executive board' },
+                ],
+              },
+            }
+          : {}),
+      },
       include: {
         eventManager: true,
       },

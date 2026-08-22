@@ -60,55 +60,19 @@ export async function DELETE(
   if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
   try {
-    const eventId = params.id;
-
     // Delete ImageKit folder for this event
     try {
-      await deleteEventFolder(eventId);
+      await deleteEventFolder(params.id);
     } catch (e) {
       console.error('ImageKit folder deletion error:', e);
     }
 
-    // Safely delete all dependent records in transaction order
-    await prisma.$transaction(async (tx: any) => {
-      // 1. Delete ScanLogs linked to gates or participants of this event
-      await tx.scanLog.deleteMany({
-        where: {
-          OR: [
-            { gate: { eventId } },
-            { participant: { eventId } },
-          ],
-        },
-      });
-
-      // 2. Delete Participants
-      await tx.participant.deleteMany({ where: { eventId } });
-
-      // 3. Delete Submissions
-      await tx.submission.deleteMany({ where: { eventId } });
-
-      // 4. Delete ParticipantGroups
-      await tx.participantGroup.deleteMany({ where: { eventId } });
-
-      // 5. Delete ParticipantTypes
-      await tx.participantType.deleteMany({ where: { eventId } });
-
-      // 6. Delete FormFields & Gates
-      await tx.formField.deleteMany({ where: { eventId } });
-      await tx.gate.deleteMany({ where: { eventId } });
-
-      // 7. Delete EventManager
-      await tx.eventManager.deleteMany({ where: { eventId } });
-
-      // 8. Delete Event
-      await tx.event.delete({ where: { id: eventId } });
-    });
-
+    // Cascade delete will remove manager, form fields, submissions, participants, gates, scan logs
+    await prisma.event.delete({ where: { id: params.id } });
 
     return NextResponse.json({ success: true });
-  } catch (error: any) {
+  } catch (error) {
     console.error('Delete event error:', error);
-    return NextResponse.json({ error: error.message || 'Failed to delete event' }, { status: 500 });
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }
-

@@ -24,11 +24,8 @@ export async function GET(req: NextRequest) {
     },
     orderBy: { createdAt: 'desc' },
     include: {
-      participantType: true,
-      group: true,
       _count: { select: { scanLogs: true } },
     },
-
   });
 
   return NextResponse.json({ participants });

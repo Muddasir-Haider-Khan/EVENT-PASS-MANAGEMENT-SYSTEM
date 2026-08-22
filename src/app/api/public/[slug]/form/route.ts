@@ -5,21 +5,14 @@ export async function GET(
   req: NextRequest,
   { params }: { params: { slug: string } }
 ) {
-  const event = await (prisma.event as any).findUnique({
+  const event = await prisma.event.findUnique({
     where: { slug: params.slug },
     include: {
       formFields: { orderBy: { order: 'asc' } },
       participantTypes: {
-        orderBy: { order: 'asc' },
+        orderBy: { createdAt: 'asc' },
         include: {
-          customFields: { orderBy: { order: 'asc' } },
-        },
-      },
-      participantGroups: {
-        select: {
-          id: true,
-          name: true,
-          institution: true,
+          formFields: { orderBy: { order: 'asc' } },
         },
       },
       eventManager: { select: { accountNumber: true, paymentPhone: true } },
@@ -30,32 +23,26 @@ export async function GET(
     return NextResponse.json({ error: 'Event not found' }, { status: 404 });
   }
 
-  const evt = event as any;
-
   return NextResponse.json({
     event: {
-      id: evt.id,
-      name: evt.name,
-      slug: evt.slug,
-      venue: evt.venue,
-      eventDate: evt.eventDate,
-      description: evt.description,
-      logoUrl: evt.logoUrl,
-      primaryColor: evt.primaryColor,
-      secondaryColor: evt.secondaryColor,
-      accentColor: evt.accentColor,
-      fontFamily: evt.fontFamily || 'Inter',
-      customFontFileUrl: evt.customFontFileUrl,
-      customFontUrl: evt.customFontUrl,
-      eventType: evt.eventType,
+      id: event.id,
+      name: event.name,
+      venue: event.venue,
+      eventDate: event.eventDate,
+      description: event.description,
+      logoUrl: event.logoUrl,
+      primaryColor: event.primaryColor,
+      secondaryColor: event.secondaryColor,
+      accentColor: event.accentColor,
+      fontFamily: event.fontFamily || 'Inter',
+      fontUrl: event.fontUrl,
+      eventType: event.eventType,
     },
-    fields: evt.formFields,
-    participantTypes: evt.participantTypes,
-    participantGroups: evt.participantGroups,
+    fields: event.formFields,
+    participantTypes: event.participantTypes || [],
     payment: {
-      accountNumber: evt.eventManager?.accountNumber,
-      paymentPhone: evt.eventManager?.paymentPhone,
+      accountNumber: event.eventManager?.accountNumber,
+      paymentPhone: event.eventManager?.paymentPhone,
     },
   });
 }
-

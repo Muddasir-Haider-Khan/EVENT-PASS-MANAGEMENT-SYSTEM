@@ -122,6 +122,7 @@ export async function sendQRPass(params: {
   venue: string;
   eventDate?: string | null;
   qrImageUrl: string;
+  groupName?: string | null;
 }) {
   const resend = getResend();
 
@@ -153,7 +154,7 @@ export async function sendQRPass(params: {
   return safeSend(resend, {
     from: getFromEmail(),
     to: params.to,
-    subject: `Your Event Pass — ${params.eventName}`,
+    subject: `Your Event Pass — ${params.eventName}${params.groupName ? ` (${params.groupName})` : ''}`,
     ...(attachments.length > 0 ? { attachments } : {}),
     html: `
       <!DOCTYPE html>
@@ -185,6 +186,12 @@ export async function sendQRPass(params: {
                             <strong>Event Name:</strong> ${params.eventName}
                           </td>
                         </tr>
+                        ${params.groupName ? `
+                        <tr>
+                          <td style="padding-bottom: 8px; font-size: 14px; color: #6366f1;">
+                            <strong>Delegation Group:</strong> ${params.groupName}
+                          </td>
+                        </tr>` : ''}
                         <tr>
                           <td style="padding-bottom: ${dateStr ? '8px' : '0px'}; font-size: 14px; color: #334155;">
                             <strong>Venue:</strong> ${params.venue}
@@ -256,6 +263,53 @@ export async function sendDeclineNotice(params: {
               </p>
             </div>
           </div>
+        </body>
+      </html>
+    `,
+  });
+}
+
+/**
+ * Send custom broadcast email to event participants
+ */
+export async function sendCustomBroadcastEmail(params: {
+  to: string;
+  eventName: string;
+  subject: string;
+  htmlContent: string;
+}) {
+  const resend = getResend();
+
+  return safeSend(resend, {
+    from: getFromEmail(),
+    to: params.to,
+    subject: params.subject,
+    html: `
+      <!DOCTYPE html>
+      <html>
+        <head>
+          <meta charset="utf-8" />
+          <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        </head>
+        <body style="margin: 0; padding: 0; background-color: #f8fafc; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; color: #1e293b; line-height: 1.6;">
+          <table width="100%" border="0" cellspacing="0" cellpadding="0" style="background-color: #f8fafc; padding: 32px 16px;">
+            <tr>
+              <td align="center">
+                <table width="100%" border="0" cellspacing="0" cellpadding="0" style="max-width: 580px; background-color: #ffffff; border: 1px solid #e2e8f0; border-radius: 12px; padding: 32px; box-shadow: 0 4px 12px rgba(0,0,0,0.05);">
+                  <tr>
+                    <td>
+                      <div style="font-size: 12px; font-weight: 700; color: #6366f1; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 12px;">
+                        ${params.eventName} Official Communication
+                      </div>
+                      <div style="font-size: 15px; color: #334155; line-height: 1.6;">
+                        ${params.htmlContent}
+                      </div>
+                    </td>
+                  </tr>
+                </table>
+              </td>
+            </tr>
+          </table>
         </body>
       </html>
     `,

@@ -50,28 +50,6 @@ export async function POST(req: NextRequest) {
       });
     }
 
-    // Check if QR pass is expired / revoked
-    if (participant.qrExpired) {
-      await prisma.scanLog.create({
-        data: {
-          gateId,
-          participantId: participant.id,
-          result: 'INVALID_QR',
-          qrTokenUsed: rawToken,
-        },
-      });
-      return NextResponse.json({
-        result: 'EXPIRED_QR',
-        message: 'Pass QR code has expired or has been revoked by management',
-        color: 'red',
-        participant: {
-          name: participant.name || participant.email,
-          email: participant.email,
-          photoUrl: participant.photoUrl,
-        },
-      });
-    }
-
     // Token belongs to different event
     if (participant.eventId !== session.eventId) {
       await prisma.scanLog.create({
@@ -89,6 +67,30 @@ export async function POST(req: NextRequest) {
       });
     }
 
+    // Pass is expired (single-use or revoked)
+    if (participant.isExpired) {
+      await prisma.scanLog.create({
+        data: {
+          gateId,
+          participantId: participant.id,
+          result: 'INVALID_QR',
+          qrTokenUsed: rawToken,
+        },
+      });
+      return NextResponse.json({
+        result: 'INVALID_QR',
+        message: 'EXPIRED PASS — This pass has already been used and expired',
+        color: 'red',
+        participant: {
+          name: participant.name || participant.email,
+          email: participant.email,
+          photoUrl: participant.photoUrl,
+          participantType: participant.participantType?.name || null,
+          group: participant.group?.name || null,
+          entryStatus: participant.entryStatus,
+        },
+      });
+    }
 
     const isEntryGate = session.gateType === 'ENTRY';
     const currentStatus = participant.entryStatus;
@@ -133,21 +135,15 @@ export async function POST(req: NextRequest) {
     // Atomic conditional update to prevent double-scan race conditions
     if (newStatus !== currentStatus) {
       await prisma.$transaction(async (tx) => {
-        const updateData: any = {
-          entryStatus: newStatus as EntryStatus,
-          lastScanAt: now,
-        };
-
-        if (participant.event.eventType === 'MUN' && !isEntryGate) {
-          updateData.qrExpired = true;
-        }
-
         const updateResult = await tx.participant.updateMany({
           where: {
             id: participant.id,
             entryStatus: currentStatus as EntryStatus,
           },
-          data: updateData,
+          data: {
+            entryStatus: newStatus as EntryStatus,
+            lastScanAt: now,
+          },
         });
 
         if (updateResult.count === 0) {
@@ -191,10 +187,10 @@ export async function POST(req: NextRequest) {
           participant: {
             name: participant.name || participant.email,
             email: participant.email,
-            entryStatus: 'INSIDE',
             photoUrl: participant.photoUrl,
-            participantTypeName: participant.participantType?.name,
-            groupName: participant.group?.name,
+            participantType: participant.participantType?.name || null,
+            group: participant.group?.name || null,
+            entryStatus: 'INSIDE',
           },
         });
       } else {
@@ -205,10 +201,10 @@ export async function POST(req: NextRequest) {
           participant: {
             name: participant.name || participant.email,
             email: participant.email,
-            entryStatus: 'EXITED',
             photoUrl: participant.photoUrl,
-            participantTypeName: participant.participantType?.name,
-            groupName: participant.group?.name,
+            participantType: participant.participantType?.name || null,
+            group: participant.group?.name || null,
+            entryStatus: 'EXITED',
           },
         });
       }
@@ -221,13 +217,12 @@ export async function POST(req: NextRequest) {
       participant: {
         name: participant.name || participant.email,
         email: participant.email,
-        entryStatus: newStatus,
         photoUrl: participant.photoUrl,
-        participantTypeName: participant.participantType?.name,
-        groupName: participant.group?.name,
+        participantType: participant.participantType?.name || null,
+        group: participant.group?.name || null,
+        entryStatus: newStatus,
       },
     });
-
   } catch (error) {
     console.error('Scan error:', error);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });

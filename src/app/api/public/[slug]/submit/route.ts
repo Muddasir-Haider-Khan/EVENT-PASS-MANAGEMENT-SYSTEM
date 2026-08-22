@@ -32,127 +32,94 @@ export async function POST(
       return NextResponse.json({ error: parsed.error.errors[0].message }, { status: 400 });
     }
 
-    const { responses, email } = parsed.data;
+    const { responses, email, photoUrl, phone, participantTypeId } = parsed.data;
     const normalizedEmail = email.trim().toLowerCase();
 
-    // Check if an application/submission with this email already exists for this event
-    const existingSubmission = await prisma.submission.findFirst({
-      where: {
-        eventId: event.id,
-        email: {
-          equals: normalizedEmail,
-          mode: 'insensitive',
-        },
-      },
-    });
+    // Extract groupMembers if present in responses
+    const groupMembers = Array.isArray((responses as Record<string, unknown>)?.groupMembers)
+      ? ((responses as Record<string, unknown>).groupMembers as Array<{ email?: string; name?: string }>)
+      : [];
 
-    if (existingSubmission) {
-      return NextResponse.json(
-        { error: 'An application with this email address has already been submitted for this event.' },
-        { status: 400 }
-      );
-    }
+    const emailsToCheck = new Set<string>();
+    emailsToCheck.add(normalizedEmail);
 
-    // Check if a pass has already been issued for this email address
-    const existingParticipant = await prisma.participant.findFirst({
-      where: {
-        eventId: event.id,
-        email: {
-          equals: normalizedEmail,
-          mode: 'insensitive',
-        },
-      },
-    });
-
-    if (existingParticipant) {
-      return NextResponse.json(
-        { error: 'A pass has already been issued for this email address for this event.' },
-        { status: 400 }
-      );
-    }
-
-    // Extract phone number from form responses if present
-    let submittedPhone: string | null = null;
-    for (const field of event.formFields) {
-      if (
-        field.type === 'PHONE' ||
-        field.label.toLowerCase().includes('phone') ||
-        field.label.toLowerCase().includes('mobile')
-      ) {
-        const val = responses[field.id];
-        if (val && typeof val === 'string' && val.trim()) {
-          submittedPhone = val.trim();
-          break;
+    for (const member of groupMembers) {
+      if (member.email && typeof member.email === 'string') {
+        const mEmail = member.email.trim().toLowerCase();
+        if (emailsToCheck.has(mEmail) && mEmail !== normalizedEmail) {
+          return NextResponse.json(
+            { error: `Duplicate email (${mEmail}) found within the delegation list.` },
+            { status: 400 }
+          );
         }
+        emailsToCheck.add(mEmail);
       }
     }
 
-    if (submittedPhone) {
-      const existingPhoneParticipant = await prisma.participant.findFirst({
-        where: { eventId: event.id, phone: submittedPhone },
-      });
-      if (existingPhoneParticipant) {
-        return NextResponse.json(
-          { error: 'A pass has already been issued for this phone number for this event.' },
-          { status: 400 }
-        );
-      }
+    const emailList = Array.from(emailsToCheck);
+
+    // Check if an application with any of these emails already exists for this event
+    const existingSub = await prisma.submission.findFirst({
+      where: {
+        eventId: event.id,
+        email: { in: emailList, mode: 'insensitive' },
+      },
+    });
+
+    if (existingSub) {
+      return NextResponse.json(
+        { error: `An application with email (${existingSub.email}) has already been submitted for this event.` },
+        { status: 400 }
+      );
     }
 
-    // Handle MUN Specific Fields
-    const photoUrl = body.photoUrl ? String(body.photoUrl) : null;
+    // Check if a pass has already been issued for any of these emails
+    const existingPart = await prisma.participant.findFirst({
+      where: {
+        eventId: event.id,
+        email: { in: emailList, mode: 'insensitive' },
+      },
+    });
 
-    if (photoUrl && photoUrl.length > 20) {
-      const existingPhotoParticipant = await (prisma.participant as any).findFirst({
-        where: { eventId: event.id, photoUrl },
-      });
-      const existingPhotoSubmission = await (prisma.submission as any).findFirst({
-        where: { eventId: event.id, photoUrl },
-      });
-      if (existingPhotoParticipant || existingPhotoSubmission) {
-        return NextResponse.json(
-          { error: 'This delegate photo has already been submitted for another registration.' },
-          { status: 400 }
-        );
-      }
+    if (existingPart) {
+      return NextResponse.json(
+        { error: `A pass has already been issued for email (${existingPart.email}) for this event.` },
+        { status: 400 }
+      );
     }
 
-    // Validate required fields for standard fields
+    // Enrich responses object with top-level fields (email, phone, etc.) for any corresponding form fields
+    const finalResponses: Record<string, unknown> = { ...responses };
     for (const field of event.formFields) {
-      if (field.required && !responses[field.id]) {
+      const labelLower = field.label.toLowerCase().trim();
+      if (field.type === 'EMAIL' || labelLower === 'email' || labelLower === 'email address') {
+        finalResponses[field.id] = normalizedEmail;
+      }
+      if ((field.type === 'SHORT_TEXT' || field.type === 'NUMBER') && (labelLower.includes('phone') || labelLower.includes('whatsapp')) && phone) {
+        finalResponses[field.id] = phone;
+      }
+    }
+
+    // Validate required fields against finalResponses
+    for (const field of event.formFields) {
+      const val = finalResponses[field.id];
+      if (field.required && (val === undefined || val === null || val === '')) {
         return NextResponse.json(
           { error: `${field.label} is required` },
           { status: 400 }
         );
       }
     }
-    const participantTypeId = body.participantTypeId ? String(body.participantTypeId) : null;
-    let groupId = body.groupId ? String(body.groupId) : null;
-    const answers = body.answers ? body.answers : null;
 
-    // Handle delegation group creation if groupName provided
-    if (!groupId && body.groupName && typeof body.groupName === 'string') {
-      const newGroup = await (prisma.participantGroup as any).create({
-        data: {
-          eventId: event.id,
-          name: body.groupName.trim(),
-          institution: body.institution ? String(body.institution).trim() : null,
-          leaderEmail: normalizedEmail,
-        },
-      });
-      groupId = newGroup.id;
-    }
-
-    const submission = await (prisma.submission as any).create({
+    const submission = await prisma.submission.create({
       data: {
         eventId: event.id,
-        responses,
+        responses: finalResponses as object,
         email: normalizedEmail,
+        photoUrl: photoUrl || null,
+        phone: phone || null,
+        participantTypeId: participantTypeId || null,
         status: 'PENDING',
-        photoUrl,
-        participantTypeId,
-        groupId,
-        answers,
       },
     });
 

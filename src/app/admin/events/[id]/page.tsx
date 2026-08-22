@@ -22,9 +22,6 @@ export default function EditEventPage() {
     logoUrl: '',
     logoFileId: '',
     fontFamily: 'Inter',
-    eventType: 'NORMAL',
-    customFontFileUrl: '',
-    customFontUrl: '',
   });
 
   const PALETTE_PRESETS = [
@@ -65,9 +62,6 @@ export default function EditEventPage() {
         logoUrl: e.logoUrl || '',
         logoFileId: e.logoFileId || '',
         fontFamily: e.fontFamily || 'Inter',
-        eventType: e.eventType || 'NORMAL',
-        customFontFileUrl: e.customFontFileUrl || '',
-        customFontUrl: e.customFontUrl || '',
       });
     } catch {
       toast('Failed to load event details', 'error');
@@ -142,51 +136,6 @@ export default function EditEventPage() {
             Event Information
           </h3>
           <div style={{ display: 'grid', gap: 18 }}>
-            <div>
-              <label className="input-label">Event Type Architecture</label>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
-                <button
-                  type="button"
-                  onClick={() => update('eventType', 'NORMAL')}
-                  style={{
-                    padding: '14px 16px',
-                    borderRadius: 10,
-                    background: form.eventType === 'NORMAL' ? 'rgba(99, 102, 241, 0.15)' : 'rgba(255,255,255,0.03)',
-                    border: form.eventType === 'NORMAL' ? '2px solid #6366F1' : '1px solid var(--border-hover)',
-                    cursor: 'pointer',
-                    textAlign: 'left',
-                  }}
-                >
-                  <div style={{ fontWeight: 700, color: form.eventType === 'NORMAL' ? '#818CF8' : '#F8FAFC', fontSize: 14 }}>
-                    Standard / Corporate Event
-                  </div>
-                  <div style={{ fontSize: 12, color: 'var(--text-secondary)', marginTop: 4 }}>
-                    Standard multi-ticket registration, barcode / standard QR passes, direct approval.
-                  </div>
-                </button>
-
-                <button
-                  type="button"
-                  onClick={() => update('eventType', 'MUN')}
-                  style={{
-                    padding: '14px 16px',
-                    borderRadius: 10,
-                    background: form.eventType === 'MUN' ? 'rgba(234, 179, 8, 0.15)' : 'rgba(255,255,255,0.03)',
-                    border: form.eventType === 'MUN' ? '2px solid #EAB308' : '1px solid var(--border-hover)',
-                    cursor: 'pointer',
-                    textAlign: 'left',
-                  }}
-                >
-                  <div style={{ fontWeight: 700, color: form.eventType === 'MUN' ? '#FACC15' : '#F8FAFC', fontSize: 14 }}>
-                    MUN (Model United Nations)
-                  </div>
-                  <div style={{ fontSize: 12, color: 'var(--text-secondary)', marginTop: 4 }}>
-                    Delegates/Chairs/Groups, Photo Verification, Single-Use Gate QR, Manual Manager Approval.
-                  </div>
-                </button>
-              </div>
-            </div>
-
             <div>
               <label className="input-label">Event Name</label>
               <input className="input" value={form.name} onChange={(e) => update('name', e.target.value)} required />
@@ -361,35 +310,6 @@ export default function EditEventPage() {
                   </button>
                 );
               })}
-            </div>
-          </div>
-
-          {/* Custom Font File / Stylesheet Override */}
-          <div style={{ marginTop: 20, padding: 16, borderRadius: 8, background: 'rgba(255, 255, 255, 0.02)', border: '1px dashed var(--border-hover)' }}>
-            <label className="input-label" style={{ marginBottom: 6, display: 'block' }}>
-              ✨ Custom Typography Font Override (.ttf / .otf / .woff2 or Stylesheet URL)
-            </label>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
-              <div>
-                <label className="input-label" style={{ fontSize: 11 }}>Font File Direct URL (.ttf/.otf/.woff2)</label>
-                <input
-                  className="input"
-                  value={form.customFontFileUrl}
-                  onChange={(e) => update('customFontFileUrl', e.target.value)}
-                  placeholder="https://ik.imagekit.io/epms/fonts/mycustomfont.ttf"
-                  style={{ fontSize: 12 }}
-                />
-              </div>
-              <div>
-                <label className="input-label" style={{ fontSize: 11 }}>External Stylesheet CSS URL (Google Fonts / Adobe)</label>
-                <input
-                  className="input"
-                  value={form.customFontUrl}
-                  onChange={(e) => update('customFontUrl', e.target.value)}
-                  placeholder="https://fonts.googleapis.com/css2?family=Cinzel:wght@700&display=swap"
-                  style={{ fontSize: 12 }}
-                />
-              </div>
             </div>
           </div>
 
