@@ -70,7 +70,7 @@ export async function DELETE(
     }
 
     // Safely delete all dependent records in transaction order
-    await prisma.$transaction(async (tx) => {
+    await prisma.$transaction(async (tx: any) => {
       // 1. Delete ScanLogs linked to gates or participants of this event
       await tx.scanLog.deleteMany({
         where: {
@@ -103,6 +103,7 @@ export async function DELETE(
       // 8. Delete Event
       await tx.event.delete({ where: { id: eventId } });
     });
+
 
     return NextResponse.json({ success: true });
   } catch (error: any) {
