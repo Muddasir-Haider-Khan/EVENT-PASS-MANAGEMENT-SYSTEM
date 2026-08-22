@@ -3,7 +3,6 @@
 import { useEffect, useState } from 'react';
 import { useParams } from 'next/navigation';
 import { ThemeProvider } from '@/components/ThemeProvider';
-import { Media27Logo } from '@/components/27MediaLogo';
 import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
 import { Badge } from '@/components/ui/Badge';
@@ -241,8 +240,7 @@ export default function PublicEventPage() {
     return (
       <div className="min-h-screen bg-slate-950 flex items-center justify-center p-4">
         <Card variant="glass" className="max-w-md w-full p-8 text-center border-slate-800">
-          <Media27Logo size="sm" />
-          <h1 className="text-xl font-bold text-white mt-6 mb-2">Event Not Found</h1>
+          <h1 className="text-xl font-bold text-white mb-2">Event Not Found</h1>
           <p className="text-sm text-slate-400">
             This event pass registration page is either unavailable or has expired.
           </p>
@@ -263,9 +261,6 @@ export default function PublicEventPage() {
       >
         <div className="min-h-screen bg-slate-950 flex items-center justify-center p-4 antialiased">
           <Card variant="glass" className="max-w-lg w-full p-8 text-center border-slate-800 shadow-2xl space-y-6">
-            <div className="flex justify-center">
-              <Media27Logo size="sm" />
-            </div>
 
             {event.logoUrl ? (
               <img
@@ -368,7 +363,6 @@ export default function PublicEventPage() {
         <div className="max-w-xl w-full space-y-6">
           {/* Top Brand Banner */}
           <div className="text-center space-y-4">
-            <Media27Logo size="sm" />
 
             <div className="pt-2">
               {event.logoUrl && (

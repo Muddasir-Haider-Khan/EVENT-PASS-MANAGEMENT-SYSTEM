@@ -179,6 +179,7 @@ model Participant {
   scanLogs          ScanLog[]
 
   @@unique([eventId, email])
+  @@unique([eventId, phone])
 }
 
 enum EntryStatus {

@@ -71,6 +71,52 @@ export async function POST(
       );
     }
 
+    // Extract phone number from form responses if present
+    let submittedPhone: string | null = null;
+    for (const field of event.formFields) {
+      if (
+        field.type === 'PHONE' ||
+        field.label.toLowerCase().includes('phone') ||
+        field.label.toLowerCase().includes('mobile')
+      ) {
+        const val = responses[field.id];
+        if (val && typeof val === 'string' && val.trim()) {
+          submittedPhone = val.trim();
+          break;
+        }
+      }
+    }
+
+    if (submittedPhone) {
+      const existingPhoneParticipant = await prisma.participant.findFirst({
+        where: { eventId: event.id, phone: submittedPhone },
+      });
+      if (existingPhoneParticipant) {
+        return NextResponse.json(
+          { error: 'A pass has already been issued for this phone number for this event.' },
+          { status: 400 }
+        );
+      }
+    }
+
+    // Handle MUN Specific Fields
+    const photoUrl = body.photoUrl ? String(body.photoUrl) : null;
+
+    if (photoUrl && photoUrl.length > 20) {
+      const existingPhotoParticipant = await (prisma.participant as any).findFirst({
+        where: { eventId: event.id, photoUrl },
+      });
+      const existingPhotoSubmission = await (prisma.submission as any).findFirst({
+        where: { eventId: event.id, photoUrl },
+      });
+      if (existingPhotoParticipant || existingPhotoSubmission) {
+        return NextResponse.json(
+          { error: 'This delegate photo has already been submitted for another registration.' },
+          { status: 400 }
+        );
+      }
+    }
+
     // Validate required fields for standard fields
     for (const field of event.formFields) {
       if (field.required && !responses[field.id]) {
@@ -80,9 +126,6 @@ export async function POST(
         );
       }
     }
-
-    // Handle MUN Specific Fields
-    const photoUrl = body.photoUrl ? String(body.photoUrl) : null;
     const participantTypeId = body.participantTypeId ? String(body.participantTypeId) : null;
     let groupId = body.groupId ? String(body.groupId) : null;
     const answers = body.answers ? body.answers : null;

@@ -133,15 +133,21 @@ export async function POST(req: NextRequest) {
     // Atomic conditional update to prevent double-scan race conditions
     if (newStatus !== currentStatus) {
       await prisma.$transaction(async (tx) => {
+        const updateData: any = {
+          entryStatus: newStatus as EntryStatus,
+          lastScanAt: now,
+        };
+
+        if (participant.event.eventType === 'MUN' && !isEntryGate) {
+          updateData.qrExpired = true;
+        }
+
         const updateResult = await tx.participant.updateMany({
           where: {
             id: participant.id,
             entryStatus: currentStatus as EntryStatus,
           },
-          data: {
-            entryStatus: newStatus as EntryStatus,
-            lastScanAt: now,
-          },
+          data: updateData,
         });
 
         if (updateResult.count === 0) {
