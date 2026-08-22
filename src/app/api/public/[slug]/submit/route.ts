@@ -91,7 +91,7 @@ export async function POST(
     // Enrich responses object with top-level fields (email, phone, etc.) for any corresponding form fields
     const finalResponses: Record<string, unknown> = { ...responses };
     for (const field of event.formFields) {
-      const labelLower = field.label.toLowerCase().trim();
+      const labelLower = (field.label || '').toLowerCase().trim();
       if (field.type === 'EMAIL' || labelLower === 'email' || labelLower === 'email address') {
         finalResponses[field.id] = normalizedEmail;
       }

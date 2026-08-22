@@ -145,7 +145,7 @@ export async function POST(
     }
 
     const nameField = Object.entries(responses).find(
-      ([key]) => key.toLowerCase().includes('name') && !key.toLowerCase().includes('email')
+      ([key]) => (key || '').toLowerCase().includes('name') && !(key || '').toLowerCase().includes('email')
     );
     const participantName = nameField ? String(nameField[1]) : null;
 

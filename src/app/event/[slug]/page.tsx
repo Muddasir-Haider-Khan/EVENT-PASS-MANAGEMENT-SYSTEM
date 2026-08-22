@@ -213,7 +213,7 @@ export default function PublicEventPage() {
     updatedResponses.fullName = submitFullName;
 
     activeFields.forEach((field) => {
-      const labelLower = field.label.toLowerCase().trim();
+      const labelLower = (field.label || '').toLowerCase().trim();
       if (field.type === 'EMAIL' || labelLower === 'email' || labelLower === 'email address') {
         updatedResponses[field.id] = submitEmail;
       }
@@ -782,7 +782,7 @@ export default function PublicEventPage() {
                               value={(responses[field.id] as string) || ''}
                               onChange={(e) => updateResponse(field.id, e.target.value)}
                               required={field.required}
-                              placeholder={`Enter ${field.label.toLowerCase()}...`}
+                              placeholder={`Enter ${(field.label || '').toLowerCase()}...`}
                               className="w-full bg-slate-950/80 border border-slate-800 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500 text-sm text-white placeholder-slate-500 rounded-xl px-4 py-3 outline-none"
                             />
                           ) : field.type === 'PARAGRAPH' ? (
@@ -791,7 +791,7 @@ export default function PublicEventPage() {
                               value={(responses[field.id] as string) || ''}
                               onChange={(e) => updateResponse(field.id, e.target.value)}
                               required={field.required}
-                              placeholder={`Enter ${field.label.toLowerCase()}...`}
+                              placeholder={`Enter ${(field.label || '').toLowerCase()}...`}
                               className="w-full bg-slate-950/80 border border-slate-800 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500 text-sm text-white placeholder-slate-500 rounded-xl p-4 outline-none resize-y"
                             />
                           ) : field.type === 'NUMBER' ? (

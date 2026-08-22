@@ -103,10 +103,10 @@ export default function AdminDashboardPage() {
   }
 
   const filteredEvents = events.filter(e =>
-    e.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    e.venue.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    (e.name || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
+    (e.venue || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
     (e.slug && e.slug.toLowerCase().includes(searchQuery.toLowerCase())) ||
-    (e.eventManager && e.eventManager.loginId.toLowerCase().includes(searchQuery.toLowerCase()))
+    (e.eventManager && e.eventManager.loginId && e.eventManager.loginId.toLowerCase().includes(searchQuery.toLowerCase()))
   );
 
   const totalParticipants = events.reduce((s, e) => s + e._count.participants, 0);

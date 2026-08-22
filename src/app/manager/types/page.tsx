@@ -316,7 +316,7 @@ export default function ManagerTypesPage() {
         let val = field.id ? sub.responses?.[field.id] : undefined;
         if (val === undefined) {
           // Check by label matching
-          val = sub.responses?.[field.label] || sub.responses?.[field.label.toLowerCase()];
+          val = sub.responses?.[field.label] || (field.label ? sub.responses?.[field.label.toLowerCase()] : undefined);
         }
         if (Array.isArray(val)) return val.join('; ');
         return val || '';
@@ -343,8 +343,8 @@ export default function ManagerTypesPage() {
   // Filtered Submissions logic
   const filteredSubmissions = categorySubmissions.filter((sub) => {
     const matchesSearch =
-      sub.fullName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      sub.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      (sub.fullName || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
+      (sub.email || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
       (sub.phone && sub.phone.includes(searchQuery));
     const matchesStatus = statusFilter === 'ALL' || sub.status === statusFilter;
     return matchesSearch && matchesStatus;
@@ -980,7 +980,7 @@ export default function ManagerTypesPage() {
                   categoryFields.map((field, fIdx) => {
                     let val = field.id ? selectedSubmission.responses?.[field.id] : undefined;
                     if (val === undefined) {
-                      val = selectedSubmission.responses?.[field.label] || selectedSubmission.responses?.[field.label.toLowerCase()];
+                      val = selectedSubmission.responses?.[field.label] || (field.label ? selectedSubmission.responses?.[field.label.toLowerCase()] : undefined);
                     }
 
                     return (
