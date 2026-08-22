@@ -71,7 +71,7 @@ export async function POST(
       );
     }
 
-    // Validate required fields
+    // Validate required fields for standard fields
     for (const field of event.formFields) {
       if (field.required && !responses[field.id]) {
         return NextResponse.json(
@@ -81,12 +81,35 @@ export async function POST(
       }
     }
 
+    // Handle MUN Specific Fields
+    const photoUrl = body.photoUrl ? String(body.photoUrl) : null;
+    const participantTypeId = body.participantTypeId ? String(body.participantTypeId) : null;
+    let groupId = body.groupId ? String(body.groupId) : null;
+    const answers = body.answers ? body.answers : null;
+
+    // Handle delegation group creation if groupName provided
+    if (!groupId && body.groupName && typeof body.groupName === 'string') {
+      const newGroup = await prisma.participantGroup.create({
+        data: {
+          eventId: event.id,
+          name: body.groupName.trim(),
+          institution: body.institution ? String(body.institution).trim() : null,
+          leaderEmail: normalizedEmail,
+        },
+      });
+      groupId = newGroup.id;
+    }
+
     const submission = await prisma.submission.create({
       data: {
         eventId: event.id,
         responses,
         email: normalizedEmail,
         status: 'PENDING',
+        photoUrl,
+        participantTypeId,
+        groupId,
+        answers,
       },
     });
 

@@ -17,28 +17,38 @@ model SuperAdmin {
   createdAt          DateTime @default(now())
 }
 
-model Event {
-  id             String        @id @default(cuid())
-  name           String
-  venue          String
-  eventDate      DateTime?
-  description    String?
-  slug           String?       @unique
-  logoUrl        String?
-  logoFileId     String?
-  primaryColor   String        @default("#0F172A")
-  secondaryColor String        @default("#3B82F6")
-  accentColor    String        @default("#F59E0B")
-  fontFamily     String        @default("Inter")
-  status         EventStatus   @default(ACTIVE)
-  createdAt      DateTime      @default(now())
-  updatedAt      DateTime      @updatedAt
+enum EventType {
+  NORMAL
+  MUN
+}
 
-  eventManager   EventManager?
-  formFields     FormField[]
-  submissions    Submission[]
-  participants   Participant[]
-  gates          Gate[]
+model Event {
+  id                String             @id @default(cuid())
+  name              String
+  venue             String
+  eventDate         DateTime?
+  description       String?
+  slug              String?            @unique
+  logoUrl           String?
+  logoFileId        String?
+  primaryColor      String             @default("#0F172A")
+  secondaryColor    String             @default("#3B82F6")
+  accentColor       String             @default("#F59E0B")
+  fontFamily        String             @default("Inter")
+  eventType         EventType          @default(NORMAL)
+  customFontFileUrl String?
+  customFontUrl     String?
+  status            EventStatus        @default(ACTIVE)
+  createdAt         DateTime           @default(now())
+  updatedAt         DateTime           @updatedAt
+
+  eventManager      EventManager?
+  formFields        FormField[]
+  submissions       Submission[]
+  participants      Participant[]
+  gates             Gate[]
+  participantTypes  ParticipantType[]
+  participantGroups ParticipantGroup[]
 }
 
 enum EventStatus {
@@ -82,16 +92,61 @@ enum FieldType {
   DATE
 }
 
-model Submission {
-  id          String           @id @default(cuid())
+model ParticipantType {
+  id          String   @id @default(cuid())
   eventId     String
-  event       Event            @relation(fields: [eventId], references: [id], onDelete: Cascade)
-  responses   Json
-  email       String
-  status      SubmissionStatus @default(PENDING)
-  submittedAt DateTime         @default(now())
-  reviewedAt  DateTime?
-  participant Participant?
+  event       Event    @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  name        String
+  description String?
+  order       Int      @default(0)
+  createdAt   DateTime @default(now())
+
+  formFields   ParticipantTypeFormField[]
+  submissions  Submission[]
+  participants Participant[]
+  groups       ParticipantGroup[]
+}
+
+model ParticipantTypeFormField {
+  id                String          @id @default(cuid())
+  participantTypeId String
+  participantType   ParticipantType @relation(fields: [participantTypeId], references: [id], onDelete: Cascade)
+  label             String
+  type              FieldType
+  required          Boolean         @default(false)
+  options           Json?
+  order             Int
+}
+
+model ParticipantGroup {
+  id                String          @id @default(cuid())
+  eventId           String
+  event             Event           @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  participantTypeId String
+  participantType   ParticipantType @relation(fields: [participantTypeId], references: [id], onDelete: Cascade)
+  name              String
+  leaderId          String?         @unique
+  leader            Participant?    @relation("GroupLeader", fields: [leaderId], references: [id])
+  members           Participant[]   @relation("GroupMember")
+  createdAt         DateTime        @default(now())
+}
+
+model Submission {
+  id                String           @id @default(cuid())
+  eventId           String
+  event             Event            @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  responses         Json
+  email             String
+  phone             String?
+  photoUrl          String?
+  photoFileId       String?
+  photoHash         String?
+  participantTypeId String?
+  participantType   ParticipantType? @relation(fields: [participantTypeId], references: [id])
+  status            SubmissionStatus @default(PENDING)
+  submittedAt       DateTime         @default(now())
+  reviewedAt        DateTime?
+  participant       Participant?
 }
 
 enum SubmissionStatus {
@@ -101,18 +156,29 @@ enum SubmissionStatus {
 }
 
 model Participant {
-  id           String      @id @default(cuid())
-  eventId      String
-  event        Event       @relation(fields: [eventId], references: [id], onDelete: Cascade)
-  submissionId String      @unique
-  submission   Submission  @relation(fields: [submissionId], references: [id])
-  name         String?
-  email        String
-  qrToken      String      @unique
-  entryStatus  EntryStatus @default(NOT_ENTERED)
-  lastScanAt   DateTime?
-  createdAt    DateTime    @default(now())
-  scanLogs     ScanLog[]
+  id                String            @id @default(cuid())
+  eventId           String
+  event             Event             @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  submissionId      String            @unique
+  submission        Submission        @relation(fields: [submissionId], references: [id])
+  name              String?
+  email             String
+  phone             String?
+  photoUrl          String?
+  photoFileId       String?
+  participantTypeId String?
+  participantType   ParticipantType?  @relation(fields: [participantTypeId], references: [id])
+  groupId           String?
+  group             ParticipantGroup? @relation("GroupMember", fields: [groupId], references: [id])
+  ledGroup          ParticipantGroup? @relation("GroupLeader")
+  qrToken           String            @unique
+  entryStatus       EntryStatus       @default(NOT_ENTERED)
+  qrExpired         Boolean           @default(false)
+  lastScanAt        DateTime?
+  createdAt         DateTime          @default(now())
+  scanLogs          ScanLog[]
+
+  @@unique([eventId, email])
 }
 
 enum EntryStatus {

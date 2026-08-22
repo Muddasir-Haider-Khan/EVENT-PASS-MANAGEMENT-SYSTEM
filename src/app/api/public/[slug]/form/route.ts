@@ -9,6 +9,19 @@ export async function GET(
     where: { slug: params.slug },
     include: {
       formFields: { orderBy: { order: 'asc' } },
+      participantTypes: {
+        orderBy: { order: 'asc' },
+        include: {
+          customFields: { orderBy: { order: 'asc' } },
+        },
+      },
+      participantGroups: {
+        select: {
+          id: true,
+          name: true,
+          institution: true,
+        },
+      },
       eventManager: { select: { accountNumber: true, paymentPhone: true } },
     },
   });
@@ -21,6 +34,7 @@ export async function GET(
     event: {
       id: event.id,
       name: event.name,
+      slug: event.slug,
       venue: event.venue,
       eventDate: event.eventDate,
       description: event.description,
@@ -29,11 +43,17 @@ export async function GET(
       secondaryColor: event.secondaryColor,
       accentColor: event.accentColor,
       fontFamily: event.fontFamily || 'Inter',
+      customFontFileUrl: event.customFontFileUrl,
+      customFontUrl: event.customFontUrl,
+      eventType: event.eventType,
     },
     fields: event.formFields,
+    participantTypes: event.participantTypes,
+    participantGroups: event.participantGroups,
     payment: {
       accountNumber: event.eventManager?.accountNumber,
       paymentPhone: event.eventManager?.paymentPhone,
     },
   });
 }
+

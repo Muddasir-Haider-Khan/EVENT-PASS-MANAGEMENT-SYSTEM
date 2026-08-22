@@ -30,6 +30,9 @@ export const createEventSchema = z.object({
   secondaryColor: z.string().regex(/^#[0-9A-Fa-f]{6}$/).default('#3B82F6'),
   accentColor: z.string().regex(/^#[0-9A-Fa-f]{6}$/).default('#F59E0B'),
   fontFamily: z.string().default('Inter'),
+  eventType: z.enum(['NORMAL', 'MUN']).default('NORMAL'),
+  customFontFileUrl: z.string().url().optional().nullable(),
+  customFontUrl: z.string().url().optional().nullable(),
   managerEmail: z.string().email('Valid manager email is required'),
 });
 

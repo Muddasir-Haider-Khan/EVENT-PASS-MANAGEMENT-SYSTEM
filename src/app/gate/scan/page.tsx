@@ -20,9 +20,17 @@ interface ScanResult {
   result: string;
   message: string;
   color: string;
-  participant?: { name: string; email: string; entryStatus: string };
+  participant?: {
+    name: string;
+    email: string;
+    entryStatus: string;
+    photoUrl?: string | null;
+    participantTypeName?: string | null;
+    groupName?: string | null;
+  };
   scannedAt?: string;
 }
+
 
 interface ScanHistoryItem {
   id: string;
@@ -305,9 +313,32 @@ export default function ScanPage() {
               </div>
 
               {lastScan.participant && (
-                <h2 className="text-3xl font-black text-white tracking-tight mb-2">
-                  {lastScan.participant.name}
-                </h2>
+                <div className="space-y-3 mb-4">
+                  {lastScan.participant.photoUrl && (
+                    <div className="w-28 h-28 mx-auto rounded-2xl overflow-hidden border-2 border-indigo-400 shadow-xl my-2">
+                      <img
+                        src={lastScan.participant.photoUrl}
+                        alt={lastScan.participant.name}
+                        className="w-full h-full object-cover"
+                      />
+                    </div>
+                  )}
+                  <h2 className="text-3xl font-black text-white tracking-tight">
+                    {lastScan.participant.name}
+                  </h2>
+                  <div className="flex flex-wrap items-center justify-center gap-2 text-xs">
+                    {lastScan.participant.participantTypeName && (
+                      <span className="px-2.5 py-1 bg-indigo-500/20 text-indigo-300 font-bold rounded-lg border border-indigo-500/30">
+                        {lastScan.participant.participantTypeName}
+                      </span>
+                    )}
+                    {lastScan.participant.groupName && (
+                      <span className="px-2.5 py-1 bg-slate-800 text-slate-300 font-bold rounded-lg border border-slate-700">
+                        {lastScan.participant.groupName}
+                      </span>
+                    )}
+                  </div>
+                </div>
               )}
 
               <p className="text-lg font-semibold text-slate-200 mb-6">
@@ -327,6 +358,7 @@ export default function ScanPage() {
                 RESULT: {lastScan.result}
               </Badge>
             </div>
+
           ) : (
             <div className="flex flex-col items-center max-w-sm">
               <div className="w-20 h-20 rounded-3xl bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center text-indigo-400 mb-6 shadow-inner">

@@ -68,9 +68,14 @@ export async function POST(
           email: submission.email,
           qrToken,
           entryStatus: 'NOT_ENTERED',
+          photoUrl: submission.photoUrl,
+          participantTypeId: submission.participantTypeId,
+          groupId: submission.groupId,
+          qrExpired: false,
         },
       }),
     ]);
+
 
     // Send QR pass email with hosted ImageKit QR URL
     try {

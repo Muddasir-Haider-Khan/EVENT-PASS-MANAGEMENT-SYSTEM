@@ -34,6 +34,7 @@ export async function POST(req: NextRequest) {
       name, venue, eventDate, description,
       logoUrl, logoFileId,
       primaryColor, secondaryColor, accentColor, fontFamily,
+      eventType, customFontFileUrl, customFontUrl,
       managerEmail,
     } = parsed.data;
 
@@ -55,6 +56,9 @@ export async function POST(req: NextRequest) {
         secondaryColor,
         accentColor,
         fontFamily: (fontFamily as string) || 'Inter',
+        eventType: eventType || 'NORMAL',
+        customFontFileUrl,
+        customFontUrl,
         eventManager: {
           create: {
             loginId,
