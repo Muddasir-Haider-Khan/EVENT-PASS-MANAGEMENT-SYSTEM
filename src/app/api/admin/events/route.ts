@@ -1,4 +1,3 @@
-import { EventType } from '@prisma/client';
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
 import { getSession, hashPassword, generatePassword, generateLoginId } from '@/lib/auth';
@@ -58,7 +57,7 @@ export async function POST(req: NextRequest) {
         secondaryColor,
         accentColor,
         fontFamily: (fontFamily as string) || 'Inter',
-        eventType: (eventType as EventType) || EventType.NORMAL,
+        eventType: eventType || 'NORMAL',
 
         customFontFileUrl,
         customFontUrl,
@@ -80,7 +79,7 @@ export async function POST(req: NextRequest) {
             order: 0,
           },
         },
-      },
+      } as any,
       include: {
         eventManager: true,
       },
