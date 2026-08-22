@@ -10,7 +10,7 @@ interface Submission {
   responses: Record<string, unknown>;
   status: 'PENDING' | 'APPROVED' | 'DECLINED';
   submittedAt: string;
-  participant?: { id: string; entryStatus: string } | null;
+  participants?: Array<{ id: string; entryStatus: string }> | null;
 }
 
 export default function SubmissionsPage() {
@@ -162,16 +162,45 @@ export default function SubmissionsPage() {
                   gap: 12,
                 }}
               >
-                {Object.entries(sub.responses).map(([key, value]) => (
-                  <div key={key}>
-                    <div className="text-overline" style={{ color: 'var(--gold-light)' }}>
-                      {key}
+                {Object.entries(sub.responses).map(([key, value]) => {
+                  if (key === 'groupMembers' && Array.isArray(value)) {
+                    return (
+                      <div key={key} style={{ gridColumn: '1 / -1' }}>
+                        <div className="text-overline" style={{ color: 'var(--gold-light)', marginBottom: 6 }}>
+                          DELEGATION MEMBERS ({value.length})
+                        </div>
+                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))', gap: 8 }}>
+                          {(value as Array<Record<string, unknown>>).map((m, idx) => (
+                            <div key={idx} style={{ background: 'rgba(255,255,255,0.03)', padding: '8px 12px', borderRadius: 6, border: '1px solid rgba(255,255,255,0.08)' }}>
+                              <div style={{ fontSize: 13, fontWeight: 600, color: '#F8FAFC' }}>
+                                {String(m.name || 'Member')} {m.isLeader ? '⭐ (Leader)' : ''}
+                              </div>
+                              <div style={{ fontSize: 11, color: 'var(--text-muted)' }}>{String(m.email || '')}</div>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    );
+                  }
+
+                  let displayVal = 'N/A';
+                  if (typeof value === 'object' && value !== null) {
+                    displayVal = JSON.stringify(value);
+                  } else if (value !== undefined && value !== null) {
+                    displayVal = String(value);
+                  }
+
+                  return (
+                    <div key={key}>
+                      <div className="text-overline" style={{ color: 'var(--gold-light)' }}>
+                        {key}
+                      </div>
+                      <div className="text-caption" style={{ color: '#F8FAFC', wordBreak: 'break-word', marginTop: 2 }}>
+                        {displayVal}
+                      </div>
                     </div>
-                    <div className="text-caption" style={{ color: '#F8FAFC', wordBreak: 'break-word', marginTop: 2 }}>
-                      {String(value || 'N/A')}
-                    </div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
 
               {sub.status === 'PENDING' && (

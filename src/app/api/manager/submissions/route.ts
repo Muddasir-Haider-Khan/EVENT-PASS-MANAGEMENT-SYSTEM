@@ -12,7 +12,7 @@ export async function GET() {
     where: { eventId: session.eventId },
     orderBy: { submittedAt: 'desc' },
     include: {
-      participant: { select: { id: true, entryStatus: true } },
+      participants: { select: { id: true, entryStatus: true } },
     },
   });
 

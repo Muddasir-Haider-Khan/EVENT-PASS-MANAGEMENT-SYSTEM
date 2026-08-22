@@ -58,6 +58,10 @@ export async function POST(
 
       // Process each member
       for (const member of groupMembers) {
+        const memberEmail = (member.email || submission.email || '').trim().toLowerCase();
+        const memberName = (member.name || '').trim() || 'Delegation Member';
+        if (!memberEmail) continue;
+
         const qrToken = generateQRToken();
         const qrDataUrl = await generateQRCodeDataURL(qrToken);
 
@@ -81,8 +85,8 @@ export async function POST(
             submissionId: params.id,
             participantTypeId: submission.participantTypeId,
             groupId: createdGroup.id,
-            name: member.name || 'Delegation Member',
-            email: member.email.trim().toLowerCase(),
+            name: memberName,
+            email: memberEmail,
             phone: member.phone || submission.phone,
             photoUrl: member.photoUrl || submission.photoUrl,
             qrToken,
@@ -90,15 +94,15 @@ export async function POST(
           },
         });
 
-        if (member.isLeader) {
+        if (member.isLeader && !leaderParticipantId) {
           leaderParticipantId = participant.id;
         }
 
         // Send individual QR pass email to member
         try {
           await sendQRPass({
-            to: member.email.trim().toLowerCase(),
-            participantName: member.name || 'Delegation Member',
+            to: memberEmail,
+            participantName: memberName,
             eventName: submission.event.name,
             venue: submission.event.venue,
             eventDate: submission.event.eventDate?.toISOString() || null,
@@ -106,7 +110,7 @@ export async function POST(
             groupName: groupName,
           });
         } catch (emailErr) {
-          console.error(`Failed to send QR pass email to member (${member.email}):`, emailErr);
+          console.error(`Failed to send QR pass email to member (${memberEmail}):`, emailErr);
         }
       }
 
@@ -185,6 +189,7 @@ export async function POST(
     return NextResponse.json({ success: true, participant });
   } catch (error) {
     console.error('Approve error:', error);
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+    const msg = error instanceof Error ? error.message : 'Internal server error';
+    return NextResponse.json({ error: msg }, { status: 500 });
   }
 }

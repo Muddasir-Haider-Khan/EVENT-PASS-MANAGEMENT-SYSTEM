@@ -27,7 +27,7 @@ export async function GET(
       where: { participantTypeId: params.id, eventId: session.eventId },
       orderBy: { submittedAt: 'desc' },
       include: {
-        participant: {
+        participants: {
           select: {
             id: true,
             qrToken: true,
