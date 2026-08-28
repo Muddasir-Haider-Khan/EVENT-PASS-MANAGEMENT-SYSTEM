@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
 import { getSessionFromRequest } from '@/lib/auth';
+import { redisCache } from '@/lib/redis';
 import { EntryStatus, ScanResult } from '@prisma/client';
 
 export async function POST(req: NextRequest) {
@@ -69,6 +70,11 @@ export async function POST(req: NextRequest) {
           },
         });
 
+        // Invalidate Redis cache for instant update
+        if (participant.qrToken) {
+          await redisCache.del(`participant:qr:${participant.qrToken}`);
+        }
+
         return NextResponse.json({
           result: scanResult,
           message: isEntryGate
@@ -100,6 +106,10 @@ export async function POST(req: NextRequest) {
           },
         });
 
+        if (participant.qrToken) {
+          await redisCache.del(`participant:qr:${participant.qrToken}`);
+        }
+
         return NextResponse.json({
           result: 'ENTRY_DECLINED',
           message: 'ENTRY DECLINED — Access denied by gate officer',
@@ -119,7 +129,7 @@ export async function POST(req: NextRequest) {
     }
 
     // -------------------------------------------------------------
-    // INITIAL QR TOKEN SCAN LOOKUP
+    // INITIAL QR TOKEN SCAN LOOKUP WITH REDIS CACHING
     // -------------------------------------------------------------
     if (!body.qrToken) {
       return NextResponse.json(
@@ -155,42 +165,54 @@ export async function POST(req: NextRequest) {
     }
 
     rawToken = rawToken.trim();
+    const cacheKey = `participant:qr:${rawToken}`;
 
-    // 1. Direct Lookup by qrToken
-    let participant = await prisma.participant.findUnique({
-      where: { qrToken: rawToken },
-      include: { event: true, participantType: true, group: true },
-    });
+    // Try Redis Cache First
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    let participant: any = await redisCache.get(cacheKey);
 
-    // 2. Fallback: Insensitive Match
     if (!participant) {
-      participant = await prisma.participant.findFirst({
-        where: { qrToken: { equals: rawToken, mode: 'insensitive' } },
+      // 1. Direct Lookup by qrToken
+      participant = await prisma.participant.findUnique({
+        where: { qrToken: rawToken },
         include: { event: true, participantType: true, group: true },
       });
-    }
 
-    // 3. Fallback: Search by ID or Substring Containment
-    if (!participant) {
-      participant = await prisma.participant.findFirst({
-        where: {
-          OR: [
-            { id: rawToken },
-            { qrToken: { contains: rawToken, mode: 'insensitive' } },
-          ],
-        },
-        include: { event: true, participantType: true, group: true },
-      });
-    }
+      // 2. Fallback: Insensitive Match
+      if (!participant) {
+        participant = await prisma.participant.findFirst({
+          where: { qrToken: { equals: rawToken, mode: 'insensitive' } },
+          include: { event: true, participantType: true, group: true },
+        });
+      }
 
-    // 4. Fallback: Check if rawToken contains participant's qrToken
-    if (!participant && rawToken.length > 10) {
-      const allParticipants = await prisma.participant.findMany({
-        where: { eventId: session.eventId },
-        include: { event: true, participantType: true, group: true },
-        take: 200,
-      });
-      participant = allParticipants.find(p => p.qrToken && rawToken.toLowerCase().includes(p.qrToken.toLowerCase())) || null;
+      // 3. Fallback: Search by ID or Substring Containment
+      if (!participant) {
+        participant = await prisma.participant.findFirst({
+          where: {
+            OR: [
+              { id: rawToken },
+              { qrToken: { contains: rawToken, mode: 'insensitive' } },
+            ],
+          },
+          include: { event: true, participantType: true, group: true },
+        });
+      }
+
+      // 4. Fallback: Check if rawToken contains participant's qrToken
+      if (!participant && rawToken.length > 10) {
+        const allParticipants = await prisma.participant.findMany({
+          where: { eventId: session.eventId },
+          include: { event: true, participantType: true, group: true },
+          take: 200,
+        });
+        participant = allParticipants.find(p => p.qrToken && rawToken.toLowerCase().includes(p.qrToken.toLowerCase())) || null;
+      }
+
+      if (participant) {
+        // Store in Redis cache for 1 hour
+        await redisCache.set(cacheKey, participant, 3600);
+      }
     }
 
     // INVALID OR UNKNOWN QR PASS
@@ -283,7 +305,7 @@ export async function POST(req: NextRequest) {
           result: 'ENTRY_DENIED_ALREADY_INSIDE',
           message: 'ALREADY IN THE EVENT — Attendee is already inside venue',
           color: 'red',
-          autoDecline: true, // Signals frontend NOT to show approve/decline buttons
+          autoDecline: true,
           participant: {
             id: participant.id,
             name: participant.name || participant.email,
@@ -301,7 +323,7 @@ export async function POST(req: NextRequest) {
         result: 'PENDING_APPROVAL',
         message: 'Please verify photo & details, then tap Approve or Decline.',
         color: 'indigo',
-        requiresApproval: true, // Signals frontend to show photo with Approve/Decline buttons
+        requiresApproval: true,
         participant: {
           id: participant.id,
           name: participant.name || participant.email,
