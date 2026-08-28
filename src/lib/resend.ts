@@ -315,3 +315,91 @@ export async function sendCustomBroadcastEmail(params: {
     `,
   });
 }
+
+/**
+ * Send email notification when a participant's delegation group is updated
+ */
+export async function sendGroupUpdateNotificationEmail(params: {
+  to: string;
+  recipientName: string;
+  eventName: string;
+  actionType: 'ASSIGNED' | 'REMOVED' | 'TRANSFERRED' | 'DETAILS_UPDATED';
+  groupName?: string;
+  institution?: string | null;
+  country?: string | null;
+  isLeader?: boolean;
+}) {
+  const resend = getResend();
+
+  let actionTitle = 'Delegation Group Assignment Update';
+  let actionText = '';
+
+  if (params.actionType === 'ASSIGNED') {
+    actionTitle = `Assigned to Delegation Group: ${params.groupName}`;
+    actionText = `You have been successfully added to the <strong>${params.groupName}</strong> delegation group for <strong>${params.eventName}</strong>.`;
+  } else if (params.actionType === 'TRANSFERRED') {
+    actionTitle = `Transferred to Delegation Group: ${params.groupName}`;
+    actionText = `Your delegation group status has been updated. You are now part of <strong>${params.groupName}</strong> for <strong>${params.eventName}</strong>.`;
+  } else if (params.actionType === 'REMOVED') {
+    actionTitle = `Updated to Individual Delegate`;
+    actionText = `Your delegation group assignment for <strong>${params.eventName}</strong> has been updated. You are now registered as an <strong>Individual Delegate</strong>.`;
+  } else {
+    actionTitle = `Delegation Group Details Updated`;
+    actionText = `The details for your delegation group <strong>${params.groupName}</strong> at <strong>${params.eventName}</strong> have been updated by the event manager.`;
+  }
+
+  return safeSend(resend, {
+    from: getFromEmail(),
+    to: params.to,
+    subject: `${actionTitle} — ${params.eventName}`,
+    html: `
+      <!DOCTYPE html>
+      <html>
+        <head>
+          <meta charset="utf-8" />
+          <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        </head>
+        <body style="margin: 0; padding: 0; background-color: #070709; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; color: #F8FAFC;">
+          <table width="100%" border="0" cellspacing="0" cellpadding="0" style="background-color: #070709; padding: 32px 16px;">
+            <tr>
+              <td align="center">
+                <table width="100%" border="0" cellspacing="0" cellpadding="0" style="max-width: 560px; background-color: #0F0F14; border: 1px solid rgba(99, 102, 241, 0.3); border-radius: 14px; padding: 32px; box-shadow: 0 10px 30px rgba(0,0,0,0.5);">
+                  <tr>
+                    <td>
+                      <div style="text-align: center; margin-bottom: 20px;">
+                        <span style="display: inline-block; background: linear-gradient(135deg, #6366F1, #4F46E5); color: #ffffff; font-weight: 700; font-size: 11px; padding: 4px 12px; border-radius: 100px; text-transform: uppercase; letter-spacing: 0.1em;">
+                          ${params.eventName} • DELEGATION SYSTEM
+                        </span>
+                      </div>
+                      <h2 style="color: #ffffff; font-size: 20px; font-weight: 700; margin: 0 0 12px; text-align: center;">
+                        ${actionTitle}
+                      </h2>
+                      <p style="color: #cbd5e1; font-size: 14px; margin: 0 0 24px; text-align: center; line-height: 1.5;">
+                        Hello <strong>${params.recipientName}</strong>,<br/>
+                        ${actionText}
+                      </p>
+
+                      ${params.groupName ? `
+                        <div style="background: #181825; border: 1px solid rgba(255,255,255,0.08); border-radius: 10px; padding: 20px; margin-bottom: 24px;">
+                          <div style="font-size: 11px; text-transform: uppercase; color: #818cf8; font-weight: 700; letter-spacing: 0.05em; margin-bottom: 8px;">Delegation Details</div>
+                          <div style="font-size: 16px; font-weight: 700; color: #ffffff; margin-bottom: 6px;">👥 ${params.groupName} ${params.isLeader ? '⭐ (Group Leader)' : ''}</div>
+                          ${params.institution ? `<div style="font-size: 13px; color: #94a3b8; margin-bottom: 4px;">🏫 Institution: <strong style="color:#e2e8f0;">${params.institution}</strong></div>` : ''}
+                          ${params.country ? `<div style="font-size: 13px; color: #94a3b8;">🇺🇳 Country / Allocation: <strong style="color:#e2e8f0;">${params.country}</strong></div>` : ''}
+                        </div>
+                      ` : ''}
+
+                      <p style="color: #64748b; font-size: 12px; margin: 0; text-align: center; border-top: 1px solid rgba(255,255,255,0.06); padding-top: 16px;">
+                        This is an automated notification from 27 Media Agency Event Access Systems.
+                      </p>
+                    </td>
+                  </tr>
+                </table>
+              </td>
+            </tr>
+          </table>
+        </body>
+      </html>
+    `,
+  });
+}
+
