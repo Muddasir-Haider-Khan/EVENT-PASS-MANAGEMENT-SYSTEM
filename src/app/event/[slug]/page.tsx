@@ -136,12 +136,11 @@ export default function PublicEventPage() {
     }
   }, [event?.fontUrl]);
 
-  // Selected category custom form fields (fallback to event general fields)
+  // Selected category custom form fields (strictly sync with Form Builder)
   const selectedCategory = participantTypes.find((t) => t.id === selectedTypeId);
-  const activeFields =
-    selectedCategory && selectedCategory.formFields && selectedCategory.formFields.length > 0
-      ? selectedCategory.formFields
-      : fields;
+  const activeFields = selectedCategory
+    ? (selectedCategory.formFields || [])
+    : (fields || []);
 
   // Initialize group members whenever a group category is selected
   useEffect(() => {
@@ -768,9 +767,7 @@ export default function PublicEventPage() {
                       No additional custom questionnaire fields for this category. Ready to submit!
                     </div>
                   ) : (
-                    activeFields
-                      .filter((f) => f.type !== 'EMAIL')
-                      .map((field) => (
+                    activeFields.map((field) => (
                         <div key={field.id} className="space-y-1.5">
                           <label className="block text-xs font-semibold uppercase tracking-wider text-slate-300">
                             {field.label} {field.required && <span className="text-amber-400">*</span>}

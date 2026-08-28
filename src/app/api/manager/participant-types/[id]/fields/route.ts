@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
 import { getSession } from '@/lib/auth';
+import { redisCache } from '@/lib/redis';
 import { FieldType } from '@prisma/client';
 
 export async function GET(
@@ -80,6 +81,15 @@ export async function POST(
         })
       )
     );
+
+    // Invalidate Redis cache for this event's public form
+    const event = await prisma.event.findUnique({
+      where: { id: eventId },
+      select: { slug: true },
+    });
+    if (event?.slug) {
+      await redisCache.del(`event:form:${event.slug}`);
+    }
 
     return NextResponse.json({ fields: createdFields }, { status: 200 });
   } catch (error) {

@@ -162,16 +162,7 @@ export default function ManagerTypesPage() {
       const res = await fetch(`/api/manager/participant-types/${category.id}/fields`);
       if (res.ok) {
         const data = await res.json();
-        if (data.fields && data.fields.length > 0) {
-          setBuilderFields(data.fields);
-        } else {
-          // Initialize default fields if none exist
-          setBuilderFields([
-            { label: 'Full Name', type: 'SHORT_TEXT', required: true, options: null, order: 0, isLocked: true },
-            { label: 'Email Address', type: 'EMAIL', required: true, options: null, order: 1, isLocked: true },
-            { label: 'Phone Number', type: 'SHORT_TEXT', required: true, options: null, order: 2 },
-          ]);
-        }
+        setBuilderFields(data.fields || []);
       }
     } catch {
       setMessage({ type: 'error', text: 'Failed to load category form fields' });
@@ -202,10 +193,6 @@ export default function ManagerTypesPage() {
   }
 
   function removeBuilderField(index: number) {
-    if (builderFields[index].isLocked) {
-      alert('System locked fields cannot be deleted.');
-      return;
-    }
     setBuilderFields((prev) => prev.filter((_, i) => i !== index));
   }
 

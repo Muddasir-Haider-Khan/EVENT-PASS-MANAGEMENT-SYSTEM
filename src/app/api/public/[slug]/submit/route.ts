@@ -19,7 +19,12 @@ export async function POST(
   try {
     const event = await prisma.event.findUnique({
       where: { slug: params.slug },
-      include: { formFields: true },
+      include: {
+        formFields: true,
+        participantTypes: {
+          include: { formFields: true },
+        },
+      },
     });
 
     if (!event || event.status !== 'ACTIVE') {
@@ -88,9 +93,15 @@ export async function POST(
       );
     }
 
+    // Determine target form fields (category-specific or event general)
+    const selectedCategory = event.participantTypes?.find((t) => t.id === participantTypeId);
+    const targetFields = selectedCategory
+      ? (selectedCategory.formFields || [])
+      : (event.formFields || []);
+
     // Enrich responses object with top-level fields (email, phone, etc.) for any corresponding form fields
     const finalResponses: Record<string, unknown> = { ...responses };
-    for (const field of event.formFields) {
+    for (const field of targetFields) {
       const labelLower = (field.label || '').toLowerCase().trim();
       if (field.type === 'EMAIL' || labelLower === 'email' || labelLower === 'email address') {
         finalResponses[field.id] = normalizedEmail;
@@ -101,7 +112,7 @@ export async function POST(
     }
 
     // Validate required fields against finalResponses
-    for (const field of event.formFields) {
+    for (const field of targetFields) {
       const val = finalResponses[field.id];
       if (field.required && (val === undefined || val === null || val === '')) {
         return NextResponse.json(

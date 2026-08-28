@@ -65,16 +65,6 @@ export async function POST(req: NextRequest) {
             mustChangePassword: false,
           },
         },
-        // Create default locked email field
-        formFields: {
-          create: {
-            label: 'Email',
-            type: 'EMAIL',
-            required: true,
-            isLocked: true,
-            order: 0,
-          },
-        },
         ...(eventType === 'MUN'
           ? {
               participantTypes: {
