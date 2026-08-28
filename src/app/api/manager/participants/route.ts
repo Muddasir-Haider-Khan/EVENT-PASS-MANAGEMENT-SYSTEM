@@ -66,6 +66,28 @@ export async function DELETE(req: NextRequest) {
       where: { id },
     });
 
+    // Clean up empty/orphaned approved submissions if no pass holders remain for it
+    if (participant.submissionId) {
+      const remainingCount = await prisma.participant.count({
+        where: { submissionId: participant.submissionId },
+      });
+
+      if (remainingCount === 0) {
+        await prisma.submission.delete({
+          where: { id: participant.submissionId },
+        }).catch(() => {});
+      }
+    }
+
+    // Clean up any other orphaned approved submissions with 0 pass holders
+    await prisma.submission.deleteMany({
+      where: {
+        eventId: session.eventId,
+        status: 'APPROVED',
+        participants: { none: {} },
+      },
+    }).catch(() => {});
+
     return NextResponse.json({ success: true });
   } catch (error) {
     console.error('Delete participant error:', error);

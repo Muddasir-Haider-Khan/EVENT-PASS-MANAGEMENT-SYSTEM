@@ -19,6 +19,7 @@ export default function SubmissionsPage() {
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState<string>('ALL');
   const [declineTarget, setDeclineTarget] = useState<Submission | null>(null);
+  const [deleteTarget, setDeleteTarget] = useState<Submission | null>(null);
   const [processing, setProcessing] = useState<string | null>(null);
 
   const loadSubmissions = useCallback(async () => {
@@ -77,6 +78,26 @@ export default function SubmissionsPage() {
     }
   }
 
+  async function handleDeleteSubmission() {
+    if (!deleteTarget) return;
+    setProcessing(deleteTarget.id);
+    try {
+      const res = await fetch(`/api/manager/submissions?id=${deleteTarget.id}`, { method: 'DELETE' });
+      if (res.ok) {
+        toast('Submission deleted successfully', 'success');
+        loadSubmissions();
+      } else {
+        const data = await res.json();
+        toast(data.error || 'Delete failed', 'error');
+      }
+    } catch {
+      toast('Network error while deleting submission', 'error');
+    } finally {
+      setProcessing(null);
+      setDeleteTarget(null);
+    }
+  }
+
   const filtered = filter === 'ALL' ? submissions : submissions.filter((s) => s.status === filter);
 
   if (loading) {
@@ -96,7 +117,7 @@ export default function SubmissionsPage() {
             Attendee Registrations
           </h1>
           <p className="text-caption" style={{ color: 'var(--text-secondary)', marginTop: 4 }}>
-            Review pending form entries and issue authorized event passes.
+            Review pending form entries, delete obsolete entries, or issue authorized event passes.
           </p>
         </div>
 
@@ -136,17 +157,29 @@ export default function SubmissionsPage() {
                   </div>
                 </div>
 
-                <span
-                  className={`badge ${
-                    sub.status === 'PENDING'
-                      ? 'badge-warning'
-                      : sub.status === 'APPROVED'
-                      ? 'badge-gold'
-                      : 'badge-error'
-                  }`}
-                >
-                  {sub.status}
-                </span>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                  <span
+                    className={`badge ${
+                      sub.status === 'PENDING'
+                        ? 'badge-warning'
+                        : sub.status === 'APPROVED'
+                        ? 'badge-gold'
+                        : 'badge-error'
+                    }`}
+                  >
+                    {sub.status}
+                  </span>
+
+                  <button
+                    className="btn btn-ghost btn-sm"
+                    style={{ color: '#EF4444', padding: '4px 8px', fontSize: 12 }}
+                    onClick={() => setDeleteTarget(sub)}
+                    title="Delete Submission"
+                    disabled={processing === sub.id}
+                  >
+                    🗑 Delete
+                  </button>
+                </div>
               </div>
 
               {/* Submitted Answers Grid */}
@@ -228,6 +261,7 @@ export default function SubmissionsPage() {
         </div>
       )}
 
+      {/* Decline Dialog */}
       <ConfirmDialog
         open={!!declineTarget}
         title="Decline Registration"
@@ -236,6 +270,18 @@ export default function SubmissionsPage() {
         variant="danger"
         onConfirm={handleDecline}
         onCancel={() => setDeclineTarget(null)}
+        loading={!!processing}
+      />
+
+      {/* Delete Submission Dialog */}
+      <ConfirmDialog
+        open={!!deleteTarget}
+        title="Delete Registration Submission"
+        message={`Are you sure you want to delete the submission for ${deleteTarget?.email}? This will permanently remove the submission record.`}
+        confirmLabel="Delete Submission"
+        variant="danger"
+        onConfirm={handleDeleteSubmission}
+        onCancel={() => setDeleteTarget(null)}
         loading={!!processing}
       />
     </div>

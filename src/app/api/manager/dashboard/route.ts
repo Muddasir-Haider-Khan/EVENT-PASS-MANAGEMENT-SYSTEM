@@ -8,6 +8,15 @@ export async function GET() {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 
+  // Clean up any orphaned approved submissions with 0 pass holders remaining
+  await prisma.submission.deleteMany({
+    where: {
+      eventId: session.eventId,
+      status: 'APPROVED',
+      participants: { none: {} },
+    },
+  }).catch(() => {});
+
   const event = await prisma.event.findUnique({
     where: { id: session.eventId },
     include: {
