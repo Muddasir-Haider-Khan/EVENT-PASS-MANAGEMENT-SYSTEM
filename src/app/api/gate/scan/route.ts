@@ -6,7 +6,16 @@ import { EntryStatus, ScanResult } from '@prisma/client';
 export async function POST(req: NextRequest) {
   const session = getSessionFromRequest(req, 'gate');
   if (!session || !session.eventId || !session.gateId || !session.gateType) {
-    return NextResponse.json({ error: 'Unauthorized — invalid gate session' }, { status: 401 });
+    return NextResponse.json(
+      {
+        result: 'UNAUTHORIZED',
+        message: 'Gate session expired or invalid. Please re-authenticate with Gate OTP.',
+        color: 'red',
+        autoDecline: true,
+        error: 'Unauthorized — invalid gate session',
+      },
+      { status: 401 }
+    );
   }
 
   const gateId = session.gateId;
@@ -23,11 +32,20 @@ export async function POST(req: NextRequest) {
 
       const participant = await prisma.participant.findFirst({
         where: { id: participantId, eventId: session.eventId },
-        include: { participantType: true, group: true },
+        include: { participantType: true, group: true, event: true },
       });
 
       if (!participant) {
-        return NextResponse.json({ error: 'Participant not found' }, { status: 404 });
+        return NextResponse.json(
+          {
+            result: 'NOT_FOUND',
+            message: 'Participant record not found in system',
+            color: 'red',
+            autoDecline: true,
+            error: 'Participant not found',
+          },
+          { status: 404 }
+        );
       }
 
       if (confirmAction === 'APPROVE') {
@@ -86,6 +104,7 @@ export async function POST(req: NextRequest) {
           result: 'ENTRY_DECLINED',
           message: 'ENTRY DECLINED — Access denied by gate officer',
           color: 'red',
+          autoDecline: true,
           participant: {
             id: participant.id,
             name: participant.name || participant.email,
@@ -103,25 +122,47 @@ export async function POST(req: NextRequest) {
     // INITIAL QR TOKEN SCAN LOOKUP
     // -------------------------------------------------------------
     if (!body.qrToken) {
-      return NextResponse.json({ error: 'QR token is required' }, { status: 400 });
+      return NextResponse.json(
+        {
+          result: 'MISSING_TOKEN',
+          message: 'QR pass token is required',
+          color: 'red',
+          autoDecline: true,
+          error: 'QR token is required',
+        },
+        { status: 400 }
+      );
     }
 
     let rawToken = String(body.qrToken).trim().replaceAll('"', '').replaceAll("'", "");
-    if (rawToken.includes('http')) {
+    
+    // Extract token if input is a URL or contains parameters
+    if (rawToken.includes('http://') || rawToken.includes('https://') || rawToken.includes('/')) {
       try {
-        const urlObj = new URL(rawToken);
-        rawToken = urlObj.searchParams.get('token') || urlObj.pathname.split('/').pop() || rawToken;
+        if (rawToken.includes('?')) {
+          const urlObj = new URL(rawToken);
+          const paramToken = urlObj.searchParams.get('token') || urlObj.searchParams.get('qrToken') || urlObj.searchParams.get('id');
+          if (paramToken) rawToken = paramToken;
+        } else {
+          const parts = rawToken.split('/').filter(Boolean);
+          if (parts.length > 0) {
+            rawToken = parts[parts.length - 1];
+          }
+        }
       } catch {
-        // keep rawToken
+        // keep rawToken as fallback
       }
     }
 
-    // Lookup participant
+    rawToken = rawToken.trim();
+
+    // 1. Direct Lookup by qrToken
     let participant = await prisma.participant.findUnique({
       where: { qrToken: rawToken },
       include: { event: true, participantType: true, group: true },
     });
 
+    // 2. Fallback: Insensitive Match
     if (!participant) {
       participant = await prisma.participant.findFirst({
         where: { qrToken: { equals: rawToken, mode: 'insensitive' } },
@@ -129,7 +170,30 @@ export async function POST(req: NextRequest) {
       });
     }
 
-    // 1. Invalid or Unknown QR
+    // 3. Fallback: Search by ID or Substring Containment
+    if (!participant) {
+      participant = await prisma.participant.findFirst({
+        where: {
+          OR: [
+            { id: rawToken },
+            { qrToken: { contains: rawToken, mode: 'insensitive' } },
+          ],
+        },
+        include: { event: true, participantType: true, group: true },
+      });
+    }
+
+    // 4. Fallback: Check if rawToken contains participant's qrToken
+    if (!participant && rawToken.length > 10) {
+      const allParticipants = await prisma.participant.findMany({
+        where: { eventId: session.eventId },
+        include: { event: true, participantType: true, group: true },
+        take: 200,
+      });
+      participant = allParticipants.find(p => p.qrToken && rawToken.toLowerCase().includes(p.qrToken.toLowerCase())) || null;
+    }
+
+    // INVALID OR UNKNOWN QR PASS
     if (!participant) {
       await prisma.scanLog.create({
         data: {
@@ -146,7 +210,7 @@ export async function POST(req: NextRequest) {
       });
     }
 
-    // 2. Belongs to different event
+    // BELONGS TO DIFFERENT EVENT
     if (participant.eventId !== session.eventId) {
       await prisma.scanLog.create({
         data: {
@@ -157,14 +221,23 @@ export async function POST(req: NextRequest) {
         },
       });
       return NextResponse.json({
-        result: 'INVALID_QR',
-        message: 'WRONG EVENT — Pass belongs to another event',
+        result: 'WRONG_EVENT',
+        message: `WRONG EVENT — Pass belongs to "${participant.event?.name || 'another event'}"`,
         color: 'red',
         autoDecline: true,
+        participant: {
+          id: participant.id,
+          name: participant.name || participant.email,
+          email: participant.email,
+          photoUrl: participant.photoUrl,
+          participantType: participant.participantType?.name || null,
+          group: participant.group?.name || null,
+          entryStatus: participant.entryStatus,
+        },
       });
     }
 
-    // 3. Expired or Revoked Pass
+    // EXPIRED OR REVOKED PASS
     if (participant.isExpired) {
       await prisma.scanLog.create({
         data: {
@@ -193,9 +266,7 @@ export async function POST(req: NextRequest) {
 
     const currentStatus = participant.entryStatus;
 
-    // -------------------------------------------------------------
     // ENTRY GATE SCAN LOGIC
-    // -------------------------------------------------------------
     if (isEntryGate) {
       // IF ALREADY INSIDE -> AUTOMATIC INSTANT DECLINE (NO POPUP)
       if (currentStatus === 'INSIDE') {
@@ -225,10 +296,10 @@ export async function POST(req: NextRequest) {
         });
       }
 
-      // IF NOT_ENTERED OR EXITED -> REQUIRES APPROVE / DECLINE BUTTONS
+      // IF NOT_ENTERED OR EXITED -> REQUIRES GATE OFFICER APPROVAL
       return NextResponse.json({
         result: 'PENDING_APPROVAL',
-        message: 'Please verify photo & details, then Approve or Decline entry.',
+        message: 'Please verify photo & details, then tap Approve or Decline.',
         color: 'indigo',
         requiresApproval: true, // Signals frontend to show photo with Approve/Decline buttons
         participant: {
@@ -243,11 +314,8 @@ export async function POST(req: NextRequest) {
       });
     }
 
-    // -------------------------------------------------------------
     // EXIT GATE SCAN LOGIC
-    // -------------------------------------------------------------
     else {
-      // IF NOT INSIDE -> AUTOMATIC INSTANT DECLINE
       if (currentStatus !== 'INSIDE') {
         await prisma.scanLog.create({
           data: {
@@ -275,10 +343,9 @@ export async function POST(req: NextRequest) {
         });
       }
 
-      // IF INSIDE -> REQUIRES CONFIRMATION TO EXIT
       return NextResponse.json({
         result: 'PENDING_APPROVAL',
-        message: 'Please verify photo & details, then Approve or Decline exit.',
+        message: 'Please verify photo & details, then tap Approve or Decline exit.',
         color: 'indigo',
         requiresApproval: true,
         participant: {
@@ -294,6 +361,15 @@ export async function POST(req: NextRequest) {
     }
   } catch (error) {
     console.error('Scan error:', error);
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+    return NextResponse.json(
+      {
+        result: 'SERVER_ERROR',
+        message: 'Internal server error processing scan',
+        color: 'red',
+        autoDecline: true,
+        error: 'Internal server error',
+      },
+      { status: 500 }
+    );
   }
 }

@@ -35,6 +35,7 @@ interface ScanResult {
     entryStatus: string;
   };
   scannedAt?: string;
+  error?: string;
 }
 
 interface ScanHistoryItem {
@@ -146,7 +147,7 @@ export default function ScanPage() {
     if (cleanToken.includes('http')) {
       try {
         const urlObj = new URL(cleanToken);
-        cleanToken = urlObj.searchParams.get('token') || urlObj.pathname.split('/').pop() || cleanToken;
+        cleanToken = urlObj.searchParams.get('token') || urlObj.searchParams.get('qrToken') || urlObj.searchParams.get('id') || urlObj.pathname.split('/').pop() || cleanToken;
       } catch {
         // keep cleanToken
       }
@@ -168,23 +169,50 @@ export default function ScanPage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ qrToken: cleanToken }),
       });
+      
       const data: ScanResult = await res.json();
-      setLastScan(data);
+
+      if (res.status === 401) {
+        setLastScan({
+          result: 'UNAUTHORIZED',
+          message: 'Gate session expired. Redirecting to Gate OTP login...',
+          color: 'red',
+          autoDecline: true,
+        });
+        playAudioFeedback('DENIED');
+        setTimeout(() => {
+          sessionStorage.removeItem('gateSession');
+          router.push('/gate');
+        }, 2200);
+        return;
+      }
+
+      // Ensure proper result & message defaults
+      const scanData: ScanResult = {
+        result: data.result || 'INVALID_QR',
+        message: data.message || data.error || 'Scan processed',
+        color: data.color || 'red',
+        requiresApproval: data.requiresApproval || false,
+        autoDecline: data.autoDecline || false,
+        participant: data.participant || undefined,
+      };
+
+      setLastScan(scanData);
       setScanCount((c) => c + 1);
 
-      if (data.requiresApproval) {
+      if (scanData.requiresApproval) {
         // Play soft chime to alert gate officer to verify photo & click approve
         playAudioFeedback('NEUTRAL');
-      } else if (data.autoDecline || data.color === 'red') {
+      } else if (scanData.autoDecline || scanData.color === 'red') {
         // Instant rejection — play denied buzzer
         playAudioFeedback('DENIED');
         const historyItem: ScanHistoryItem = {
           id: Math.random().toString(36).substring(2, 9),
           time: now,
-          name: data.participant?.name || 'Unknown Pass Holder',
-          statusMessage: data.message,
+          name: scanData.participant?.name || 'Unknown Pass Holder',
+          statusMessage: scanData.message,
           color: 'red',
-          result: data.result,
+          result: scanData.result,
         };
         setScanHistory((prev) => [historyItem, ...prev.slice(0, 4)]);
 
@@ -202,7 +230,7 @@ export default function ScanPage() {
     } finally {
       setScanning(false);
     }
-  }, [scanning, confirming]);
+  }, [scanning, confirming, router]);
 
   // Handle Gate Officer Decision (Approve or Decline Entry)
   async function handleGateOfficerDecision(decision: 'APPROVE' | 'DECLINE') {
@@ -245,7 +273,7 @@ export default function ScanPage() {
 
       setScanHistory((prev) => [historyItem, ...prev.slice(0, 4)]);
 
-      // Auto dismiss after 3 seconds
+      // Auto dismiss after 3.5 seconds
       autoDismissTimerRef.current = setTimeout(() => {
         setLastScan(null);
       }, 3500);
@@ -261,10 +289,10 @@ export default function ScanPage() {
   function handleKeyDown(e: React.KeyboardEvent<HTMLInputElement>) {
     if (e.key === 'Enter') {
       e.preventDefault();
-      const val = bufferRef.current;
+      const val = (bufferRef.current || inputRef.current?.value || '').trim();
       bufferRef.current = '';
       if (inputRef.current) inputRef.current.value = '';
-      if (val.length >= 6) processScan(val);
+      if (val.length >= 1) processScan(val);
       return;
     }
   }
