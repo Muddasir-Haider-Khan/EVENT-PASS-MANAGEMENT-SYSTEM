@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
 import { getSessionFromRequest } from '@/lib/auth';
-import { scanSchema } from '@/lib/validation';
 import { EntryStatus, ScanResult } from '@prisma/client';
 
 export async function POST(req: NextRequest) {
@@ -11,17 +10,113 @@ export async function POST(req: NextRequest) {
   }
 
   const gateId = session.gateId;
+  const isEntryGate = session.gateType === 'ENTRY';
 
   try {
     const body = await req.json();
-    const parsed = scanSchema.safeParse(body);
-    if (!parsed.success) {
-      return NextResponse.json({ error: parsed.error.errors[0].message }, { status: 400 });
+
+    // -------------------------------------------------------------
+    // HANDLE GATE OFFICER CONFIRMATION (APPROVE / DECLINE)
+    // -------------------------------------------------------------
+    if (body.confirmAction && body.participantId) {
+      const { confirmAction, participantId } = body;
+
+      const participant = await prisma.participant.findFirst({
+        where: { id: participantId, eventId: session.eventId },
+        include: { participantType: true, group: true },
+      });
+
+      if (!participant) {
+        return NextResponse.json({ error: 'Participant not found' }, { status: 404 });
+      }
+
+      if (confirmAction === 'APPROVE') {
+        const newStatus = isEntryGate ? 'INSIDE' : 'EXITED';
+        const scanResult: ScanResult = isEntryGate ? 'ENTRY_GRANTED' : 'EXIT_GRANTED';
+
+        await prisma.participant.update({
+          where: { id: participant.id },
+          data: {
+            entryStatus: newStatus as EntryStatus,
+            lastScanAt: new Date(),
+          },
+        });
+
+        await prisma.scanLog.create({
+          data: {
+            participantId: participant.id,
+            gateId,
+            result: scanResult,
+            qrTokenUsed: participant.qrToken,
+          },
+        });
+
+        return NextResponse.json({
+          result: scanResult,
+          message: isEntryGate
+            ? 'ENTRY APPROVED — Attendee is now Inside Event'
+            : 'EXIT APPROVED — Attendee has Exited Event',
+          color: 'green',
+          participant: {
+            id: participant.id,
+            name: participant.name || participant.email,
+            email: participant.email,
+            photoUrl: participant.photoUrl,
+            participantType: participant.participantType?.name || null,
+            group: participant.group?.name || null,
+            entryStatus: newStatus,
+          },
+        });
+      } else {
+        // DECLINE ACTION BY GATE OFFICER
+        const scanResult: ScanResult = isEntryGate
+          ? 'ENTRY_DENIED_ALREADY_INSIDE'
+          : 'EXIT_DENIED_NOT_INSIDE';
+
+        await prisma.scanLog.create({
+          data: {
+            participantId: participant.id,
+            gateId,
+            result: scanResult,
+            qrTokenUsed: participant.qrToken,
+          },
+        });
+
+        return NextResponse.json({
+          result: 'ENTRY_DECLINED',
+          message: 'ENTRY DECLINED — Access denied by gate officer',
+          color: 'red',
+          participant: {
+            id: participant.id,
+            name: participant.name || participant.email,
+            email: participant.email,
+            photoUrl: participant.photoUrl,
+            participantType: participant.participantType?.name || null,
+            group: participant.group?.name || null,
+            entryStatus: participant.entryStatus,
+          },
+        });
+      }
     }
 
-    const rawToken = parsed.data.qrToken.trim().replaceAll('"', '').replaceAll("'", "");
+    // -------------------------------------------------------------
+    // INITIAL QR TOKEN SCAN LOOKUP
+    // -------------------------------------------------------------
+    if (!body.qrToken) {
+      return NextResponse.json({ error: 'QR token is required' }, { status: 400 });
+    }
 
-    // Fast lookup participant by QR token (with insensitive fallback)
+    let rawToken = String(body.qrToken).trim().replaceAll('"', '').replaceAll("'", "");
+    if (rawToken.includes('http')) {
+      try {
+        const urlObj = new URL(rawToken);
+        rawToken = urlObj.searchParams.get('token') || urlObj.pathname.split('/').pop() || rawToken;
+      } catch {
+        // keep rawToken
+      }
+    }
+
+    // Lookup participant
     let participant = await prisma.participant.findUnique({
       where: { qrToken: rawToken },
       include: { event: true, participantType: true, group: true },
@@ -34,7 +129,7 @@ export async function POST(req: NextRequest) {
       });
     }
 
-    // Invalid or unknown token
+    // 1. Invalid or Unknown QR
     if (!participant) {
       await prisma.scanLog.create({
         data: {
@@ -45,12 +140,13 @@ export async function POST(req: NextRequest) {
       });
       return NextResponse.json({
         result: 'INVALID_QR',
-        message: 'Invalid or unknown QR code pass',
+        message: 'INVALID QR — Pass not found in system',
         color: 'red',
+        autoDecline: true,
       });
     }
 
-    // Token belongs to different event
+    // 2. Belongs to different event
     if (participant.eventId !== session.eventId) {
       await prisma.scanLog.create({
         data: {
@@ -62,12 +158,13 @@ export async function POST(req: NextRequest) {
       });
       return NextResponse.json({
         result: 'INVALID_QR',
-        message: 'This pass belongs to a different event',
+        message: 'WRONG EVENT — Pass belongs to another event',
         color: 'red',
+        autoDecline: true,
       });
     }
 
-    // Pass is expired (single-use or revoked)
+    // 3. Expired or Revoked Pass
     if (participant.isExpired) {
       await prisma.scanLog.create({
         data: {
@@ -78,10 +175,12 @@ export async function POST(req: NextRequest) {
         },
       });
       return NextResponse.json({
-        result: 'INVALID_QR',
-        message: 'EXPIRED PASS — This pass has already been used and expired',
+        result: 'EXPIRED_PASS',
+        message: 'EXPIRED PASS — Pass is revoked or expired',
         color: 'red',
+        autoDecline: true,
         participant: {
+          id: participant.id,
           name: participant.name || participant.email,
           email: participant.email,
           photoUrl: participant.photoUrl,
@@ -92,99 +191,30 @@ export async function POST(req: NextRequest) {
       });
     }
 
-    const isEntryGate = session.gateType === 'ENTRY';
     const currentStatus = participant.entryStatus;
-    const now = new Date();
 
-    let result: string;
-    let newStatus: string;
-    let message: string;
-    let color: string;
-
+    // -------------------------------------------------------------
+    // ENTRY GATE SCAN LOGIC
+    // -------------------------------------------------------------
     if (isEntryGate) {
-      // Entry gate logic
-      if (currentStatus === 'NOT_ENTERED' || currentStatus === 'EXITED') {
-        result = 'ENTRY_GRANTED';
-        newStatus = 'INSIDE';
-        message = 'ENTRY APPROVED — Pass Activated';
-        color = 'green';
-      } else {
-        // Already INSIDE
-        result = 'ENTRY_DENIED_ALREADY_INSIDE';
-        message = 'ALREADY IN EVENT — Pass is active inside venue';
-        color = 'amber';
-        newStatus = currentStatus;
-      }
-    } else {
-      // Exit gate logic
+      // IF ALREADY INSIDE -> AUTOMATIC INSTANT DECLINE (NO POPUP)
       if (currentStatus === 'INSIDE') {
-        result = 'EXIT_GRANTED';
-        newStatus = 'EXITED';
-        message = 'EXIT APPROVED — Pass Deactivated';
-        color = 'green';
-      } else {
-        result = 'EXIT_DENIED_NOT_INSIDE';
-        message = 'ALREADY OUTSIDE — Pass is deactive';
-        color = 'amber';
-        newStatus = currentStatus;
-      }
-    }
-
-    let statusUpdated = true;
-
-    // Atomic conditional update to prevent double-scan race conditions
-    if (newStatus !== currentStatus) {
-      await prisma.$transaction(async (tx) => {
-        const updateResult = await tx.participant.updateMany({
-          where: {
-            id: participant.id,
-            entryStatus: currentStatus as EntryStatus,
-          },
+        await prisma.scanLog.create({
           data: {
-            entryStatus: newStatus as EntryStatus,
-            lastScanAt: now,
-          },
-        });
-
-        if (updateResult.count === 0) {
-          // A concurrent scan updated entryStatus first!
-          statusUpdated = false;
-        }
-
-        const finalResult = statusUpdated
-          ? result
-          : isEntryGate
-          ? 'ENTRY_DENIED_ALREADY_INSIDE'
-          : 'EXIT_DENIED_NOT_INSIDE';
-
-        await tx.scanLog.create({
-          data: {
-            participantId: participant.id,
             gateId,
-            result: finalResult as ScanResult,
+            participantId: participant.id,
+            result: 'ENTRY_DENIED_ALREADY_INSIDE',
             qrTokenUsed: rawToken,
           },
         });
-      });
-    } else {
-      await prisma.scanLog.create({
-        data: {
-          participantId: participant.id,
-          gateId,
-          result: result as ScanResult,
-          qrTokenUsed: rawToken,
-        },
-      });
-    }
 
-    // Handle race condition fallback response if concurrent update failed
-    if (!statusUpdated) {
-      if (isEntryGate) {
         return NextResponse.json({
           result: 'ENTRY_DENIED_ALREADY_INSIDE',
-          message: 'ALREADY IN EVENT — Pass is active inside venue',
-          color: 'amber',
+          message: 'ALREADY IN THE EVENT — Attendee is already inside venue',
+          color: 'red',
+          autoDecline: true, // Signals frontend NOT to show approve/decline buttons
           participant: {
+            id: participant.id,
             name: participant.name || participant.email,
             email: participant.email,
             photoUrl: participant.photoUrl,
@@ -193,36 +223,75 @@ export async function POST(req: NextRequest) {
             entryStatus: 'INSIDE',
           },
         });
-      } else {
+      }
+
+      // IF NOT_ENTERED OR EXITED -> REQUIRES APPROVE / DECLINE BUTTONS
+      return NextResponse.json({
+        result: 'PENDING_APPROVAL',
+        message: 'Please verify photo & details, then Approve or Decline entry.',
+        color: 'indigo',
+        requiresApproval: true, // Signals frontend to show photo with Approve/Decline buttons
+        participant: {
+          id: participant.id,
+          name: participant.name || participant.email,
+          email: participant.email,
+          photoUrl: participant.photoUrl,
+          participantType: participant.participantType?.name || null,
+          group: participant.group?.name || null,
+          entryStatus: currentStatus,
+        },
+      });
+    }
+
+    // -------------------------------------------------------------
+    // EXIT GATE SCAN LOGIC
+    // -------------------------------------------------------------
+    else {
+      // IF NOT INSIDE -> AUTOMATIC INSTANT DECLINE
+      if (currentStatus !== 'INSIDE') {
+        await prisma.scanLog.create({
+          data: {
+            gateId,
+            participantId: participant.id,
+            result: 'EXIT_DENIED_NOT_INSIDE',
+            qrTokenUsed: rawToken,
+          },
+        });
+
         return NextResponse.json({
           result: 'EXIT_DENIED_NOT_INSIDE',
-          message: 'ALREADY OUTSIDE — Pass is deactive',
+          message: 'ALREADY OUTSIDE — Attendee is not recorded inside venue',
           color: 'amber',
+          autoDecline: true,
           participant: {
+            id: participant.id,
             name: participant.name || participant.email,
             email: participant.email,
             photoUrl: participant.photoUrl,
             participantType: participant.participantType?.name || null,
             group: participant.group?.name || null,
-            entryStatus: 'EXITED',
+            entryStatus: currentStatus,
           },
         });
       }
-    }
 
-    return NextResponse.json({
-      result,
-      message,
-      color,
-      participant: {
-        name: participant.name || participant.email,
-        email: participant.email,
-        photoUrl: participant.photoUrl,
-        participantType: participant.participantType?.name || null,
-        group: participant.group?.name || null,
-        entryStatus: newStatus,
-      },
-    });
+      // IF INSIDE -> REQUIRES CONFIRMATION TO EXIT
+      return NextResponse.json({
+        result: 'PENDING_APPROVAL',
+        message: 'Please verify photo & details, then Approve or Decline exit.',
+        color: 'indigo',
+        requiresApproval: true,
+        participant: {
+          id: participant.id,
+          name: participant.name || participant.email,
+          email: participant.email,
+          photoUrl: participant.photoUrl,
+          participantType: participant.participantType?.name || null,
+          group: participant.group?.name || null,
+          entryStatus: currentStatus,
+        },
+      });
+    }
   } catch (error) {
     console.error('Scan error:', error);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
