@@ -626,9 +626,7 @@ export default function ManagerTypesPage() {
                   <Card
                     key={idx}
                     variant="glass"
-                    className={`p-4 border-slate-800 transition-all ${
-                      field.isLocked ? 'bg-slate-900/40 border-slate-800/80' : 'hover:border-slate-700'
-                    }`}
+                    className="p-4 border-slate-800 transition-all hover:border-slate-700"
                   >
                     <div className="flex flex-col md:flex-row md:items-center gap-4 justify-between">
                       {/* Field Order & Drag Control */}
@@ -664,10 +662,9 @@ export default function ManagerTypesPage() {
                         <input
                           type="text"
                           value={field.label}
-                          disabled={field.isLocked}
                           onChange={(e) => updateBuilderField(idx, { label: e.target.value })}
                           placeholder="e.g. Portfolio Link or University Name"
-                          className="w-full bg-slate-950/80 border border-slate-800 focus:border-indigo-500 text-sm text-white rounded-xl px-3.5 py-2 outline-none disabled:opacity-60"
+                          className="w-full bg-slate-950/80 border border-slate-800 focus:border-indigo-500 text-sm text-white rounded-xl px-3.5 py-2 outline-none"
                         />
                       </div>
 
@@ -678,9 +675,8 @@ export default function ManagerTypesPage() {
                         </label>
                         <select
                           value={field.type}
-                          disabled={field.isLocked}
                           onChange={(e) => updateBuilderField(idx, { type: e.target.value })}
-                          className="w-full bg-slate-950/80 border border-slate-800 focus:border-indigo-500 text-sm text-white rounded-xl px-3 py-2 outline-none disabled:opacity-60"
+                          className="w-full bg-slate-950/80 border border-slate-800 focus:border-indigo-500 text-sm text-white rounded-xl px-3 py-2 outline-none"
                         >
                           <option value="SHORT_TEXT">Short Text</option>
                           <option value="PARAGRAPH">Paragraph / Long Text</option>
@@ -699,23 +695,20 @@ export default function ManagerTypesPage() {
                           <input
                             type="checkbox"
                             checked={field.required}
-                            disabled={field.isLocked}
                             onChange={(e) => updateBuilderField(idx, { required: e.target.checked })}
                             className="rounded bg-slate-950 border-slate-800 text-indigo-500 focus:ring-indigo-500"
                           />
                           <span className="text-xs font-medium text-slate-300">Required</span>
                         </label>
 
-                        {!field.isLocked && (
-                          <button
-                            type="button"
-                            onClick={() => removeBuilderField(idx)}
-                            className="text-slate-500 hover:text-red-400 transition-colors p-1"
-                            title="Remove Question"
-                          >
-                            <Trash2 className="w-4 h-4" />
-                          </button>
-                        )}
+                        <button
+                          type="button"
+                          onClick={() => removeBuilderField(idx)}
+                          className="text-slate-500 hover:text-red-400 transition-colors p-1"
+                          title="Remove Question"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
                       </div>
                     </div>
 
