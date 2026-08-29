@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
 import { getSession } from '@/lib/auth';
 import { managerSettingsSchema } from '@/lib/validation';
+import { redisCache } from '@/lib/redis';
 
 export async function GET() {
   const session = getSession('event_manager');
@@ -54,6 +55,10 @@ export async function PUT(req: NextRequest) {
       },
       include: { event: true },
     });
+
+    if (updated.event?.slug) {
+      await redisCache.del(`event:form:${updated.event.slug}`);
+    }
 
     return NextResponse.json({
       success: true,

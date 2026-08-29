@@ -24,6 +24,7 @@ export async function POST(
         participantTypes: {
           include: { formFields: true },
         },
+        eventManager: { select: { accountNumber: true, paymentPhone: true } },
       },
     });
 
@@ -134,7 +135,17 @@ export async function POST(
       },
     });
 
-    return NextResponse.json({ success: true, submissionId: submission.id }, { status: 201 });
+    return NextResponse.json(
+      {
+        success: true,
+        submissionId: submission.id,
+        payment: {
+          accountNumber: event.eventManager?.accountNumber || null,
+          paymentPhone: event.eventManager?.paymentPhone || null,
+        },
+      },
+      { status: 201 }
+    );
   } catch (error) {
     console.error('Submission error:', error);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });

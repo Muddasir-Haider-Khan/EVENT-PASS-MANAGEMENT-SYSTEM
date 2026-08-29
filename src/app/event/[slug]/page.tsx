@@ -239,6 +239,12 @@ export default function PublicEventPage() {
       });
       const data = await res.json();
       if (res.ok) {
+        if (data.payment) {
+          setPayment({
+            accountNumber: data.payment.accountNumber || payment.accountNumber,
+            paymentPhone: data.payment.paymentPhone || payment.paymentPhone,
+          });
+        }
         setSubmitted(true);
       } else {
         setError(data.error || 'Submission failed');
@@ -316,18 +322,28 @@ export default function PublicEventPage() {
             </div>
 
             {(payment.accountNumber || payment.paymentPhone) && (
-              <div className="p-5 rounded-2xl bg-slate-50 border border-slate-200 text-left space-y-4">
-                <h3 className="text-xs font-black text-slate-900 uppercase tracking-wider">
-                  Payment & Verification Instructions
-                </h3>
+              <div className="p-5 sm:p-6 rounded-2xl bg-slate-50 border border-slate-200 text-left space-y-4 shadow-sm">
+                <div className="flex items-center gap-2 pb-2 border-b border-slate-200/80">
+                  <div className="w-7 h-7 rounded-lg bg-emerald-500/10 text-emerald-600 flex items-center justify-center font-bold text-xs">
+                    💳
+                  </div>
+                  <div>
+                    <h3 className="text-xs font-black text-slate-900 uppercase tracking-wider">
+                      Payment & Fee Deposit Details
+                    </h3>
+                    <p className="text-[11px] text-slate-500 font-medium">
+                      Please transfer registration fee to the details below and submit proof.
+                    </p>
+                  </div>
+                </div>
 
                 {payment.accountNumber && (
                   <div>
-                    <span className="text-[10px] font-bold uppercase tracking-wider text-slate-500">
-                      Bank Account / IBAN
+                    <span className="text-[10px] font-bold uppercase tracking-wider text-slate-500 block mb-1">
+                      Account / IBAN Number
                     </span>
-                    <div className="flex items-center justify-between mt-1 p-3 bg-white border border-slate-200 rounded-xl">
-                      <span className="font-mono text-xs font-bold text-slate-900">
+                    <div className="flex items-center justify-between p-3 bg-white border border-slate-200 rounded-xl shadow-xs">
+                      <span className="font-mono text-xs sm:text-sm font-bold text-slate-900 select-all">
                         {payment.accountNumber}
                       </span>
                       <button
@@ -337,7 +353,7 @@ export default function PublicEventPage() {
                           setCopiedAcc(true);
                           setTimeout(() => setCopiedAcc(false), 2000);
                         }}
-                        className="px-3 py-1 text-xs font-bold text-slate-700 hover:bg-slate-100 rounded-lg border border-slate-200 transition-all flex items-center gap-1"
+                        className="px-3 py-1.5 text-xs font-bold text-slate-700 bg-slate-50 hover:bg-slate-100 active:bg-slate-200 rounded-lg border border-slate-200 transition-all flex items-center gap-1.5 shrink-0 ml-2 cursor-pointer"
                       >
                         {copiedAcc ? <Check className="w-3.5 h-3.5 text-emerald-600" /> : <Copy className="w-3.5 h-3.5" />}
                         <span>{copiedAcc ? 'Copied' : 'Copy'}</span>
@@ -348,25 +364,36 @@ export default function PublicEventPage() {
 
                 {payment.paymentPhone && (
                   <div>
-                    <span className="text-[10px] font-bold uppercase tracking-wider text-slate-500">
-                      Send Receipt via WhatsApp
+                    <span className="text-[10px] font-bold uppercase tracking-wider text-slate-500 block mb-1">
+                      Payment Verification Phone / WhatsApp
                     </span>
-                    <div className="flex items-center justify-between mt-1 p-3 bg-white border border-slate-200 rounded-xl">
-                      <span className="font-mono text-xs font-bold text-slate-900">
+                    <div className="flex items-center justify-between p-3 bg-white border border-slate-200 rounded-xl shadow-xs">
+                      <span className="font-mono text-xs sm:text-sm font-bold text-slate-900 select-all">
                         {payment.paymentPhone}
                       </span>
-                      <button
-                        type="button"
-                        onClick={() => {
-                          navigator.clipboard.writeText(payment.paymentPhone || '');
-                          setCopiedPhone(true);
-                          setTimeout(() => setCopiedPhone(false), 2000);
-                        }}
-                        className="px-3 py-1 text-xs font-bold text-slate-700 hover:bg-slate-100 rounded-lg border border-slate-200 transition-all flex items-center gap-1"
-                      >
-                        {copiedPhone ? <Check className="w-3.5 h-3.5 text-emerald-600" /> : <Copy className="w-3.5 h-3.5" />}
-                        <span>{copiedPhone ? 'Copied' : 'Copy'}</span>
-                      </button>
+                      <div className="flex items-center gap-1.5 shrink-0 ml-2">
+                        <button
+                          type="button"
+                          onClick={() => {
+                            navigator.clipboard.writeText(payment.paymentPhone || '');
+                            setCopiedPhone(true);
+                            setTimeout(() => setCopiedPhone(false), 2000);
+                          }}
+                          className="px-3 py-1.5 text-xs font-bold text-slate-700 bg-slate-50 hover:bg-slate-100 active:bg-slate-200 rounded-lg border border-slate-200 transition-all flex items-center gap-1.5 cursor-pointer"
+                        >
+                          {copiedPhone ? <Check className="w-3.5 h-3.5 text-emerald-600" /> : <Copy className="w-3.5 h-3.5" />}
+                          <span>{copiedPhone ? 'Copied' : 'Copy'}</span>
+                        </button>
+                        <a
+                          href={`https://wa.me/${payment.paymentPhone.replace(/[^0-9]/g, '')}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="px-3 py-1.5 text-xs font-bold text-emerald-700 bg-emerald-50 hover:bg-emerald-100 active:bg-emerald-200 rounded-lg border border-emerald-200 transition-all flex items-center gap-1 cursor-pointer"
+                        >
+                          <Send className="w-3.5 h-3.5" />
+                          <span>WhatsApp</span>
+                        </a>
+                      </div>
                     </div>
                   </div>
                 )}
