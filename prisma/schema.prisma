@@ -193,9 +193,9 @@ enum GateType {
 model ScanLog {
   id            String       @id @default(cuid())
   participantId String?
-  participant   Participant? @relation(fields: [participantId], references: [id])
+  participant   Participant? @relation(fields: [participantId], references: [id], onDelete: SetNull)
   gateId        String
-  gate          Gate         @relation(fields: [gateId], references: [id])
+  gate          Gate         @relation(fields: [gateId], references: [id], onDelete: Cascade)
   result        ScanResult
   scannedAt     DateTime     @default(now())
   qrTokenUsed   String?

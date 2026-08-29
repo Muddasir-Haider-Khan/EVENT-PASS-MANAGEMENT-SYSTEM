@@ -92,7 +92,8 @@ export default function AdminDashboardPage() {
         toast('Event deleted successfully', 'success');
         setEvents(prev => prev.filter(e => e.id !== deleteTarget.id));
       } else {
-        toast('Failed to delete event', 'error');
+        const data = await res.json().catch(() => ({}));
+        toast(data.error || 'Failed to delete event', 'error');
       }
     } catch {
       toast('Network error while deleting event', 'error');
