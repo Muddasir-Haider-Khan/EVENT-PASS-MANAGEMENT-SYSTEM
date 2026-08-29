@@ -125,6 +125,8 @@ export default function ScanPage() {
   const bufferRef = useRef('');
   const autoDismissTimerRef = useRef<NodeJS.Timeout | null>(null);
 
+  const isExitGate = gateSession?.gate?.type === 'EXIT';
+
   useEffect(() => {
     const saved = sessionStorage.getItem('gateSession');
     if (!saved) { router.push('/gate'); return; }
@@ -428,7 +430,9 @@ export default function ScanPage() {
                       <span>Gate Verification Required</span>
                     </span>
                     <p className="text-xs text-slate-400 pt-1">
-                      Verify attendee photo and identity below before approving entry.
+                      {isExitGate
+                        ? 'Verify attendee photo and identity below before approving exit.'
+                        : 'Verify attendee photo and identity below before approving entry.'}
                     </p>
                   </div>
 
@@ -483,7 +487,7 @@ export default function ScanPage() {
                       className="border-red-500/40 text-red-400 hover:bg-red-500/10 hover:text-red-300 font-bold py-3.5"
                       leftIcon={<UserX className="w-5 h-5 text-red-400" />}
                     >
-                      Decline Entry
+                      {isExitGate ? 'Decline Exit' : 'Decline Entry'}
                     </Button>
 
                     <Button
@@ -494,7 +498,7 @@ export default function ScanPage() {
                       className="bg-emerald-600 hover:bg-emerald-500 text-white font-black shadow-lg shadow-emerald-600/30 py-3.5"
                       leftIcon={<UserCheck className="w-5 h-5 text-white" />}
                     >
-                      Approve Entry
+                      {isExitGate ? 'Approve Exit' : 'Approve Entry'}
                     </Button>
                   </div>
                 </>
