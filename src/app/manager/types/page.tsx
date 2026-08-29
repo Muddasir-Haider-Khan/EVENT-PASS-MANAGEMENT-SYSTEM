@@ -20,6 +20,8 @@ import {
   Eye,
   X,
   FileText,
+  Clock,
+  Calendar,
 } from 'lucide-react';
 
 interface FormFieldItem {
@@ -39,6 +41,7 @@ interface ParticipantType {
   price: number | null;
   isGroup?: boolean;
   groupSize?: number;
+  validDays?: number;
   formFields?: FormFieldItem[];
   _count?: {
     submissions: number;
@@ -72,6 +75,7 @@ export default function ManagerTypesPage() {
   const [description, setDescription] = useState('');
   const [isGroup, setIsGroup] = useState(false);
   const [groupSize, setGroupSize] = useState<number>(4);
+  const [validDays, setValidDays] = useState<number>(1);
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
 
   // View Mode: 'list' | 'builder' | 'members'
@@ -118,7 +122,7 @@ export default function ManagerTypesPage() {
       const res = await fetch('/api/manager/participant-types', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name, description, isGroup, groupSize }),
+        body: JSON.stringify({ name, description, isGroup, groupSize, validDays }),
       });
       const data = await res.json();
       if (res.ok) {
@@ -127,6 +131,7 @@ export default function ManagerTypesPage() {
         setDescription('');
         setIsGroup(false);
         setGroupSize(4);
+        setValidDays(1);
         loadTypes();
       } else {
         setMessage({ type: 'error', text: data.error || 'Failed to create category' });
@@ -426,25 +431,44 @@ export default function ManagerTypesPage() {
                 </div>
               </div>
 
-              {/* Group Delegation Round Toggle & Options */}
+              {/* Group Delegation Round Toggle & QR Validity Options */}
               <div className="pt-3 border-t border-slate-800/80 flex flex-wrap items-center justify-between gap-4">
-                <label
-                  onClick={() => setIsGroup(!isGroup)}
-                  className="flex items-center gap-3 cursor-pointer select-none group"
-                >
-                  <div
-                    className={`w-5 h-5 rounded-full border flex items-center justify-center transition-all ${
-                      isGroup
-                        ? 'bg-indigo-600 border-indigo-400 shadow-md shadow-indigo-500/30'
-                        : 'bg-slate-900 border-slate-700 group-hover:border-slate-500'
-                    }`}
+                <div className="flex items-center gap-6 flex-wrap">
+                  <label
+                    onClick={() => setIsGroup(!isGroup)}
+                    className="flex items-center gap-3 cursor-pointer select-none group"
                   >
-                    {isGroup && <div className="w-2 h-2 rounded-full bg-white" />}
+                    <div
+                      className={`w-5 h-5 rounded-full border flex items-center justify-center transition-all ${
+                        isGroup
+                          ? 'bg-indigo-600 border-indigo-400 shadow-md shadow-indigo-500/30'
+                          : 'bg-slate-900 border-slate-700 group-hover:border-slate-500'
+                      }`}
+                    >
+                      {isGroup && <div className="w-2 h-2 rounded-full bg-white" />}
+                    </div>
+                    <span className="text-xs font-medium text-slate-200 group-hover:text-white transition-colors">
+                      Is this a group delegation category?
+                    </span>
+                  </label>
+
+                  {/* QR Code Validity Limit Input */}
+                  <div className="flex items-center gap-2 bg-slate-900 border border-slate-700/80 px-3 py-1.5 rounded-xl">
+                    <Clock className="w-3.5 h-3.5 text-emerald-400" />
+                    <label className="text-xs font-semibold text-slate-200">
+                      QR Code Validity:
+                    </label>
+                    <input
+                      type="number"
+                      min={1}
+                      max={365}
+                      value={validDays}
+                      onChange={(e) => setValidDays(Math.max(1, parseInt(e.target.value, 10) || 1))}
+                      className="w-16 bg-slate-950 border border-emerald-500/40 text-xs font-bold text-emerald-400 rounded-lg px-2 py-1 outline-none text-center"
+                    />
+                    <span className="text-[11px] text-slate-400">Day(s) / Entry Limit</span>
                   </div>
-                  <span className="text-xs font-medium text-slate-200 group-hover:text-white transition-colors">
-                    Is this a group delegation category?
-                  </span>
-                </label>
+                </div>
 
                 {isGroup && (
                   <div className="flex items-center gap-2 bg-indigo-950/30 border border-indigo-500/30 px-3 py-1.5 rounded-xl animate-fadeIn">
@@ -492,7 +516,10 @@ export default function ManagerTypesPage() {
                         <h3 className="font-bold text-base text-white flex items-center gap-2">
                           {type.name}
                         </h3>
-                        <div className="flex items-center gap-2">
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <span className="text-[10px] font-bold px-2.5 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 flex items-center gap-1">
+                            <Clock className="w-3 h-3" /> QR Validity: {type.validDays || 1} {(type.validDays || 1) === 1 ? 'Day / Entry' : 'Days / Entries'}
+                          </span>
                           {type.isGroup ? (
                             <span className="text-[10px] font-bold px-2.5 py-1 rounded-full bg-purple-500/10 border border-purple-500/20 text-purple-400 flex items-center gap-1">
                               <Users className="w-3 h-3" /> Group ({type.groupSize || 4} Members)

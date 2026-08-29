@@ -50,14 +50,57 @@ export async function POST(req: NextRequest) {
       }
 
       if (confirmAction === 'APPROVE') {
+        const maxAllowedEntries = participant.participantType?.validDays || 1;
+        const totalEntriesGranted = await prisma.scanLog.count({
+          where: {
+            participantId: participant.id,
+            result: 'ENTRY_GRANTED',
+          },
+        });
+
+        if (isEntryGate && totalEntriesGranted >= maxAllowedEntries) {
+          await prisma.scanLog.create({
+            data: {
+              participantId: participant.id,
+              gateId,
+              result: 'ENTRY_DENIED_EXPIRED',
+              qrTokenUsed: participant.qrToken,
+            },
+          });
+
+          if (participant.qrToken) {
+            await redisCache.del(`participant:qr:${participant.qrToken}`);
+          }
+
+          return NextResponse.json({
+            result: 'ENTRY_DENIED_EXPIRED',
+            message: `ENTRY DENIED — Pass limit of ${maxAllowedEntries} entry/entries reached for category "${participant.participantType?.name || 'Category'}"`,
+            color: 'red',
+            autoDecline: true,
+            participant: {
+              id: participant.id,
+              name: participant.name || participant.email,
+              email: participant.email,
+              photoUrl: participant.photoUrl,
+              participantType: participant.participantType?.name || null,
+              group: participant.group?.name || null,
+              entryStatus: participant.entryStatus,
+            },
+          });
+        }
+
         const newStatus = isEntryGate ? 'INSIDE' : 'EXITED';
         const scanResult: ScanResult = isEntryGate ? 'ENTRY_GRANTED' : 'EXIT_GRANTED';
+
+        const updatedEntriesGranted = isEntryGate ? totalEntriesGranted + 1 : totalEntriesGranted;
+        const isNowExpired = updatedEntriesGranted >= maxAllowedEntries && !isEntryGate;
 
         await prisma.participant.update({
           where: { id: participant.id },
           data: {
             entryStatus: newStatus as EntryStatus,
             lastScanAt: new Date(),
+            ...(isNowExpired && { isExpired: true }),
           },
         });
 
@@ -78,8 +121,8 @@ export async function POST(req: NextRequest) {
         return NextResponse.json({
           result: scanResult,
           message: isEntryGate
-            ? 'ENTRY APPROVED — Attendee is now Inside Event'
-            : 'EXIT APPROVED — Attendee has Exited Event',
+            ? `ENTRY APPROVED — (${updatedEntriesGranted}/${maxAllowedEntries} Entries Used)`
+            : `EXIT APPROVED — (${totalEntriesGranted}/${maxAllowedEntries} Entries Used)`,
           color: 'green',
           participant: {
             id: participant.id,
@@ -290,6 +333,40 @@ export async function POST(req: NextRequest) {
 
     // ENTRY GATE SCAN LOGIC
     if (isEntryGate) {
+      const maxAllowedEntries = participant.participantType?.validDays || 1;
+      const totalEntriesGranted = await prisma.scanLog.count({
+        where: {
+          participantId: participant.id,
+          result: 'ENTRY_GRANTED',
+        },
+      });
+
+      if (totalEntriesGranted >= maxAllowedEntries) {
+        await prisma.scanLog.create({
+          data: {
+            gateId,
+            participantId: participant.id,
+            result: 'ENTRY_DENIED_EXPIRED',
+            qrTokenUsed: rawToken,
+          },
+        });
+
+        return NextResponse.json({
+          result: 'ENTRY_DENIED_EXPIRED',
+          message: `QR VALIDITY EXCEEDED — Allowed ${maxAllowedEntries} entry/entries (${totalEntriesGranted} used)`,
+          color: 'red',
+          autoDecline: true,
+          participant: {
+            id: participant.id,
+            name: participant.name || participant.email,
+            email: participant.email,
+            photoUrl: participant.photoUrl,
+            participantType: participant.participantType?.name || null,
+            group: participant.group?.name || null,
+            entryStatus: participant.entryStatus,
+          },
+        });
+      }
       // IF ALREADY INSIDE -> AUTOMATIC INSTANT DECLINE (NO POPUP)
       if (currentStatus === 'INSIDE') {
         await prisma.scanLog.create({

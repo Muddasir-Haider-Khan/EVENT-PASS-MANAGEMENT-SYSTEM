@@ -76,6 +76,7 @@ model ParticipantType {
   description String?
   isGroup     Boolean  @default(false)
   groupSize   Int?     @default(1)
+  validDays   Int      @default(1)
   createdAt   DateTime @default(now())
   updatedAt   DateTime @default(now()) @updatedAt
 
