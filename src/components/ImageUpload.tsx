@@ -9,6 +9,7 @@ interface ImageUploadProps {
   folder?: string;
   placeholder?: string;
   helpText?: string;
+  theme?: 'dark' | 'light';
 }
 
 export function ImageUpload({
@@ -18,6 +19,7 @@ export function ImageUpload({
   folder = '/epms/uploads',
   placeholder = 'Upload image file or paste URL',
   helpText,
+  theme = 'dark',
 }: ImageUploadProps) {
   const [uploading, setUploading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -75,9 +77,15 @@ export function ImageUpload({
     }
   }
 
+  const isLight = theme === 'light';
+
   return (
     <div style={{ marginBottom: 16 }}>
-      {label && <label className="input-label">{label}</label>}
+      {label && (
+        <label className={`block text-xs font-bold uppercase tracking-wider mb-1.5 ${isLight ? 'text-slate-800' : 'input-label'}`}>
+          {label}
+        </label>
+      )}
 
       {value ? (
         <div
@@ -86,9 +94,9 @@ export function ImageUpload({
             alignItems: 'center',
             gap: 14,
             padding: 12,
-            background: 'var(--bg-surface)',
-            border: '1px solid var(--border-hover)',
-            borderRadius: 10,
+            background: isLight ? '#F8FAFC' : 'var(--bg-surface)',
+            border: isLight ? '1px solid #E2E8F0' : '1px solid var(--border-hover)',
+            borderRadius: 12,
           }}
         >
           <div
@@ -97,9 +105,9 @@ export function ImageUpload({
               height: 54,
               borderRadius: 8,
               overflow: 'hidden',
-              background: '#000',
+              background: isLight ? '#E2E8F0' : '#000',
               flexShrink: 0,
-              border: '1px solid var(--border-default)',
+              border: isLight ? '1px solid #CBD5E1' : '1px solid var(--border-default)',
             }}
           >
             <img
@@ -115,11 +123,16 @@ export function ImageUpload({
           <div style={{ flex: 1, overflow: 'hidden' }}>
             <div
               className="truncate"
-              style={{ fontSize: 13, color: 'var(--text-primary)', fontFamily: 'IBM Plex Mono, monospace' }}
+              style={{
+                fontSize: 13,
+                color: isLight ? '#0F172A' : 'var(--text-primary)',
+                fontFamily: 'IBM Plex Mono, monospace',
+                fontWeight: 600,
+              }}
             >
               {value}
             </div>
-            <div style={{ fontSize: 11, color: 'var(--gold-light)', marginTop: 2 }}>
+            <div style={{ fontSize: 11, color: isLight ? '#16A34A' : 'var(--gold-light)', marginTop: 2, fontWeight: 600 }}>
               ✓ ImageKit Hosted
             </div>
           </div>
@@ -127,7 +140,7 @@ export function ImageUpload({
           <div style={{ display: 'flex', gap: 6 }}>
             <button
               type="button"
-              className="btn btn-ghost btn-sm"
+              className={isLight ? 'px-3 py-1.5 text-xs font-semibold text-slate-700 bg-white border border-slate-300 rounded-lg hover:bg-slate-100' : 'btn btn-ghost btn-sm'}
               onClick={() => fileInputRef.current?.click()}
               disabled={uploading}
             >
@@ -135,8 +148,8 @@ export function ImageUpload({
             </button>
             <button
               type="button"
-              className="btn btn-ghost btn-sm"
-              style={{ color: 'var(--error)' }}
+              className={isLight ? 'px-3 py-1.5 text-xs font-semibold text-red-600 bg-red-50 border border-red-200 rounded-lg hover:bg-red-100' : 'btn btn-ghost btn-sm'}
+              style={isLight ? undefined : { color: 'var(--error)' }}
               onClick={() => onChange('')}
               disabled={uploading}
             >
@@ -153,9 +166,9 @@ export function ImageUpload({
               onDrop={handleDrop}
               onClick={() => fileInputRef.current?.click()}
               style={{
-                border: `2px dashed ${dragActive ? 'var(--gold-primary)' : 'var(--border-default)'}`,
-                background: dragActive ? 'rgba(212, 175, 55, 0.05)' : 'var(--bg-root)',
-                borderRadius: 10,
+                border: `2px dashed ${dragActive ? (isLight ? '#4F46E5' : 'var(--gold-primary)') : (isLight ? '#CBD5E1' : 'var(--border-default)')}`,
+                background: dragActive ? (isLight ? 'rgba(79, 70, 229, 0.05)' : 'rgba(212, 175, 55, 0.05)') : (isLight ? '#F8FAFC' : 'var(--bg-root)'),
+                borderRadius: 12,
                 padding: '20px 16px',
                 textAlign: 'center',
                 cursor: uploading ? 'wait' : 'pointer',
@@ -164,16 +177,16 @@ export function ImageUpload({
             >
               {uploading ? (
                 <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8 }}>
-                  <div className="spinner" style={{ borderTopColor: 'var(--gold-primary)' }} />
-                  <span style={{ fontSize: 13, color: 'var(--gold-light)' }}>Uploading to ImageKit...</span>
+                  <div className="spinner" style={{ borderTopColor: isLight ? '#4F46E5' : 'var(--gold-primary)' }} />
+                  <span style={{ fontSize: 13, color: isLight ? '#4F46E5' : 'var(--gold-light)', fontWeight: 600 }}>Uploading to ImageKit...</span>
                 </div>
               ) : (
                 <div>
                   <div style={{ fontSize: 24, marginBottom: 4 }}>📷</div>
-                  <div style={{ fontSize: 13, fontWeight: 500, color: 'var(--text-primary)' }}>
+                  <div style={{ fontSize: 13, fontWeight: 600, color: isLight ? '#0F172A' : 'var(--text-primary)' }}>
                     Click or drag image file here to upload on ImageKit
                   </div>
-                  <div style={{ fontSize: 11, color: 'var(--text-muted)', marginTop: 4 }}>
+                  <div style={{ fontSize: 11, color: isLight ? '#64748B' : 'var(--text-muted)', marginTop: 4 }}>
                     Supports PNG, JPG, WebP, GIF, SVG (Max 6MB)
                   </div>
                 </div>
@@ -182,7 +195,7 @@ export function ImageUpload({
           ) : (
             <input
               type="url"
-              className="input"
+              className={isLight ? 'w-full bg-slate-50 border border-slate-300 text-slate-900 rounded-xl px-4 py-3 text-sm focus:bg-white focus:border-indigo-600 outline-none' : 'input'}
               value={value || ''}
               onChange={(e) => onChange(e.target.value)}
               placeholder={placeholder}
@@ -190,15 +203,16 @@ export function ImageUpload({
           )}
 
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 6 }}>
-            <span style={{ fontSize: 11, color: 'var(--text-muted)' }}>{helpText}</span>
+            <span style={{ fontSize: 11, color: isLight ? '#64748B' : 'var(--text-muted)' }}>{helpText}</span>
             <button
               type="button"
               onClick={() => setShowUrlInput(!showUrlInput)}
               style={{
                 background: 'none',
                 border: 'none',
-                color: 'var(--gold-light)',
+                color: isLight ? '#4F46E5' : 'var(--gold-light)',
                 fontSize: 11,
+                fontWeight: 600,
                 cursor: 'pointer',
                 textDecoration: 'underline',
               }}
@@ -210,7 +224,7 @@ export function ImageUpload({
       )}
 
       {error && (
-        <div style={{ color: 'var(--error)', fontSize: 12, marginTop: 6 }}>
+        <div style={{ color: isLight ? '#DC2626' : 'var(--error)', fontSize: 12, marginTop: 6, fontWeight: 600 }}>
           ⚠️ {error}
         </div>
       )}
