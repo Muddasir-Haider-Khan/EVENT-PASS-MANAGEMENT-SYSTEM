@@ -4,6 +4,31 @@ import { getSessionFromRequest } from '@/lib/auth';
 import { redisCache } from '@/lib/redis';
 import { EntryStatus, ScanResult } from '@prisma/client';
 
+// Passes encode a 64-char hex token (see generateQRToken). Anything else is not a pass.
+const QR_TOKEN_PATTERN = /[0-9a-f]{64}/i;
+
+interface ParticipantSummarySource {
+  id: string;
+  name: string | null;
+  email: string;
+  photoUrl: string | null;
+  entryStatus: EntryStatus | string;
+  participantType?: { name: string } | null;
+  group?: { name: string } | null;
+}
+
+function summarize(p: ParticipantSummarySource, entryStatus: EntryStatus | string = p.entryStatus) {
+  return {
+    id: p.id,
+    name: p.name || p.email,
+    email: p.email,
+    photoUrl: p.photoUrl,
+    participantType: p.participantType?.name || null,
+    group: p.group?.name || null,
+    entryStatus,
+  };
+}
+
 export async function POST(req: NextRequest) {
   const session = getSessionFromRequest(req, 'gate');
   if (!session || !session.eventId || !session.gateId || !session.gateType) {
@@ -51,88 +76,91 @@ export async function POST(req: NextRequest) {
 
       if (confirmAction === 'APPROVE') {
         const maxAllowedEntries = participant.participantType?.validDays || 1;
-        const totalEntriesGranted = await prisma.scanLog.count({
-          where: {
-            participantId: participant.id,
-            result: 'ENTRY_GRANTED',
-          },
-        });
 
-        if (isEntryGate && totalEntriesGranted >= maxAllowedEntries) {
-          await prisma.scanLog.create({
-            data: {
-              participantId: participant.id,
-              gateId,
-              result: 'ENTRY_DENIED_EXPIRED',
-              qrTokenUsed: participant.qrToken,
-            },
+        // Every check and the state transition run under a row lock on the participant,
+        // so two gates approving the same pass at once are serialized: the second one
+        // re-reads the committed state and is denied instead of double-granting.
+        const outcome = await prisma.$transaction(async (tx) => {
+          await tx.$queryRaw`SELECT id FROM "Participant" WHERE id = ${participant.id} FOR UPDATE`;
+
+          const current = await tx.participant.findUniqueOrThrow({
+            where: { id: participant.id },
+            select: { entryStatus: true, isExpired: true },
+          });
+          const entriesGranted = await tx.scanLog.count({
+            where: { participantId: participant.id, result: 'ENTRY_GRANTED' },
           });
 
-          if (participant.qrToken) {
-            await redisCache.del(`participant:qr:${participant.qrToken}`);
+          let denial: ScanResult | null = null;
+          if (current.isExpired) denial = 'INVALID_QR';
+          else if (isEntryGate && entriesGranted >= maxAllowedEntries) denial = 'ENTRY_DENIED_EXPIRED';
+          else if (isEntryGate && current.entryStatus === 'INSIDE') denial = 'ENTRY_DENIED_ALREADY_INSIDE';
+          else if (!isEntryGate && current.entryStatus !== 'INSIDE') denial = 'EXIT_DENIED_NOT_INSIDE';
+
+          if (denial) {
+            await tx.scanLog.create({
+              data: { participantId: participant.id, gateId, result: denial, qrTokenUsed: participant.qrToken },
+            });
+            return { granted: false as const, result: denial, entryStatus: current.entryStatus, entriesGranted };
           }
 
-          return NextResponse.json({
-            result: 'ENTRY_DENIED_EXPIRED',
-            message: `ENTRY DENIED — Pass limit of ${maxAllowedEntries} entry/entries reached for category "${participant.participantType?.name || 'Category'}"`,
-            color: 'red',
-            autoDecline: true,
-            participant: {
-              id: participant.id,
-              name: participant.name || participant.email,
-              email: participant.email,
-              photoUrl: participant.photoUrl,
-              participantType: participant.participantType?.name || null,
-              group: participant.group?.name || null,
-              entryStatus: participant.entryStatus,
+          const newStatus: EntryStatus = isEntryGate ? 'INSIDE' : 'EXITED';
+          const scanResult: ScanResult = isEntryGate ? 'ENTRY_GRANTED' : 'EXIT_GRANTED';
+          const updatedEntriesGranted = isEntryGate ? entriesGranted + 1 : entriesGranted;
+          // Pass is spent once the holder walks out after their final allowed entry
+          const isNowExpired = !isEntryGate && updatedEntriesGranted >= maxAllowedEntries;
+
+          await tx.participant.update({
+            where: { id: participant.id },
+            data: {
+              entryStatus: newStatus,
+              lastScanAt: new Date(),
+              ...(isNowExpired && { isExpired: true }),
             },
           });
-        }
+          await tx.scanLog.create({
+            data: { participantId: participant.id, gateId, result: scanResult, qrTokenUsed: participant.qrToken },
+          });
 
-        const newStatus = isEntryGate ? 'INSIDE' : 'EXITED';
-        const scanResult: ScanResult = isEntryGate ? 'ENTRY_GRANTED' : 'EXIT_GRANTED';
-
-        const updatedEntriesGranted = isEntryGate ? totalEntriesGranted + 1 : totalEntriesGranted;
-        const isNowExpired = updatedEntriesGranted >= maxAllowedEntries && !isEntryGate;
-
-        await prisma.participant.update({
-          where: { id: participant.id },
-          data: {
-            entryStatus: newStatus as EntryStatus,
-            lastScanAt: new Date(),
-            ...(isNowExpired && { isExpired: true }),
-          },
-        });
-
-        await prisma.scanLog.create({
-          data: {
-            participantId: participant.id,
-            gateId,
-            result: scanResult,
-            qrTokenUsed: participant.qrToken,
-          },
+          return { granted: true as const, result: scanResult, entryStatus: newStatus, entriesGranted: updatedEntriesGranted };
         });
 
         // Invalidate Redis cache for instant update
-        if (participant.qrToken) {
-          await redisCache.del(`participant:qr:${participant.qrToken}`);
+        await redisCache.del(`participant:qr:${participant.qrToken}`);
+
+        if (!outcome.granted) {
+          const messages: Record<string, { result: string; message: string; color: string }> = {
+            INVALID_QR: { result: 'EXPIRED_PASS', message: 'EXPIRED PASS — Pass is revoked or expired', color: 'red' },
+            ENTRY_DENIED_EXPIRED: {
+              result: 'ENTRY_DENIED_EXPIRED',
+              message: `ENTRY DENIED — Pass limit of ${maxAllowedEntries} entry/entries reached for category "${participant.participantType?.name || 'Category'}"`,
+              color: 'red',
+            },
+            ENTRY_DENIED_ALREADY_INSIDE: {
+              result: 'ENTRY_DENIED_ALREADY_INSIDE',
+              message: 'ALREADY IN THE EVENT — Attendee was admitted at another gate moments ago',
+              color: 'red',
+            },
+            EXIT_DENIED_NOT_INSIDE: {
+              result: 'EXIT_DENIED_NOT_INSIDE',
+              message: 'ALREADY OUTSIDE — Attendee is not recorded inside venue',
+              color: 'amber',
+            },
+          };
+          return NextResponse.json({
+            ...messages[outcome.result],
+            autoDecline: true,
+            participant: summarize(participant, outcome.entryStatus),
+          });
         }
 
         return NextResponse.json({
-          result: scanResult,
+          result: outcome.result,
           message: isEntryGate
-            ? `ENTRY APPROVED — (${updatedEntriesGranted}/${maxAllowedEntries} Entries Used)`
-            : `EXIT APPROVED — (${totalEntriesGranted}/${maxAllowedEntries} Entries Used)`,
+            ? `ENTRY APPROVED — (${outcome.entriesGranted}/${maxAllowedEntries} Entries Used)`
+            : `EXIT APPROVED — (${outcome.entriesGranted}/${maxAllowedEntries} Entries Used)`,
           color: 'green',
-          participant: {
-            id: participant.id,
-            name: participant.name || participant.email,
-            email: participant.email,
-            photoUrl: participant.photoUrl,
-            participantType: participant.participantType?.name || null,
-            group: participant.group?.name || null,
-            entryStatus: newStatus,
-          },
+          participant: summarize(participant, outcome.entryStatus),
         });
       } else {
         // DECLINE ACTION BY GATE OFFICER
@@ -149,24 +177,14 @@ export async function POST(req: NextRequest) {
           },
         });
 
-        if (participant.qrToken) {
-          await redisCache.del(`participant:qr:${participant.qrToken}`);
-        }
+        await redisCache.del(`participant:qr:${participant.qrToken}`);
 
         return NextResponse.json({
           result: 'ENTRY_DECLINED',
           message: 'ENTRY DECLINED — Access denied by gate officer',
           color: 'red',
           autoDecline: true,
-          participant: {
-            id: participant.id,
-            name: participant.name || participant.email,
-            email: participant.email,
-            photoUrl: participant.photoUrl,
-            participantType: participant.participantType?.name || null,
-            group: participant.group?.name || null,
-            entryStatus: participant.entryStatus,
-          },
+          participant: summarize(participant),
         });
       }
     }
@@ -187,74 +205,26 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    let rawToken = String(body.qrToken).trim().replaceAll('"', '').replaceAll("'", "");
-    
-    // Extract token if input is a URL or contains parameters
-    if (rawToken.includes('http://') || rawToken.includes('https://') || rawToken.includes('/')) {
-      try {
-        if (rawToken.includes('?')) {
-          const urlObj = new URL(rawToken);
-          const paramToken = urlObj.searchParams.get('token') || urlObj.searchParams.get('qrToken') || urlObj.searchParams.get('id');
-          if (paramToken) rawToken = paramToken;
-        } else {
-          const parts = rawToken.split('/').filter(Boolean);
-          if (parts.length > 0) {
-            rawToken = parts[parts.length - 1];
-          }
-        }
-      } catch {
-        // keep rawToken as fallback
-      }
-    }
+    // Extract the token from whatever the scanner delivered (bare token, URL,
+    // scanner prefix/suffix noise, caps-lock). Lookup is exact-match only:
+    // partial or fuzzy matching would let a short guess resolve to a real pass.
+    const scannedInput = String(body.qrToken).trim();
+    const qrToken = scannedInput.match(QR_TOKEN_PATTERN)?.[0].toLowerCase();
 
-    rawToken = rawToken.trim();
-    const cacheKey = `participant:qr:${rawToken}`;
-
-    // Try Redis Cache First
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    let participant: any = await redisCache.get(cacheKey);
-
-    if (!participant) {
-      // 1. Direct Lookup by qrToken
-      participant = await prisma.participant.findUnique({
-        where: { qrToken: rawToken },
-        include: { event: true, participantType: true, group: true },
-      });
-
-      // 2. Fallback: Insensitive Match
+    let participant: any = null;
+    if (qrToken) {
+      const cacheKey = `participant:qr:${qrToken}`;
+      participant = await redisCache.get(cacheKey);
       if (!participant) {
-        participant = await prisma.participant.findFirst({
-          where: { qrToken: { equals: rawToken, mode: 'insensitive' } },
+        participant = await prisma.participant.findUnique({
+          where: { qrToken },
           include: { event: true, participantType: true, group: true },
         });
-      }
-
-      // 3. Fallback: Search by ID or Substring Containment
-      if (!participant) {
-        participant = await prisma.participant.findFirst({
-          where: {
-            OR: [
-              { id: rawToken },
-              { qrToken: { contains: rawToken, mode: 'insensitive' } },
-            ],
-          },
-          include: { event: true, participantType: true, group: true },
-        });
-      }
-
-      // 4. Fallback: Check if rawToken contains participant's qrToken
-      if (!participant && rawToken.length > 10) {
-        const allParticipants = await prisma.participant.findMany({
-          where: { eventId: session.eventId },
-          include: { event: true, participantType: true, group: true },
-          take: 200,
-        });
-        participant = allParticipants.find(p => p.qrToken && rawToken.toLowerCase().includes(p.qrToken.toLowerCase())) || null;
-      }
-
-      if (participant) {
-        // Store in Redis cache for 1 hour
-        await redisCache.set(cacheKey, participant, 3600);
+        if (participant) {
+          // Store in Redis cache for 1 hour
+          await redisCache.set(cacheKey, participant, 3600);
+        }
       }
     }
 
@@ -264,7 +234,7 @@ export async function POST(req: NextRequest) {
         data: {
           gateId,
           result: 'INVALID_QR',
-          qrTokenUsed: rawToken,
+          qrTokenUsed: (qrToken || scannedInput).slice(0, 256),
         },
       });
       return NextResponse.json({
@@ -282,7 +252,7 @@ export async function POST(req: NextRequest) {
           gateId,
           participantId: participant.id,
           result: 'INVALID_QR',
-          qrTokenUsed: rawToken,
+          qrTokenUsed: qrToken,
         },
       });
       return NextResponse.json({
@@ -290,15 +260,7 @@ export async function POST(req: NextRequest) {
         message: `WRONG EVENT — Pass belongs to "${participant.event?.name || 'another event'}"`,
         color: 'red',
         autoDecline: true,
-        participant: {
-          id: participant.id,
-          name: participant.name || participant.email,
-          email: participant.email,
-          photoUrl: participant.photoUrl,
-          participantType: participant.participantType?.name || null,
-          group: participant.group?.name || null,
-          entryStatus: participant.entryStatus,
-        },
+        participant: summarize(participant),
       });
     }
 
@@ -309,7 +271,7 @@ export async function POST(req: NextRequest) {
           gateId,
           participantId: participant.id,
           result: 'INVALID_QR',
-          qrTokenUsed: rawToken,
+          qrTokenUsed: qrToken,
         },
       });
       return NextResponse.json({
@@ -317,15 +279,7 @@ export async function POST(req: NextRequest) {
         message: 'EXPIRED PASS — Pass is revoked or expired',
         color: 'red',
         autoDecline: true,
-        participant: {
-          id: participant.id,
-          name: participant.name || participant.email,
-          email: participant.email,
-          photoUrl: participant.photoUrl,
-          participantType: participant.participantType?.name || null,
-          group: participant.group?.name || null,
-          entryStatus: participant.entryStatus,
-        },
+        participant: summarize(participant),
       });
     }
 
@@ -347,7 +301,7 @@ export async function POST(req: NextRequest) {
             gateId,
             participantId: participant.id,
             result: 'ENTRY_DENIED_EXPIRED',
-            qrTokenUsed: rawToken,
+            qrTokenUsed: qrToken,
           },
         });
 
@@ -356,15 +310,7 @@ export async function POST(req: NextRequest) {
           message: `QR VALIDITY EXCEEDED — Allowed ${maxAllowedEntries} entry/entries (${totalEntriesGranted} used)`,
           color: 'red',
           autoDecline: true,
-          participant: {
-            id: participant.id,
-            name: participant.name || participant.email,
-            email: participant.email,
-            photoUrl: participant.photoUrl,
-            participantType: participant.participantType?.name || null,
-            group: participant.group?.name || null,
-            entryStatus: participant.entryStatus,
-          },
+          participant: summarize(participant),
         });
       }
       // IF ALREADY INSIDE -> AUTOMATIC INSTANT DECLINE (NO POPUP)
@@ -374,7 +320,7 @@ export async function POST(req: NextRequest) {
             gateId,
             participantId: participant.id,
             result: 'ENTRY_DENIED_ALREADY_INSIDE',
-            qrTokenUsed: rawToken,
+            qrTokenUsed: qrToken,
           },
         });
 
@@ -383,15 +329,7 @@ export async function POST(req: NextRequest) {
           message: 'ALREADY IN THE EVENT — Attendee is already inside venue',
           color: 'red',
           autoDecline: true,
-          participant: {
-            id: participant.id,
-            name: participant.name || participant.email,
-            email: participant.email,
-            photoUrl: participant.photoUrl,
-            participantType: participant.participantType?.name || null,
-            group: participant.group?.name || null,
-            entryStatus: 'INSIDE',
-          },
+          participant: summarize(participant, 'INSIDE'),
         });
       }
 
@@ -401,15 +339,7 @@ export async function POST(req: NextRequest) {
         message: 'Please verify photo & details, then tap Approve or Decline.',
         color: 'indigo',
         requiresApproval: true,
-        participant: {
-          id: participant.id,
-          name: participant.name || participant.email,
-          email: participant.email,
-          photoUrl: participant.photoUrl,
-          participantType: participant.participantType?.name || null,
-          group: participant.group?.name || null,
-          entryStatus: currentStatus,
-        },
+        participant: summarize(participant),
       });
     }
 
@@ -421,7 +351,7 @@ export async function POST(req: NextRequest) {
             gateId,
             participantId: participant.id,
             result: 'EXIT_DENIED_NOT_INSIDE',
-            qrTokenUsed: rawToken,
+            qrTokenUsed: qrToken,
           },
         });
 
@@ -430,15 +360,7 @@ export async function POST(req: NextRequest) {
           message: 'ALREADY OUTSIDE — Attendee is not recorded inside venue',
           color: 'amber',
           autoDecline: true,
-          participant: {
-            id: participant.id,
-            name: participant.name || participant.email,
-            email: participant.email,
-            photoUrl: participant.photoUrl,
-            participantType: participant.participantType?.name || null,
-            group: participant.group?.name || null,
-            entryStatus: currentStatus,
-          },
+          participant: summarize(participant),
         });
       }
 
@@ -447,15 +369,7 @@ export async function POST(req: NextRequest) {
         message: 'Please verify photo & details, then tap Approve or Decline exit.',
         color: 'indigo',
         requiresApproval: true,
-        participant: {
-          id: participant.id,
-          name: participant.name || participant.email,
-          email: participant.email,
-          photoUrl: participant.photoUrl,
-          participantType: participant.participantType?.name || null,
-          group: participant.group?.name || null,
-          entryStatus: currentStatus,
-        },
+        participant: summarize(participant),
       });
     }
   } catch (error) {

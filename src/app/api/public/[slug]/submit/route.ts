@@ -1,14 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
 import { publicSubmissionSchema } from '@/lib/validation';
-import { rateLimit, RATE_LIMITS, getRateLimitHeaders } from '@/lib/rate-limit';
+import { rateLimitAsync, RATE_LIMITS, getRateLimitHeaders, getClientIp } from '@/lib/rate-limit';
 
 export async function POST(
   req: NextRequest,
   { params }: { params: { slug: string } }
 ) {
-  const ip = req.headers.get('x-forwarded-for') || 'unknown';
-  const rl = rateLimit(`submit:${ip}`, RATE_LIMITS.formSubmission);
+  const ip = getClientIp(req);
+  const rl = await rateLimitAsync(`submit:${ip}`, RATE_LIMITS.formSubmission);
   if (!rl.success) {
     return NextResponse.json(
       { error: 'Too many submissions. Please try again later.' },

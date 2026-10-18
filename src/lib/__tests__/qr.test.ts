@@ -16,9 +16,9 @@ describe('QR Utilities', () => {
     expect(dataUrl).toMatch(/^data:image\/png;base64,/);
   });
 
-  it('should generate 6-character clean gate OTPs', () => {
+  it('should generate 8-character clean gate OTPs', () => {
     const otp = generateGateOTP();
-    expect(otp).toHaveLength(6);
-    expect(otp).toMatch(/^[2-9A-HJ-NP-Z]{6}$/);
+    expect(otp).toHaveLength(8);
+    expect(otp).toMatch(/^[2-9A-HJ-NP-Z]{8}$/);
   });
 });

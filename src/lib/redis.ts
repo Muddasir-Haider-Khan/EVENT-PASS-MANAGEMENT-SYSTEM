@@ -119,6 +119,29 @@ export const redisCache = {
     }
   },
 
+  /**
+   * Atomically increment a counter shared across all instances.
+   * Returns null when no Redis backend is reachable (caller falls back to memory).
+   */
+  async incr(key: string, windowMs: number): Promise<{ count: number; ttlMs: number } | null> {
+    try {
+      const client = upstashClient ?? ioRedisClient;
+      if (client) {
+        const count = Number(await client.incr(key));
+        let ttlMs = Number(await client.pttl(key));
+        // First hit in window, or a key left without expiry — (re)arm the window
+        if (count === 1 || ttlMs < 0) {
+          await client.pexpire(key, windowMs);
+          ttlMs = windowMs;
+        }
+        return { count, ttlMs };
+      }
+    } catch {
+      // Redis unreachable — let caller fall back
+    }
+    return null;
+  },
+
   async delPattern(pattern: string): Promise<void> {
     memoryCache.delPattern(pattern);
     try {

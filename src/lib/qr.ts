@@ -2,7 +2,7 @@ import QRCode from 'qrcode';
 import { customAlphabet } from 'nanoid';
 import crypto from 'crypto';
 
-const gateOtpGenerator = customAlphabet('23456789ABCDEFGHJKLMNPQRSTUVWXYZ', 6);
+const gateOtpGenerator = customAlphabet('23456789ABCDEFGHJKLMNPQRSTUVWXYZ', 8);
 
 /**
  * Generate a cryptographically random QR token.
@@ -46,7 +46,8 @@ export async function generateQRCodeBuffer(token: string): Promise<Buffer> {
 }
 
 /**
- * Generate a 6-character clean alphanumeric OTP for gate access.
+ * Generate an 8-character clean alphanumeric OTP for gate access.
+ * 32^8 ≈ 1.1 trillion combinations — brute force is impractical under the OTP rate limit.
  */
 export function generateGateOTP(): string {
   return gateOtpGenerator();

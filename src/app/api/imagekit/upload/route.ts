@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getSessionFromRequest } from '@/lib/auth';
 import { uploadFile, validateImageFile } from '@/lib/imagekit';
-import { rateLimit } from '@/lib/rate-limit';
+import { rateLimitAsync, getClientIp } from '@/lib/rate-limit';
 
 export async function POST(req: NextRequest) {
   try {
@@ -14,8 +14,8 @@ export async function POST(req: NextRequest) {
     }
 
     // 2. Rate limiting by IP
-    const ip = req.headers.get('x-forwarded-for')?.split(',')[0].trim() || '127.0.0.1';
-    const limitResult = rateLimit(`ik_upload:${ip}`, { maxRequests: 10, windowMs: 60_000 });
+    const ip = getClientIp(req);
+    const limitResult = await rateLimitAsync(`ik_upload:${ip}`, { maxRequests: 10, windowMs: 60_000 });
     if (!limitResult.success) {
       return NextResponse.json(
         { error: 'Too many upload requests. Please try again in a minute.' },

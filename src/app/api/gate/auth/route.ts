@@ -2,11 +2,11 @@ import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
 import { gateOtpSchema } from '@/lib/validation';
 import { signToken } from '@/lib/auth';
-import { rateLimit, RATE_LIMITS, getRateLimitHeaders } from '@/lib/rate-limit';
+import { rateLimitAsync, RATE_LIMITS, getRateLimitHeaders, getClientIp } from '@/lib/rate-limit';
 
 export async function POST(req: NextRequest) {
-  const ip = req.headers.get('x-forwarded-for') || 'unknown';
-  const rl = rateLimit(`gate-otp:${ip}`, RATE_LIMITS.gateOtp);
+  const ip = getClientIp(req);
+  const rl = await rateLimitAsync(`gate-otp:${ip}`, RATE_LIMITS.gateOtp);
   if (!rl.success) {
     return NextResponse.json(
       { error: 'Too many attempts. Please try again later.' },

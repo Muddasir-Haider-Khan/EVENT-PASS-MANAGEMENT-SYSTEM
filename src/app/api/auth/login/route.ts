@@ -2,12 +2,12 @@ import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
 import { verifyPassword, signToken } from '@/lib/auth';
 import { loginSchema } from '@/lib/validation';
-import { rateLimit, RATE_LIMITS, getRateLimitHeaders } from '@/lib/rate-limit';
+import { rateLimitAsync, RATE_LIMITS, getRateLimitHeaders, getClientIp } from '@/lib/rate-limit';
 
 export async function POST(req: NextRequest) {
   // Rate limit
-  const ip = req.headers.get('x-forwarded-for') || req.headers.get('x-real-ip') || 'unknown';
-  const rl = rateLimit(`login:${ip}`, RATE_LIMITS.login);
+  const ip = getClientIp(req);
+  const rl = await rateLimitAsync(`login:${ip}`, RATE_LIMITS.login);
   if (!rl.success) {
     return NextResponse.json(
       { error: 'Too many login attempts. Please try again later.' },

@@ -54,33 +54,32 @@ export function rateLimit(
   return { success: true, remaining: config.maxRequests - entry.count, resetAt: entry.resetAt };
 }
 
+/**
+ * Distributed fixed-window limiter. Uses an atomic Redis INCR so the limit holds
+ * across every serverless instance; falls back to the per-instance memory store
+ * only when Redis is not configured or unreachable.
+ */
 export async function rateLimitAsync(
   key: string,
   config: RateLimitConfig
 ): Promise<{ success: boolean; remaining: number; resetAt: number }> {
-  const now = Date.now();
-  const redisKey = `ratelimit:${key}`;
+  const hit = await redisCache.incr(`ratelimit:${key}`, config.windowMs);
+  if (!hit) return rateLimit(key, config);
 
-  try {
-    const cached = await redisCache.get<RateLimitEntry>(redisKey);
-    if (!cached || cached.resetAt < now) {
-      const resetAt = now + config.windowMs;
-      const ttl = Math.ceil(config.windowMs / 1000);
-      await redisCache.set(redisKey, { count: 1, resetAt }, ttl);
-      return { success: true, remaining: config.maxRequests - 1, resetAt };
-    }
-
-    if (cached.count >= config.maxRequests) {
-      return { success: false, remaining: 0, resetAt: cached.resetAt };
-    }
-
-    const ttl = Math.max(1, Math.ceil((cached.resetAt - now) / 1000));
-    const updated = { count: cached.count + 1, resetAt: cached.resetAt };
-    await redisCache.set(redisKey, updated, ttl);
-    return { success: true, remaining: config.maxRequests - updated.count, resetAt: cached.resetAt };
-  } catch {
-    return rateLimit(key, config);
+  const resetAt = Date.now() + hit.ttlMs;
+  if (hit.count > config.maxRequests) {
+    return { success: false, remaining: 0, resetAt };
   }
+  return { success: true, remaining: config.maxRequests - hit.count, resetAt };
+}
+
+/**
+ * Client IP as seen by the edge. Only the first X-Forwarded-For hop is used —
+ * the full header is attacker-extendable and would give each request a new key.
+ */
+export function getClientIp(req: { headers: Headers }): string {
+  const forwarded = req.headers.get('x-forwarded-for');
+  return forwarded?.split(',')[0].trim() || req.headers.get('x-real-ip') || 'unknown';
 }
 
 export function getRateLimitHeaders(result: { remaining: number; resetAt: number }) {
