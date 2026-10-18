@@ -2,6 +2,8 @@
 
 import { useEffect, useState, useCallback } from 'react';
 import { useToast } from '@/components/Toast';
+import { PageHead, Stat } from '@/components/AppShell';
+import { Copy, LogIn, LogOut, Plus, RefreshCw, ScanLine } from 'lucide-react';
 
 interface GateItem {
   id: string;
@@ -73,96 +75,101 @@ export default function GatesPage() {
     }
   }
 
+  async function copyCode(gate: GateItem) {
+    try {
+      await navigator.clipboard.writeText(gate.otpCode);
+      toast(`Access code for ${gate.name} copied`, 'success');
+    } catch {
+      toast('Could not copy — select the code manually', 'error');
+    }
+  }
+
   if (loading) {
     return (
-      <div style={{ padding: 60, textAlign: 'center' }}>
-        <div className="spinner" style={{ margin: '0 auto', borderTopColor: 'var(--gold-primary)' }} />
+      <div className="p-14 flex items-center justify-center gap-3 text-muted text-[13px]">
+        <span className="spinner" /> Loading gates…
       </div>
     );
   }
 
-  return (
-    <div style={{ padding: '32px 28px', maxWidth: 900, margin: '0 auto' }}>
-      <div style={{ marginBottom: 28 }}>
-        <span className="text-overline" style={{ color: 'var(--gold-light)' }}>27 MEDIA AGENCY • SCANNER CONTROL</span>
-        <h1 className="text-headline gold-gradient-text" style={{ marginTop: 4 }}>
-          Gate & Access Point Management
-        </h1>
-        <p className="text-caption" style={{ color: 'var(--text-secondary)', marginTop: 4 }}>
-          Provision entry/exit gates and generate access OTP keys for event gate officers.
-        </p>
-      </div>
+  const entryGates = gates.filter((g) => g.type === 'ENTRY').length;
+  const totalScans = gates.reduce((n, g) => n + g._count.scanLogs, 0);
 
-      {/* Gate Provisioning Card */}
-      <form onSubmit={handleCreate} className="card" style={{ padding: 24, marginBottom: 28 }}>
-        <h3 className="text-title" style={{ color: '#F8FAFC', marginBottom: 16 }}>
-          Provision New Access Gate
-        </h3>
-        <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
-          <input
-            className="input"
-            style={{ flex: 1, minWidth: 200 }}
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            placeholder="e.g. Gate 1 - VIP Main Entry"
-            required
-          />
-          <select className="select" style={{ width: 160 }} value={type} onChange={(e) => setType(e.target.value as 'ENTRY' | 'EXIT')}>
-            <option value="ENTRY">Entry Gate</option>
-            <option value="EXIT">Exit Gate</option>
-          </select>
-          <button type="submit" className="btn btn-gold" disabled={creating} style={{ height: 42 }}>
-            {creating ? <span className="spinner" style={{ borderTopColor: '#070709', width: 14, height: 14 }} /> : '+ Add Access Gate'}
+  return (
+    <>
+      <PageHead
+        title={<>Gates &amp;<br />Scanners</>}
+        stats={
+          <>
+            <Stat icon={LogIn} value={entryGates} label="Entry gates" />
+            <Stat icon={LogOut} value={gates.length - entryGates} label="Exit gates" />
+            <Stat icon={ScanLine} value={totalScans.toLocaleString()} label="Scans recorded" />
+          </>
+        }
+      />
+
+      <form onSubmit={handleCreate} className="card p-[18px] mb-4">
+        <div className="card-head mb-3">
+          <h2 className="card-title">Add a gate</h2>
+          <span className="text-[13px] text-muted hidden sm:inline">Each gate gets its own access code for scanner staff.</span>
+        </div>
+        <div className="flex flex-col sm:flex-row gap-2.5">
+          <label className="flex-1">
+            <span className="sr-only">Gate name</span>
+            <input className="input" value={name} onChange={(e) => setName(e.target.value)} placeholder="Gate name, e.g. Main entrance" required />
+          </label>
+          <div className="seg self-start sm:self-auto" role="group" aria-label="Gate type">
+            {(['ENTRY', 'EXIT'] as const).map((t) => (
+              <button key={t} type="button" className="seg__btn" aria-pressed={type === t} onClick={() => setType(t)}>
+                {t === 'ENTRY' ? 'Entry' : 'Exit'}
+              </button>
+            ))}
+          </div>
+          <button type="submit" className="btn btn-primary" disabled={creating}>
+            {creating ? <span className="spinner !w-3.5 !h-3.5" /> : <Plus className="w-4 h-4" />}
+            Add gate
           </button>
         </div>
       </form>
 
-      {/* Gates Roster */}
       {gates.length === 0 ? (
-        <div className="card" style={{ padding: 60, textAlign: 'center', color: 'var(--text-muted)' }}>
-          <div style={{ fontSize: 32, marginBottom: 8 }}>🚪</div>
-          No gates created yet. Provision your first gate above to enable mobile scanning.
-        </div>
+        <section className="card px-6 py-14 text-center">
+          <ScanLine className="w-5 h-5 mx-auto text-muted" />
+          <p className="mt-3 text-[14px] font-semibold">No gates yet</p>
+          <p className="mt-1 text-[13px] text-muted">Add an entry gate above, then share its access code with scanner staff.</p>
+        </section>
       ) : (
-        <div style={{ display: 'grid', gap: 16 }}>
+        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
           {gates.map((gate) => (
-            <div key={gate.id} className="card" style={{ padding: 24 }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 16 }}>
-                <div>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 6 }}>
-                    <span style={{ fontWeight: 700, fontSize: 18, color: '#F8FAFC' }}>{gate.name}</span>
-                    <span className={`badge ${gate.type === 'ENTRY' ? 'badge-gold' : 'badge-warning'}`}>
-                      {gate.type}
-                    </span>
-                  </div>
-                  <div className="text-caption" style={{ color: 'var(--text-muted)' }}>
-                    📊 {gate._count.scanLogs} attendee check-in scans recorded
-                  </div>
-                </div>
-
-                <div style={{ display: 'flex', alignItems: 'center', gap: 16, background: 'var(--bg-elevated)', padding: '10px 18px', borderRadius: 12, border: '1px solid var(--border-default)' }}>
-                  <div style={{ textAlign: 'right' }}>
-                    <div className="text-overline" style={{ color: 'var(--gold-light)' }}>
-                      Scanner Access OTP
-                    </div>
-                    <div className="text-mono" style={{ fontSize: 24, fontWeight: 800, letterSpacing: '0.14em', color: '#F8FAFC' }}>
-                      {gate.otpCode}
-                    </div>
-                  </div>
-                  <button
-                    className="btn btn-ghost btn-sm"
-                    title="Regenerate OTP Code"
-                    onClick={() => regenerateOtp(gate.id)}
-                    style={{ color: 'var(--gold-light)' }}
-                  >
-                    ↻
-                  </button>
+            <section key={gate.id} className="card p-[18px] flex flex-col">
+              <div className="flex items-start gap-3">
+                <span className="stat__ico !w-10 !h-10" aria-hidden="true">
+                  {gate.type === 'ENTRY' ? <LogIn className="w-4 h-4" /> : <LogOut className="w-4 h-4" />}
+                </span>
+                <div className="min-w-0 flex-1">
+                  <h2 className="text-[16px] font-semibold truncate">{gate.name}</h2>
+                  <p className="text-[12.5px] text-muted">
+                    {gate.type === 'ENTRY' ? 'Entry gate' : 'Exit gate'} · <span className="num">{gate._count.scanLogs.toLocaleString()}</span> scans
+                  </p>
                 </div>
               </div>
-            </div>
+
+              <div className="mt-5 rounded-tile bg-well p-3.5 flex items-center gap-2">
+                <div className="min-w-0 flex-1">
+                  <p className="text-[12px] text-muted">Scanner access code</p>
+                  <p className="text-[22px] font-bold num tracking-[0.12em] select-all">{gate.otpCode}</p>
+                </div>
+                <button className="ibtn ibtn--sm" onClick={() => copyCode(gate)} aria-label={`Copy access code for ${gate.name}`} title="Copy code">
+                  <Copy className="w-3.5 h-3.5" />
+                </button>
+                <button className="ibtn ibtn--sm" onClick={() => regenerateOtp(gate.id)} aria-label={`Generate a new access code for ${gate.name}`} title="Generate new code">
+                  <RefreshCw className="w-3.5 h-3.5" />
+                </button>
+              </div>
+            </section>
           ))}
         </div>
       )}
-    </div>
+    </>
   );
 }

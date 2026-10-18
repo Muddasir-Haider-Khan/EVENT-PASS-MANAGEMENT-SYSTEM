@@ -1,10 +1,10 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { PageHead } from '@/components/AppShell';
 import { Card } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import {
-  Tags,
   Plus,
   Trash2,
   CheckCircle2,
@@ -21,8 +21,7 @@ import {
   X,
   FileText,
   Clock,
-  Calendar,
-} from 'lucide-react';
+  } from 'lucide-react';
 
 interface FormFieldItem {
   id?: string;
@@ -343,25 +342,25 @@ export default function ManagerTypesPage() {
   });
 
   return (
-    <div className="max-w-6xl mx-auto space-y-6 pb-12">
+    <div className="space-y-4">
       {/* Global Banner Notification */}
       {message && (
         <div
           className={`p-4 rounded-xl text-xs font-semibold flex items-center justify-between shadow-lg transition-all ${
             message.type === 'success'
-              ? 'bg-emerald-500/10 border border-emerald-500/30 text-emerald-400'
-              : 'bg-red-500/10 border border-red-500/30 text-red-400'
+              ? 'bg-positive-500/10 border border-positive-500/30 text-positive-400'
+              : 'bg-negative-500/10 border border-negative-500/30 text-negative-400'
           }`}
         >
           <div className="flex items-center gap-2">
             {message.type === 'success' ? (
-              <CheckCircle2 className="w-4 h-4 text-emerald-400" />
+              <CheckCircle2 className="w-4 h-4 text-positive-400" />
             ) : (
-              <AlertCircle className="w-4 h-4 text-red-400" />
+              <AlertCircle className="w-4 h-4 text-negative-400" />
             )}
             <span>{message.text}</span>
           </div>
-          <button onClick={() => setMessage(null)} className="text-slate-400 hover:text-white">
+          <button onClick={() => setMessage(null)} className="text-ink-400 hover:text-ink-50">
             <X className="w-4 h-4" />
           </button>
         </div>
@@ -370,29 +369,22 @@ export default function ManagerTypesPage() {
       {/* VIEW MODE 1: CATEGORY LIST HUB */}
       {viewMode === 'list' && (
         <>
-          <div className="border-b border-slate-800 pb-4 flex flex-col md:flex-row md:items-center justify-between gap-4">
-            <div>
-              <h1 className="text-2xl font-bold text-white flex items-center gap-2">
-                <Tags className="w-6 h-6 text-indigo-400" />
-                Participant Categories & Registration Forms
-              </h1>
-              <p className="text-xs text-slate-400 mt-1">
-                Define participant categories (e.g., Delegates, Observers), design unique custom registration forms for each category, and manage member submissions.
-              </p>
-            </div>
-          </div>
+          <PageHead
+            title={<>Participant<br />Categories</>}
+            description="Each category, such as Delegate or Observer, gets its own registration form, entry allowance and member list."
+          />
 
           {/* Create New Category Form */}
-          <Card variant="glass" className="p-6 border-slate-800 space-y-4">
-            <h2 className="text-sm font-bold text-white flex items-center gap-2">
-              <Plus className="w-4 h-4 text-indigo-400" />
+          <Card variant="glass" className="p-6 border-ink-800 space-y-4">
+            <h2 className="text-sm font-bold text-ink-50 flex items-center gap-2">
+              <Plus className="w-4 h-4 text-muted" />
               Add New Participant Category
             </h2>
 
             <form onSubmit={handleCreate} className="space-y-4">
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                 <div>
-                  <label className="block text-xs font-semibold uppercase text-slate-300 mb-1">
+                  <label className="input-label">
                     Category Name *
                   </label>
                   <input
@@ -401,12 +393,12 @@ export default function ManagerTypesPage() {
                     onChange={(e) => setName(e.target.value)}
                     required
                     placeholder="e.g. Executive Delegate"
-                    className="w-full bg-slate-950/80 border border-slate-800 focus:border-indigo-500 text-sm text-white rounded-xl px-4 py-2.5 outline-none"
+                    className="input"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-xs font-semibold uppercase text-slate-300 mb-1">
+                  <label className="input-label">
                     Description (Optional)
                   </label>
                   <input
@@ -414,7 +406,7 @@ export default function ManagerTypesPage() {
                     value={description}
                     onChange={(e) => setDescription(e.target.value)}
                     placeholder="e.g. Standard committee delegate"
-                    className="w-full bg-slate-950/80 border border-slate-800 focus:border-indigo-500 text-sm text-white rounded-xl px-4 py-2.5 outline-none"
+                    className="input"
                   />
                 </div>
 
@@ -432,7 +424,7 @@ export default function ManagerTypesPage() {
               </div>
 
               {/* Group Delegation Round Toggle & QR Validity Options */}
-              <div className="pt-3 border-t border-slate-800/80 flex flex-wrap items-center justify-between gap-4">
+              <div className="pt-3 border-t border-ink-800/80 flex flex-wrap items-center justify-between gap-4">
                 <div className="flex items-center gap-6 flex-wrap">
                   <label
                     onClick={() => setIsGroup(!isGroup)}
@@ -441,21 +433,21 @@ export default function ManagerTypesPage() {
                     <div
                       className={`w-5 h-5 rounded-full border flex items-center justify-center transition-all ${
                         isGroup
-                          ? 'bg-indigo-600 border-indigo-400 shadow-md shadow-indigo-500/30'
-                          : 'bg-slate-900 border-slate-700 group-hover:border-slate-500'
+                          ? 'bg-accent-600 border-accent-400 shadow-md'
+                          : 'bg-ink-900 border-ink-700 group-hover:border-ink-500'
                       }`}
                     >
                       {isGroup && <div className="w-2 h-2 rounded-full bg-white" />}
                     </div>
-                    <span className="text-xs font-medium text-slate-200 group-hover:text-white transition-colors">
+                    <span className="text-xs font-medium text-ink-200 group-hover:text-ink-50 transition-colors">
                       Is this a group delegation category?
                     </span>
                   </label>
 
                   {/* QR Code Validity Limit Input */}
-                  <div className="flex items-center gap-2 bg-slate-900 border border-slate-700/80 px-3 py-1.5 rounded-xl">
-                    <Clock className="w-3.5 h-3.5 text-emerald-400" />
-                    <label className="text-xs font-semibold text-slate-200">
+                  <div className="flex items-center gap-2 bg-ink-900 border border-ink-700/80 px-3 py-1.5 rounded-xl">
+                    <Clock className="w-3.5 h-3.5 text-positive-400" />
+                    <label className="text-xs font-semibold text-ink-200">
                       QR Code Validity:
                     </label>
                     <input
@@ -464,16 +456,16 @@ export default function ManagerTypesPage() {
                       max={365}
                       value={validDays}
                       onChange={(e) => setValidDays(Math.max(1, parseInt(e.target.value, 10) || 1))}
-                      className="w-16 bg-slate-950 border border-emerald-500/40 text-xs font-bold text-emerald-400 rounded-lg px-2 py-1 outline-none text-center"
+                      className="w-16 bg-ink-950 border border-positive-500/40 text-xs font-bold text-positive-400 rounded-lg px-2 py-1 outline-none text-center"
                     />
-                    <span className="text-[11px] text-slate-400">Day(s) / Entry Limit</span>
+                    <span className="text-[11px] text-ink-400">Day(s) / Entry Limit</span>
                   </div>
                 </div>
 
                 {isGroup && (
-                  <div className="flex items-center gap-2 bg-indigo-950/30 border border-indigo-500/30 px-3 py-1.5 rounded-xl animate-fadeIn">
-                    <Users className="w-3.5 h-3.5 text-indigo-400" />
-                    <label className="text-xs font-semibold text-indigo-200">
+                  <div className="flex items-center gap-2 bg-accent-950/30 border border-accent-500/30 px-3 py-1.5 rounded-xl animate-fadeIn">
+                    <Users className="w-3.5 h-3.5 text-muted" />
+                    <label className="text-xs font-semibold text-accent-200">
                       Delegation Member Count:
                     </label>
                     <input
@@ -482,9 +474,9 @@ export default function ManagerTypesPage() {
                       max={50}
                       value={groupSize}
                       onChange={(e) => setGroupSize(parseInt(e.target.value, 10) || 2)}
-                      className="w-16 bg-slate-950 border border-indigo-500/40 text-xs font-bold text-white rounded-lg px-2 py-1 outline-none text-center"
+                      className="w-16 bg-ink-950 border border-accent-500/40 text-xs font-bold text-ink-50 rounded-lg px-2 py-1 outline-none text-center"
                     />
-                    <span className="text-[11px] text-slate-400">members / group</span>
+                    <span className="text-[11px] text-ink-400">members / group</span>
                   </div>
                 )}
               </div>
@@ -493,14 +485,14 @@ export default function ManagerTypesPage() {
 
           {/* Categories Grid */}
           <div className="space-y-3">
-            <h2 className="text-sm font-bold text-slate-300 uppercase tracking-wider">
-              Active Categories ({types.length})
+            <h2 className="card-title">
+              Categories <span className="text-muted num">{types.length}</span>
             </h2>
 
             {loading ? (
-              <div className="p-8 text-center text-xs text-slate-400">Loading categories...</div>
+              <div className="p-8 text-center text-xs text-ink-400">Loading categories...</div>
             ) : types.length === 0 ? (
-              <Card variant="glass" className="p-8 text-center text-slate-400 text-xs border-slate-800">
+              <Card variant="glass" className="p-8 text-center text-ink-400 text-xs border-ink-800">
                 No participant categories created yet. Create your first category above.
               </Card>
             ) : (
@@ -509,53 +501,43 @@ export default function ManagerTypesPage() {
                   <Card
                     key={type.id}
                     variant="glass"
-                    className="p-5 border-slate-800 flex flex-col justify-between space-y-4 hover:border-slate-700 transition-all"
+                    className="p-5 border-ink-800 flex flex-col justify-between space-y-4 hover:border-ink-700 transition-all"
                   >
                     <div>
-                      <div className="flex items-center justify-between gap-2 flex-wrap">
-                        <h3 className="font-bold text-base text-white flex items-center gap-2">
-                          {type.name}
-                        </h3>
-                        <div className="flex items-center gap-2 flex-wrap">
-                          <span className="text-[10px] font-bold px-2.5 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 flex items-center gap-1">
-                            <Clock className="w-3 h-3" /> QR Validity: {type.validDays || 1} {(type.validDays || 1) === 1 ? 'Day / Entry' : 'Days / Entries'}
-                          </span>
-                          {type.isGroup ? (
-                            <span className="text-[10px] font-bold px-2.5 py-1 rounded-full bg-purple-500/10 border border-purple-500/20 text-purple-400 flex items-center gap-1">
-                              <Users className="w-3 h-3" /> Group ({type.groupSize || 4} Members)
-                            </span>
-                          ) : (
-                            <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-slate-800 border border-slate-700 text-slate-400">
-                              Single Participant
-                            </span>
-                          )}
-                          <span className="text-[10px] font-bold px-2.5 py-1 rounded-full bg-indigo-500/10 border border-indigo-500/20 text-indigo-400">
-                            {type._count?.formFields || type.formFields?.length || 0} Custom Fields
-                          </span>
-                        </div>
+                      <h3 className="text-[17px] font-semibold">{type.name}</h3>
+                      {type.description && <p className="text-[13px] text-muted mt-0.5">{type.description}</p>}
+                      <div className="flex flex-wrap gap-1.5 mt-3">
+                        <span className="chip">
+                          <Clock className="w-3 h-3 text-muted" />
+                          {type.validDays || 1} {(type.validDays || 1) === 1 ? 'entry' : 'entries'}
+                        </span>
+                        <span className="chip">
+                          <Users className="w-3 h-3 text-muted" />
+                          {type.isGroup ? `Group of ${type.groupSize || 4}` : 'Individual'}
+                        </span>
+                        <span className="chip">
+                          {type._count?.formFields || type.formFields?.length || 0} form fields
+                        </span>
                       </div>
-                      {type.description && (
-                        <p className="text-xs text-slate-400 mt-1">{type.description}</p>
-                      )}
 
-                      <div className="flex gap-4 mt-4 pt-3 border-t border-slate-800/80 text-xs font-mono text-slate-400">
-                        <span>
-                          Submissions:{' '}
-                          <strong className="text-indigo-400">{type._count?.submissions || 0}</strong>
-                        </span>
-                        <span>
-                          Pass Holders:{' '}
-                          <strong className="text-emerald-400">{type._count?.participants || 0}</strong>
-                        </span>
-                      </div>
+                      <dl className="grid grid-cols-2 gap-3 mt-4 pt-4 border-t border-line">
+                        <div>
+                          <dt className="text-[12px] text-muted">Submissions</dt>
+                          <dd className="stat__value">{type._count?.submissions || 0}</dd>
+                        </div>
+                        <div>
+                          <dt className="text-[12px] text-muted">Pass holders</dt>
+                          <dd className="stat__value">{type._count?.participants || 0}</dd>
+                        </div>
+                      </dl>
                     </div>
 
-                    <div className="flex items-center gap-2 pt-2 border-t border-slate-800/60">
+                    <div className="flex items-center gap-2 pt-1">
                       <Button
                         variant="secondary"
                         size="sm"
                         className="flex-1 text-xs"
-                        leftIcon={<FileEdit className="w-3.5 h-3.5 text-indigo-400" />}
+                        leftIcon={<FileEdit className="w-3.5 h-3.5 text-muted" />}
                         onClick={() => openFormBuilder(type)}
                       >
                         Design Form
@@ -565,7 +547,7 @@ export default function ManagerTypesPage() {
                         variant="outline"
                         size="sm"
                         className="flex-1 text-xs"
-                        leftIcon={<Users className="w-3.5 h-3.5 text-emerald-400" />}
+                        leftIcon={<Users className="w-3.5 h-3.5 text-muted" />}
                         onClick={() => openMembersView(type)}
                       >
                         Members & Export
@@ -575,7 +557,7 @@ export default function ManagerTypesPage() {
                         variant="ghost"
                         size="sm"
                         onClick={() => handleDelete(type.id)}
-                        className="text-red-400 hover:text-red-300 p-2"
+                        className="text-negative-400 hover:text-negative-300 p-2"
                         title="Delete Category"
                       >
                         <Trash2 className="w-4 h-4" />
@@ -593,7 +575,7 @@ export default function ManagerTypesPage() {
       {viewMode === 'builder' && activeCategory && (
         <div className="space-y-6">
           {/* Header Bar */}
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-800 pb-4">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-ink-800 pb-4">
             <div className="flex items-center gap-3">
               <Button
                 variant="ghost"
@@ -607,11 +589,11 @@ export default function ManagerTypesPage() {
                 Back
               </Button>
               <div>
-                <h1 className="text-xl font-bold text-white flex items-center gap-2">
-                  <FileEdit className="w-5 h-5 text-indigo-400" />
-                  Form Designer: <span className="text-indigo-300">{activeCategory.name}</span>
+                <h1 className="text-xl font-bold text-ink-50 flex items-center gap-2">
+                  <FileEdit className="w-5 h-5 text-muted" />
+                  Form Designer: <span className="text-accent-300">{activeCategory.name}</span>
                 </h1>
-                <p className="text-xs text-slate-400">
+                <p className="text-xs text-ink-400">
                   Configure specific questions & field types for users selecting the &quot;{activeCategory.name}&quot; category.
                 </p>
               </div>
@@ -630,21 +612,21 @@ export default function ManagerTypesPage() {
           {/* Form Fields List */}
           <div className="space-y-4">
             <div className="flex items-center justify-between">
-              <h2 className="text-sm font-bold text-slate-300 uppercase tracking-wider">
+              <h2 className="card-title">
                 Form Questions ({builderFields.length})
               </h2>
               <Button
                 variant="secondary"
                 size="sm"
                 onClick={addBuilderField}
-                leftIcon={<Plus className="w-4 h-4 text-indigo-400" />}
+                leftIcon={<Plus className="w-4 h-4 text-muted" />}
               >
                 Add Custom Question
               </Button>
             </div>
 
             {builderFields.length === 0 ? (
-              <Card variant="glass" className="p-8 text-center text-slate-400 text-xs border-slate-800">
+              <Card variant="glass" className="p-8 text-center text-ink-400 text-xs border-ink-800">
                 No custom questions defined for this category. Click &quot;Add Custom Question&quot; to build your form.
               </Card>
             ) : (
@@ -653,7 +635,7 @@ export default function ManagerTypesPage() {
                   <Card
                     key={idx}
                     variant="glass"
-                    className="p-4 border-slate-800 transition-all hover:border-slate-700"
+                    className="p-4 border-ink-800 transition-all hover:border-ink-700"
                   >
                     <div className="flex flex-col md:flex-row md:items-center gap-4 justify-between">
                       {/* Field Order & Drag Control */}
@@ -663,7 +645,7 @@ export default function ManagerTypesPage() {
                             type="button"
                             disabled={idx === 0}
                             onClick={() => moveBuilderField(idx, 'up')}
-                            className="text-slate-500 hover:text-slate-200 disabled:opacity-30"
+                            className="text-ink-500 hover:text-ink-200 disabled:opacity-30"
                           >
                             <ChevronUp className="w-3.5 h-3.5" />
                           </button>
@@ -671,19 +653,19 @@ export default function ManagerTypesPage() {
                             type="button"
                             disabled={idx === builderFields.length - 1}
                             onClick={() => moveBuilderField(idx, 'down')}
-                            className="text-slate-500 hover:text-slate-200 disabled:opacity-30"
+                            className="text-ink-500 hover:text-ink-200 disabled:opacity-30"
                           >
                             <ChevronDown className="w-3.5 h-3.5" />
                           </button>
                         </div>
-                        <span className="w-6 h-6 rounded-full bg-slate-800 text-slate-400 flex items-center justify-center text-xs font-bold font-mono">
+                        <span className="w-6 h-6 rounded-full bg-ink-800 text-ink-400 flex items-center justify-center text-xs font-bold num">
                           {idx + 1}
                         </span>
                       </div>
 
                       {/* Field Label Input */}
                       <div className="flex-1">
-                        <label className="block text-[10px] font-bold uppercase text-slate-400 mb-1">
+                        <label className="input-label">
                           Question Label / Title
                         </label>
                         <input
@@ -691,19 +673,19 @@ export default function ManagerTypesPage() {
                           value={field.label}
                           onChange={(e) => updateBuilderField(idx, { label: e.target.value })}
                           placeholder="e.g. Portfolio Link or University Name"
-                          className="w-full bg-slate-950/80 border border-slate-800 focus:border-indigo-500 text-sm text-white rounded-xl px-3.5 py-2 outline-none"
+                          className="input"
                         />
                       </div>
 
                       {/* Field Type Select */}
                       <div className="w-full md:w-48">
-                        <label className="block text-[10px] font-bold uppercase text-slate-400 mb-1">
+                        <label className="input-label">
                           Input Type
                         </label>
                         <select
                           value={field.type}
                           onChange={(e) => updateBuilderField(idx, { type: e.target.value })}
-                          className="w-full bg-slate-950/80 border border-slate-800 focus:border-indigo-500 text-sm text-white rounded-xl px-3 py-2 outline-none"
+                          className="select"
                         >
                           <option value="SHORT_TEXT">Short Text</option>
                           <option value="PARAGRAPH">Paragraph / Long Text</option>
@@ -723,15 +705,15 @@ export default function ManagerTypesPage() {
                             type="checkbox"
                             checked={field.required}
                             onChange={(e) => updateBuilderField(idx, { required: e.target.checked })}
-                            className="rounded bg-slate-950 border-slate-800 text-indigo-500 focus:ring-indigo-500"
+                            className="rounded bg-ink-950 border-ink-800 text-accent-500 focus:ring-accent-500"
                           />
-                          <span className="text-xs font-medium text-slate-300">Required</span>
+                          <span className="text-xs font-medium text-ink-300">Required</span>
                         </label>
 
                         <button
                           type="button"
                           onClick={() => removeBuilderField(idx)}
-                          className="text-slate-500 hover:text-red-400 transition-colors p-1"
+                          className="text-ink-500 hover:text-negative-400 transition-colors p-1"
                           title="Remove Question"
                         >
                           <Trash2 className="w-4 h-4" />
@@ -741,8 +723,8 @@ export default function ManagerTypesPage() {
 
                     {/* Options Editor for Dropdown & Radio */}
                     {(field.type === 'DROPDOWN' || field.type === 'RADIO') && (
-                      <div className="mt-3 pt-3 border-t border-slate-800/60 pl-8 space-y-2">
-                        <label className="block text-[10px] font-bold uppercase text-slate-400">
+                      <div className="mt-3 pt-3 border-t border-ink-800/60 pl-8 space-y-2">
+                        <label className="input-label !mb-0">
                           Options (Comma Separated)
                         </label>
                         <input
@@ -754,7 +736,7 @@ export default function ManagerTypesPage() {
                             })
                           }
                           placeholder="Option 1, Option 2, Option 3"
-                          className="w-full bg-slate-950/80 border border-slate-800 text-xs text-white rounded-lg px-3 py-1.5 outline-none"
+                          className="input !h-9"
                         />
                       </div>
                     )}
@@ -770,7 +752,7 @@ export default function ManagerTypesPage() {
       {viewMode === 'members' && activeCategory && (
         <div className="space-y-6">
           {/* Top Header */}
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-800 pb-4">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-ink-800 pb-4">
             <div className="flex items-center gap-3">
               <Button
                 variant="ghost"
@@ -784,11 +766,11 @@ export default function ManagerTypesPage() {
                 Back
               </Button>
               <div>
-                <h1 className="text-xl font-bold text-white flex items-center gap-2">
-                  <Users className="w-5 h-5 text-emerald-400" />
+                <h1 className="text-xl font-bold text-ink-50 flex items-center gap-2">
+                  <Users className="w-5 h-5 text-positive-400" />
                   {activeCategory.name} Submissions & Members
                 </h1>
-                <p className="text-xs text-slate-400">
+                <p className="text-xs text-ink-400">
                   View and manage all registered attendees for the {activeCategory.name} category.
                 </p>
               </div>
@@ -798,22 +780,22 @@ export default function ManagerTypesPage() {
               variant="primary"
               onClick={exportCategoryToExcel}
               leftIcon={<Download className="w-4 h-4" />}
-              className="bg-emerald-600 hover:bg-emerald-500 shadow-emerald-900/30"
+              className="bg-positive-600 hover:bg-positive-500"
             >
               Export to Excel (CSV)
             </Button>
           </div>
 
           {/* Filters & Search */}
-          <Card variant="glass" className="p-4 border-slate-800 flex flex-col sm:flex-row items-center justify-between gap-4">
+          <Card variant="glass" className="p-4 border-ink-800 flex flex-col sm:flex-row items-center justify-between gap-4">
             <div className="relative w-full sm:w-80">
-              <Search className="w-4 h-4 text-slate-500 absolute left-3 top-3" />
+              <Search className="w-4 h-4 text-ink-500 absolute left-3 top-3" />
               <input
                 type="text"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 placeholder="Search by name, email, or phone..."
-                className="w-full bg-slate-950/80 border border-slate-800 text-xs text-white rounded-xl pl-9 pr-4 py-2.5 outline-none focus:border-indigo-500"
+                className="input !pl-9"
               />
             </div>
 
@@ -825,8 +807,8 @@ export default function ManagerTypesPage() {
                   onClick={() => setStatusFilter(st)}
                   className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
                     statusFilter === st
-                      ? 'bg-indigo-600 text-white shadow-md'
-                      : 'bg-slate-900 text-slate-400 hover:text-white'
+                      ? 'bg-accent-600 text-white shadow-md'
+                      : 'bg-ink-900 text-ink-400 hover:text-ink-50'
                   }`}
                 >
                   {st}
@@ -837,16 +819,16 @@ export default function ManagerTypesPage() {
 
           {/* Members & Submissions Table */}
           {loadingMembers ? (
-            <div className="p-12 text-center text-xs text-slate-400">Loading submission data...</div>
+            <div className="p-12 text-center text-xs text-ink-400">Loading submission data...</div>
           ) : filteredSubmissions.length === 0 ? (
-            <Card variant="glass" className="p-8 text-center text-slate-400 text-xs border-slate-800">
+            <Card variant="glass" className="p-8 text-center text-ink-400 text-xs border-ink-800">
               No submissions found matching your search or filter.
             </Card>
           ) : (
-            <Card variant="glass" className="p-0 border-slate-800 overflow-hidden">
+            <Card variant="glass" className="p-0 border-ink-800 overflow-hidden">
               <div className="overflow-x-auto">
-                <table className="w-full text-left text-xs text-slate-300">
-                  <thead className="bg-slate-900/80 text-slate-400 uppercase font-mono text-[10px] tracking-wider border-b border-slate-800">
+                <table className="w-full text-left text-xs text-ink-300">
+                  <thead className="text-muted text-[12px] font-semibold border-b border-line">
                     <tr>
                       <th className="p-4">Attendee Name</th>
                       <th className="p-4">Contact Info</th>
@@ -855,18 +837,18 @@ export default function ManagerTypesPage() {
                       <th className="p-4 text-right">Actions</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-slate-800/60">
+                  <tbody className="divide-y divide-ink-800/60">
                     {filteredSubmissions.map((sub) => (
-                      <tr key={sub.id} className="hover:bg-slate-900/30 transition-colors">
-                        <td className="p-4 font-semibold text-white">
+                      <tr key={sub.id} className="hover:bg-ink-900/30 transition-colors">
+                        <td className="p-4 font-semibold text-ink-50">
                           <div className="flex items-center gap-3">
-                            <div className="w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center text-indigo-400 font-bold text-xs">
+                            <div className="w-8 h-8 rounded-full bg-ink-800 flex items-center justify-center text-accent-400 font-bold text-xs">
                               {sub.fullName ? sub.fullName.charAt(0).toUpperCase() : '?'}
                             </div>
                             <div>
                               <div>{sub.fullName}</div>
                               {sub.participant?.qrToken && (
-                                <div className="text-[10px] font-mono text-indigo-400">
+                                <div className="text-[12px] text-muted">
                                   Pass: #{sub.participant.qrToken.slice(0, 8)}
                                 </div>
                               )}
@@ -876,24 +858,24 @@ export default function ManagerTypesPage() {
 
                         <td className="p-4">
                           <div>{sub.email}</div>
-                          {sub.phone && <div className="text-slate-500 text-[11px]">{sub.phone}</div>}
+                          {sub.phone && <div className="text-ink-500 text-[11px]">{sub.phone}</div>}
                         </td>
 
                         <td className="p-4">
                           <span
                             className={`px-2.5 py-1 rounded-full text-[10px] font-bold ${
                               sub.status === 'APPROVED'
-                                ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20'
+                                ? 'bg-positive-500/10 text-positive-400 border border-positive-500/20'
                                 : sub.status === 'DECLINED'
-                                ? 'bg-red-500/10 text-red-400 border border-red-500/20'
-                                : 'bg-amber-500/10 text-amber-400 border border-amber-500/20'
+                                ? 'bg-negative-500/10 text-negative-400 border border-negative-500/20'
+                                : 'bg-caution-500/10 text-caution-400 border border-caution-500/20'
                             }`}
                           >
                             {sub.status}
                           </span>
                         </td>
 
-                        <td className="p-4 text-slate-400">
+                        <td className="p-4 text-ink-400">
                           {new Date(sub.submittedAt).toLocaleDateString()}
                         </td>
 
@@ -902,7 +884,7 @@ export default function ManagerTypesPage() {
                             variant="outline"
                             size="sm"
                             onClick={() => setSelectedSubmission(sub)}
-                            leftIcon={<Eye className="w-3.5 h-3.5 text-indigo-400" />}
+                            leftIcon={<Eye className="w-3.5 h-3.5 text-muted" />}
                           >
                             View Form Details
                           </Button>
@@ -919,57 +901,57 @@ export default function ManagerTypesPage() {
 
       {/* SUBMISSION DETAILS MODAL */}
       {selectedSubmission && activeCategory && (
-        <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
-          <Card variant="glass" className="w-full max-w-xl border-slate-800 p-6 space-y-6 max-h-[90vh] overflow-y-auto">
-            <div className="flex items-center justify-between border-b border-slate-800 pb-3">
-              <h3 className="text-base font-bold text-white flex items-center gap-2">
-                <FileText className="w-4 h-4 text-indigo-400" />
+        <div className="fixed inset-0 z-50 bg-[var(--scrim)] flex items-center justify-center p-4">
+          <Card variant="glass" className="w-full max-w-xl border-ink-800 p-6 space-y-6 max-h-[90vh] overflow-y-auto">
+            <div className="flex items-center justify-between border-b border-ink-800 pb-3">
+              <h3 className="text-base font-bold text-ink-50 flex items-center gap-2">
+                <FileText className="w-4 h-4 text-muted" />
                 Category Form Answers ({activeCategory.name})
               </h3>
               <button
                 onClick={() => setSelectedSubmission(null)}
-                className="text-slate-400 hover:text-white"
+                className="text-ink-400 hover:text-ink-50"
               >
                 <X className="w-5 h-5" />
               </button>
             </div>
 
             <div className="space-y-4">
-              <div className="bg-slate-900/60 p-4 rounded-xl border border-slate-800/80 space-y-1">
-                <div className="text-sm font-bold text-white">{selectedSubmission.fullName}</div>
-                <div className="text-xs text-slate-400">{selectedSubmission.email} • {selectedSubmission.phone || 'No phone'}</div>
-                <div className="text-[11px] text-slate-500 font-mono mt-1">Submitted: {new Date(selectedSubmission.submittedAt).toLocaleString()}</div>
+              <div className="bg-ink-900/60 p-4 rounded-xl border border-ink-800/80 space-y-1">
+                <div className="text-sm font-bold text-ink-50">{selectedSubmission.fullName}</div>
+                <div className="text-xs text-ink-400">{selectedSubmission.email} • {selectedSubmission.phone || 'No phone'}</div>
+                <div className="text-[12px] text-muted mt-1">Submitted: {new Date(selectedSubmission.submittedAt).toLocaleString()}</div>
               </div>
 
               {/* Group Delegation Members Display */}
               {Array.isArray(selectedSubmission.responses?.groupMembers) &&
                 (selectedSubmission.responses.groupMembers as Array<Record<string, unknown>>).length > 0 && (
-                  <div className="space-y-3 p-4 bg-purple-950/20 border border-purple-500/30 rounded-xl">
-                    <h4 className="text-xs font-bold uppercase tracking-wider text-purple-300 flex items-center gap-1.5">
-                      <Users className="w-3.5 h-3.5 text-purple-400" />
+                  <div className="space-y-3 p-4 bg-accent-950/20 border border-accent-500/30 rounded-xl">
+                    <h4 className="text-[13px] font-semibold flex items-center gap-1.5">
+                      <Users className="w-3.5 h-3.5 text-muted" />
                       Delegation Group: {String(selectedSubmission.responses.groupName || 'Group Members')}
                     </h4>
                     <div className="space-y-2">
                       {(selectedSubmission.responses.groupMembers as Array<Record<string, unknown>>).map((m: Record<string, unknown>, idx: number) => (
-                        <div key={idx} className="flex items-center justify-between p-2.5 rounded-lg bg-slate-950/80 border border-slate-800/80 text-xs">
+                        <div key={idx} className="flex items-center justify-between p-2.5 rounded-lg bg-ink-950/80 border border-ink-800/80 text-xs">
                           <div className="flex items-center gap-3">
                             {m.photoUrl ? (
-                              <img src={String(m.photoUrl)} alt={String(m.name || '')} className="w-8 h-8 rounded-full object-cover border border-purple-500/40" />
+                              <img src={String(m.photoUrl)} alt={String(m.name || '')} className="w-8 h-8 rounded-full object-cover border border-accent-500/40" />
                             ) : (
-                              <div className="w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center text-[10px] font-bold text-slate-300">
+                              <div className="w-8 h-8 rounded-full bg-ink-800 flex items-center justify-center text-[10px] font-bold text-ink-300">
                                 #{idx + 1}
                               </div>
                             )}
                             <div>
-                              <div className="font-semibold text-white flex items-center gap-1.5">
+                              <div className="font-semibold text-ink-50 flex items-center gap-1.5">
                                 {String(m.name || '')}
                                 {Boolean(m.isLeader) && (
-                                  <span className="text-[9px] font-bold px-1.5 py-0.5 rounded bg-amber-500/20 text-amber-300 border border-amber-500/30">
+                                  <span className="text-[9px] font-bold px-1.5 py-0.5 rounded bg-caution-500/20 text-caution-300 border border-caution-500/30">
                                     Leader
                                   </span>
                                 )}
                               </div>
-                              <div className="text-[11px] text-slate-400">{String(m.email || '')} • {String(m.phone || 'No phone')}</div>
+                              <div className="text-[11px] text-ink-400">{String(m.email || '')} • {String(m.phone || 'No phone')}</div>
                             </div>
                           </div>
                         </div>
@@ -979,10 +961,10 @@ export default function ManagerTypesPage() {
                 )}
 
               <div className="space-y-3">
-                <h4 className="text-xs font-bold uppercase tracking-wider text-slate-400">Custom Questionnaire Responses</h4>
+                <h4 className="text-[13px] font-semibold text-muted">Custom Questionnaire Responses</h4>
 
                 {categoryFields.length === 0 ? (
-                  <p className="text-xs text-slate-500 italic">No custom fields defined for this category form.</p>
+                  <p className="text-xs text-ink-500 italic">No custom fields defined for this category form.</p>
                 ) : (
                   categoryFields.map((field, fIdx) => {
                     let val = field.id ? selectedSubmission.responses?.[field.id] : undefined;
@@ -991,10 +973,10 @@ export default function ManagerTypesPage() {
                     }
 
                     return (
-                      <div key={field.id || fIdx} className="p-3 rounded-xl bg-slate-950/80 border border-slate-800/60 space-y-1">
-                        <span className="text-[11px] font-semibold text-slate-400 block">{field.label}</span>
-                        <div className="text-xs text-white font-medium">
-                          {Array.isArray(val) ? val.join(', ') : val !== undefined && val !== null && val !== '' ? String(val) : <span className="text-slate-600 italic">Not provided</span>}
+                      <div key={field.id || fIdx} className="p-3 rounded-xl bg-ink-950/80 border border-ink-800/60 space-y-1">
+                        <span className="text-[11px] font-semibold text-ink-400 block">{field.label}</span>
+                        <div className="text-xs text-ink-50 font-medium">
+                          {Array.isArray(val) ? val.join(', ') : val !== undefined && val !== null && val !== '' ? String(val) : <span className="text-ink-600 italic">Not provided</span>}
                         </div>
                       </div>
                     );
@@ -1003,7 +985,7 @@ export default function ManagerTypesPage() {
               </div>
             </div>
 
-            <div className="pt-2 border-t border-slate-800 flex justify-end">
+            <div className="pt-2 border-t border-ink-800 flex justify-end">
               <Button variant="secondary" onClick={() => setSelectedSubmission(null)}>
                 Close
               </Button>

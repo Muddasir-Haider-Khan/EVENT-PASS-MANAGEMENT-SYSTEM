@@ -3,9 +3,6 @@
 import { useEffect, useState } from 'react';
 import { useParams } from 'next/navigation';
 import { ThemeProvider } from '@/components/ThemeProvider';
-import { Button } from '@/components/ui/Button';
-import { Card } from '@/components/ui/Card';
-import { Badge } from '@/components/ui/Badge';
 import { ImageUpload } from '@/components/ImageUpload';
 import {
   Ticket,
@@ -16,7 +13,6 @@ import {
   Check,
   Send,
   AlertCircle,
-  Camera,
   UserCheck,
   ArrowRight,
   ArrowLeft,
@@ -264,21 +260,21 @@ export default function PublicEventPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-slate-50 flex items-center justify-center">
-        <div className="w-8 h-8 border-3 border-slate-900 border-t-transparent rounded-full animate-spin" />
+      <div className="palette-fixed min-h-screen bg-ink-50 flex items-center justify-center">
+        <div className="w-8 h-8 border-3 border-ink-900 border-t-transparent rounded-full animate-spin" />
       </div>
     );
   }
 
   if (!event) {
     return (
-      <div className="min-h-screen bg-slate-50 flex items-center justify-center p-4 font-sans">
-        <div className="max-w-md w-full bg-white rounded-3xl p-8 text-center border border-slate-200 shadow-xl space-y-4">
-          <div className="w-14 h-14 rounded-2xl bg-slate-100 border border-slate-200 flex items-center justify-center text-slate-800 mx-auto">
+      <div className="palette-fixed min-h-screen bg-ink-50 flex items-center justify-center p-4 font-sans">
+        <div className="max-w-md w-full bg-white rounded-3xl p-8 text-center border border-ink-200 shadow-xl space-y-4">
+          <div className="w-14 h-14 rounded-2xl bg-ink-100 border border-ink-200 flex items-center justify-center text-ink-800 mx-auto">
             <Ticket className="w-7 h-7" />
           </div>
-          <h1 className="text-xl font-black text-slate-900">Event Registration Unavailable</h1>
-          <p className="text-xs text-slate-600 leading-relaxed font-medium">
+          <h1 className="text-xl font-black text-ink-900">Event Registration Unavailable</h1>
+          <p className="text-xs text-ink-600 leading-relaxed font-medium">
             This event pass registration link is either invalid, inactive, or has closed.
           </p>
         </div>
@@ -294,44 +290,43 @@ export default function PublicEventPage() {
         accentColor={event.accentColor}
         fontFamily={event.fontFamily}
       >
-        <div className="min-h-screen bg-slate-50 text-slate-900 flex items-center justify-center p-4 sm:p-6 antialiased font-sans">
-          <div className="max-w-lg w-full bg-white rounded-3xl p-8 sm:p-10 text-center border border-slate-200 shadow-2xl space-y-6">
+        <div className="palette-fixed min-h-screen bg-ink-50 text-ink-900 flex items-center justify-center p-4 sm:p-6 antialiased font-sans">
+          <div className="max-w-lg w-full bg-white rounded-3xl p-8 sm:p-10 text-center border border-ink-200 shadow-2xl space-y-6">
             {event.logoUrl ? (
               <img
                 src={event.logoUrl}
                 alt={event.name}
-                className="w-24 h-24 rounded-3xl object-cover mx-auto border-2 border-slate-100 shadow-xl ring-4 ring-slate-100"
+                className="w-24 h-24 rounded-3xl object-cover mx-auto border-2 border-ink-100 shadow-xl ring-4 ring-ink-100"
               />
             ) : (
-              <div className="w-16 h-16 rounded-3xl bg-emerald-100 border border-emerald-200 flex items-center justify-center text-emerald-700 mx-auto">
+              <div className="w-16 h-16 rounded-3xl bg-positive-100 border border-positive-200 flex items-center justify-center text-positive-700 mx-auto">
                 <Ticket className="w-8 h-8" />
               </div>
             )}
 
             <div>
-              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-emerald-100 border border-emerald-200 text-emerald-800 uppercase tracking-wider mb-3">
+              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-positive-100 border border-positive-200 text-positive-800 mb-3">
                 <CheckCircle2 className="w-3.5 h-3.5" /> Registration Submitted
               </span>
-              <h1 className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight mt-1 mb-2">
+              <h1 className="text-2xl sm:text-3xl font-black text-ink-900 tracking-tight mt-1 mb-2">
                 Registration Received!
               </h1>
-              <p className="text-xs sm:text-sm text-slate-600 leading-relaxed font-medium">
-                Your application for <strong className="text-slate-900 font-bold">{event.name}</strong> has been successfully submitted.
+              <p className="text-xs sm:text-sm text-ink-600 leading-relaxed font-medium">
+                Your application for <strong className="text-ink-900 font-bold">{event.name}</strong> has been successfully submitted.
                 Your official pass and entry QR code will be generated upon approval.
               </p>
             </div>
 
             {(payment.accountNumber || payment.paymentPhone) && (
-              <div className="p-5 sm:p-6 rounded-2xl bg-slate-50 border border-slate-200 text-left space-y-4 shadow-sm">
-                <div className="flex items-center gap-2 pb-2 border-b border-slate-200/80">
-                  <div className="w-7 h-7 rounded-lg bg-emerald-500/10 text-emerald-600 flex items-center justify-center font-bold text-xs">
-                    💳
-                  </div>
+              <div className="p-5 sm:p-6 rounded-2xl bg-ink-50 border border-ink-200 text-left space-y-4 shadow-sm">
+                <div className="flex items-center gap-2 pb-2 border-b border-ink-200/80">
+                  <div className="w-7 h-7 rounded-lg bg-positive-500/10 text-positive-600 flex items-center justify-center font-bold text-xs">
+                                      </div>
                   <div>
-                    <h3 className="text-xs font-black text-slate-900 uppercase tracking-wider">
+                    <h3 className="text-[13px] font-bold text-ink-900">
                       Payment & Fee Deposit Details
                     </h3>
-                    <p className="text-[11px] text-slate-500 font-medium">
+                    <p className="text-[11px] text-ink-500 font-medium">
                       Please transfer registration fee to the details below and submit proof.
                     </p>
                   </div>
@@ -339,11 +334,11 @@ export default function PublicEventPage() {
 
                 {payment.accountNumber && (
                   <div>
-                    <span className="text-[10px] font-bold uppercase tracking-wider text-slate-500 block mb-1">
+                    <span className="text-[12px] font-semibold text-ink-500 block mb-1">
                       Account / IBAN Number
                     </span>
-                    <div className="flex items-center justify-between p-3 bg-white border border-slate-200 rounded-xl shadow-xs">
-                      <span className="font-mono text-xs sm:text-sm font-bold text-slate-900 select-all">
+                    <div className="flex items-center justify-between p-3 bg-white border border-ink-200 rounded-xl shadow-xs">
+                      <span className="font-mono text-xs sm:text-sm font-bold text-ink-900 select-all">
                         {payment.accountNumber}
                       </span>
                       <button
@@ -353,9 +348,9 @@ export default function PublicEventPage() {
                           setCopiedAcc(true);
                           setTimeout(() => setCopiedAcc(false), 2000);
                         }}
-                        className="px-3 py-1.5 text-xs font-bold text-slate-700 bg-slate-50 hover:bg-slate-100 active:bg-slate-200 rounded-lg border border-slate-200 transition-all flex items-center gap-1.5 shrink-0 ml-2 cursor-pointer"
+                        className="px-3 py-1.5 text-xs font-bold text-ink-700 bg-ink-50 hover:bg-ink-100 active:bg-ink-200 rounded-lg border border-ink-200 transition-all flex items-center gap-1.5 shrink-0 ml-2 cursor-pointer"
                       >
-                        {copiedAcc ? <Check className="w-3.5 h-3.5 text-emerald-600" /> : <Copy className="w-3.5 h-3.5" />}
+                        {copiedAcc ? <Check className="w-3.5 h-3.5 text-positive-600" /> : <Copy className="w-3.5 h-3.5" />}
                         <span>{copiedAcc ? 'Copied' : 'Copy'}</span>
                       </button>
                     </div>
@@ -364,11 +359,11 @@ export default function PublicEventPage() {
 
                 {payment.paymentPhone && (
                   <div>
-                    <span className="text-[10px] font-bold uppercase tracking-wider text-slate-500 block mb-1">
+                    <span className="text-[12px] font-semibold text-ink-500 block mb-1">
                       Payment Verification Phone / WhatsApp
                     </span>
-                    <div className="flex items-center justify-between p-3 bg-white border border-slate-200 rounded-xl shadow-xs">
-                      <span className="font-mono text-xs sm:text-sm font-bold text-slate-900 select-all">
+                    <div className="flex items-center justify-between p-3 bg-white border border-ink-200 rounded-xl shadow-xs">
+                      <span className="font-mono text-xs sm:text-sm font-bold text-ink-900 select-all">
                         {payment.paymentPhone}
                       </span>
                       <div className="flex items-center gap-1.5 shrink-0 ml-2">
@@ -379,16 +374,16 @@ export default function PublicEventPage() {
                             setCopiedPhone(true);
                             setTimeout(() => setCopiedPhone(false), 2000);
                           }}
-                          className="px-3 py-1.5 text-xs font-bold text-slate-700 bg-slate-50 hover:bg-slate-100 active:bg-slate-200 rounded-lg border border-slate-200 transition-all flex items-center gap-1.5 cursor-pointer"
+                          className="px-3 py-1.5 text-xs font-bold text-ink-700 bg-ink-50 hover:bg-ink-100 active:bg-ink-200 rounded-lg border border-ink-200 transition-all flex items-center gap-1.5 cursor-pointer"
                         >
-                          {copiedPhone ? <Check className="w-3.5 h-3.5 text-emerald-600" /> : <Copy className="w-3.5 h-3.5" />}
+                          {copiedPhone ? <Check className="w-3.5 h-3.5 text-positive-600" /> : <Copy className="w-3.5 h-3.5" />}
                           <span>{copiedPhone ? 'Copied' : 'Copy'}</span>
                         </button>
                         <a
                           href={`https://wa.me/${payment.paymentPhone.replace(/[^0-9]/g, '')}`}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="px-3 py-1.5 text-xs font-bold text-emerald-700 bg-emerald-50 hover:bg-emerald-100 active:bg-emerald-200 rounded-lg border border-emerald-200 transition-all flex items-center gap-1 cursor-pointer"
+                          className="px-3 py-1.5 text-xs font-bold text-positive-700 bg-positive-50 hover:bg-positive-100 active:bg-positive-200 rounded-lg border border-positive-200 transition-all flex items-center gap-1 cursor-pointer"
                         >
                           <Send className="w-3.5 h-3.5" />
                           <span>WhatsApp</span>
@@ -412,7 +407,7 @@ export default function PublicEventPage() {
       accentColor={event.accentColor}
       fontFamily={event.fontFamily}
     >
-      <div className="min-h-screen bg-slate-50 text-slate-900 flex flex-col items-center justify-center p-4 sm:p-6 lg:p-10 antialiased font-sans relative overflow-hidden">
+      <div className="palette-fixed min-h-screen bg-ink-50 text-ink-900 flex flex-col items-center justify-center p-4 sm:p-6 lg:p-10 antialiased font-sans relative overflow-hidden">
         {/* Subtle grid pattern background */}
         <div className="absolute inset-0 bg-[radial-gradient(#e2e8f0_1px,transparent_1px)] [background-size:24px_24px] opacity-60 pointer-events-none" />
 
@@ -424,33 +419,33 @@ export default function PublicEventPage() {
                 <img
                   src={event.logoUrl}
                   alt={event.name}
-                  className="w-24 h-24 sm:w-28 sm:h-28 rounded-3xl object-cover mx-auto border-4 border-white shadow-2xl shadow-slate-300/60 ring-1 ring-slate-200 bg-white"
+                  className="w-24 h-24 sm:w-28 sm:h-28 rounded-3xl object-cover mx-auto border-4 border-white shadow-2xl ring-1 ring-ink-200 bg-white"
                 />
               </div>
             ) : (
-              <div className="w-20 h-20 rounded-3xl bg-slate-900 text-white flex items-center justify-center shadow-xl mx-auto">
+              <div className="w-20 h-20 rounded-3xl bg-ink-900 text-ink-50 flex items-center justify-center shadow-xl mx-auto">
                 <Ticket className="w-10 h-10" />
               </div>
             )}
 
             <div>
-              <span className="inline-flex items-center gap-1.5 px-3.5 py-1 rounded-full text-[11px] font-extrabold bg-slate-200/80 text-slate-800 uppercase tracking-widest border border-slate-300/60 shadow-sm">
-                Official Event Registration
+              <span className="inline-flex items-center gap-1.5 px-3.5 py-1 rounded-full text-[12px] font-semibold bg-white text-ink-700 border border-ink-200">
+                Event registration
               </span>
             </div>
 
-            <h1 className="text-3xl sm:text-4xl lg:text-5xl font-black text-slate-900 tracking-tight max-w-2xl mx-auto leading-tight">
+            <h1 className="text-3xl sm:text-4xl lg:text-5xl font-black text-ink-900 tracking-tight max-w-2xl mx-auto leading-tight">
               {event.name}
             </h1>
 
-            <div className="flex flex-wrap items-center justify-center gap-2.5 text-xs font-semibold text-slate-700">
-              <span className="flex items-center gap-1.5 bg-white px-4 py-2 rounded-full border border-slate-200 shadow-sm text-slate-800">
-                <MapPin className="w-4 h-4 text-slate-900" />
+            <div className="flex flex-wrap items-center justify-center gap-2.5 text-xs font-semibold text-ink-700">
+              <span className="flex items-center gap-1.5 bg-white px-4 py-2 rounded-full border border-ink-200 shadow-sm text-ink-800">
+                <MapPin className="w-4 h-4 text-ink-900" />
                 <span>{event.venue}</span>
               </span>
               {event.eventDate && (
-                <span className="flex items-center gap-1.5 bg-white px-4 py-2 rounded-full border border-slate-200 shadow-sm text-slate-800">
-                  <Calendar className="w-4 h-4 text-slate-900" />
+                <span className="flex items-center gap-1.5 bg-white px-4 py-2 rounded-full border border-ink-200 shadow-sm text-ink-800">
+                  <Calendar className="w-4 h-4 text-ink-900" />
                   <span>
                     {new Date(event.eventDate).toLocaleDateString('en-US', {
                       month: 'short',
@@ -463,30 +458,30 @@ export default function PublicEventPage() {
             </div>
 
             {event.description && (
-              <p className="text-xs sm:text-sm text-slate-600 max-w-lg mx-auto leading-relaxed font-medium">
+              <p className="text-xs sm:text-sm text-ink-600 max-w-lg mx-auto leading-relaxed font-medium">
                 {event.description}
               </p>
             )}
           </div>
 
           {/* Clean White Registration Form Card */}
-          <div className="bg-white border border-slate-200 shadow-2xl shadow-slate-300/50 rounded-3xl p-6 sm:p-10">
+          <div className="bg-white border border-ink-200 shadow-2xl rounded-3xl p-6 sm:p-10">
             {/* Step Wizard Indicator */}
             {(isMun || participantTypes.length > 0) && (
               <div className="mb-8">
-                <div className="flex items-center justify-between text-xs font-bold text-slate-900 uppercase tracking-wider mb-2.5">
-                  <span className="text-slate-900 bg-slate-100 px-2.5 py-1 rounded-lg border border-slate-200 font-extrabold">
+                <div className="flex items-center justify-between text-xs font-bold text-ink-900 mb-2.5">
+                  <span className="text-ink-900 bg-ink-100 px-2.5 py-1 rounded-lg border border-ink-200 font-extrabold">
                     Step {step} of 3
                   </span>
-                  <span className="text-slate-600 font-semibold">
+                  <span className="text-ink-600 font-semibold">
                     {step === 1 && 'Select Category'}
                     {step === 2 && (selectedCategory?.isGroup ? 'Delegation Members' : 'Personal Details')}
                     {step === 3 && 'Event Questionnaire'}
                   </span>
                 </div>
-                <div className="w-full bg-slate-100 h-2.5 rounded-full overflow-hidden border border-slate-200">
+                <div className="w-full bg-ink-100 h-2.5 rounded-full overflow-hidden border border-ink-200">
                   <div
-                    className="bg-slate-900 h-full transition-all duration-300 rounded-full"
+                    className="bg-ink-900 h-full transition-all duration-300 rounded-full"
                     style={{ width: `${(step / 3) * 100}%` }}
                   />
                 </div>
@@ -497,12 +492,12 @@ export default function PublicEventPage() {
               {/* STEP 1: Select Category */}
               {participantTypes.length > 0 && step === 1 && (
                 <div className="space-y-4">
-                  <div className="border-b border-slate-200 pb-3">
-                    <h2 className="text-sm font-black text-slate-900 flex items-center gap-2">
-                      <Briefcase className="w-4 h-4 text-slate-900" />
+                  <div className="border-b border-ink-200 pb-3">
+                    <h2 className="text-sm font-black text-ink-900 flex items-center gap-2">
+                      <Briefcase className="w-4 h-4 text-ink-900" />
                       Select Registration Category
                     </h2>
-                    <p className="text-xs text-slate-600 mt-1 font-medium">
+                    <p className="text-xs text-ink-600 mt-1 font-medium">
                       Choose your participant type to continue registration.
                     </p>
                   </div>
@@ -516,8 +511,8 @@ export default function PublicEventPage() {
                           onClick={() => setSelectedTypeId(type.id)}
                           className={`p-5 rounded-2xl border-2 cursor-pointer transition-all ${
                             isSelected
-                              ? 'bg-slate-900 border-slate-900 text-white shadow-xl shadow-slate-900/15'
-                              : 'bg-slate-50/50 border-slate-200 text-slate-900 hover:bg-slate-100/80 hover:border-slate-300'
+                              ? 'bg-ink-900 border-ink-900 text-ink-50 shadow-xl'
+                              : 'bg-ink-50/50 border-ink-200 text-ink-900 hover:bg-ink-100/80 hover:border-ink-300'
                           }`}
                         >
                           <div className="flex items-center justify-between gap-2 flex-wrap">
@@ -527,24 +522,24 @@ export default function PublicEventPage() {
                             <div className="flex items-center gap-2">
                               {type.isGroup ? (
                                 <span className={`text-[10px] font-bold px-2.5 py-0.5 rounded-full flex items-center gap-1 ${
-                                  isSelected ? 'bg-white/20 text-white border border-white/30' : 'bg-purple-100 border border-purple-200 text-purple-800'
+                                  isSelected ? 'bg-white/20 text-ink-50 border border-white/30' : 'bg-accent-100 border border-accent-200 text-accent-800'
                                 }`}>
                                   <Users className="w-3 h-3" /> Group ({type.groupSize || 4} Members)
                                 </span>
                               ) : (
                                 <span className={`text-[10px] font-bold px-2.5 py-0.5 rounded-full ${
-                                  isSelected ? 'bg-white/20 text-white' : 'bg-slate-200 text-slate-700'
+                                  isSelected ? 'bg-white/20 text-ink-50' : 'bg-ink-200 text-ink-700'
                                 }`}>
                                   Single Participant
                                 </span>
                               )}
                               {isSelected && (
-                                <CheckCircle2 className="w-4.5 h-4.5 text-emerald-400" />
+                                <CheckCircle2 className="w-4.5 h-4.5 text-positive-400" />
                               )}
                             </div>
                           </div>
                           {type.description && (
-                            <p className={`text-xs mt-1.5 font-medium ${isSelected ? 'text-slate-300' : 'text-slate-600'}`}>
+                            <p className={`text-xs mt-1.5 font-medium ${isSelected ? 'text-ink-300' : 'text-ink-600'}`}>
                               {type.description}
                             </p>
                           )}
@@ -560,7 +555,7 @@ export default function PublicEventPage() {
                       setError('');
                       setStep(2);
                     }}
-                    className="w-full py-4 rounded-xl bg-slate-900 hover:bg-slate-800 disabled:opacity-50 text-white font-bold text-sm shadow-xl shadow-slate-900/15 transition-all flex items-center justify-center gap-2 mt-4 cursor-pointer"
+                    className="w-full py-4 rounded-xl bg-ink-900 hover:bg-ink-800 disabled:opacity-50 text-ink-50 font-bold text-sm shadow-xl transition-all flex items-center justify-center gap-2 mt-4 cursor-pointer"
                   >
                     <span>Next: Enter Details</span>
                     <ArrowRight className="w-4 h-4" />
@@ -574,19 +569,19 @@ export default function PublicEventPage() {
                   {selectedCategory?.isGroup ? (
                     // GROUP DELEGATION REGISTRATION FORM
                     <div className="space-y-4">
-                      <div className="border-b border-slate-200 pb-3">
-                        <h2 className="text-sm font-black text-slate-900 flex items-center gap-2">
-                          <Users className="w-4 h-4 text-purple-600" />
+                      <div className="border-b border-ink-200 pb-3">
+                        <h2 className="text-sm font-black text-ink-900 flex items-center gap-2">
+                          <Users className="w-4 h-4 text-accent-600" />
                           Group Delegation Registration ({selectedCategory.groupSize || 4} Members)
                         </h2>
-                        <p className="text-xs text-slate-600 mt-1 font-medium">
+                        <p className="text-xs text-ink-600 mt-1 font-medium">
                           Please enter your delegation group name and details for all {selectedCategory.groupSize || 4} members.
                         </p>
                       </div>
 
                       <div>
-                        <label className="block text-xs font-bold uppercase tracking-wider text-slate-900 mb-1.5">
-                          Delegation / Group Name <span className="text-red-500">*</span>
+                        <label className="block text-[13px] font-semibold text-ink-900 mb-1.5">
+                          Delegation / Group Name <span className="text-negative-500">*</span>
                         </label>
                         <input
                           type="text"
@@ -594,12 +589,12 @@ export default function PublicEventPage() {
                           onChange={(e) => setGroupName(e.target.value)}
                           required
                           placeholder="e.g. Alpha Delegation / Team Vanguard"
-                          className="w-full bg-slate-50 border border-slate-300 focus:bg-white focus:border-slate-900 focus:ring-2 focus:ring-slate-900/10 text-sm text-slate-900 placeholder-slate-400 rounded-xl px-4 py-3.5 outline-none font-medium transition-all"
+                          className="w-full bg-ink-50 border border-ink-300 focus:bg-white focus:border-ink-900 focus:ring-2 focus:ring-ink-900/10 text-sm text-ink-900 placeholder-ink-400 rounded-xl px-4 py-3.5 outline-none font-medium transition-all"
                         />
                       </div>
 
                       {/* Member Tab Navigation */}
-                      <div className="flex gap-2 overflow-x-auto pb-1 border-b border-slate-200">
+                      <div className="flex gap-2 overflow-x-auto pb-1 border-b border-ink-200">
                         {groupMembers.map((m, idx) => (
                           <button
                             key={idx}
@@ -607,13 +602,13 @@ export default function PublicEventPage() {
                             onClick={() => setActiveMemberTab(idx)}
                             className={`px-3.5 py-2 rounded-xl text-xs font-extrabold whitespace-nowrap transition-all flex items-center gap-1.5 ${
                               activeMemberTab === idx
-                                ? 'bg-slate-900 text-white shadow-md'
-                                : 'bg-slate-100 text-slate-600 hover:bg-slate-200 hover:text-slate-900 border border-slate-200'
+                                ? 'bg-ink-900 text-ink-50 shadow-md'
+                                : 'bg-ink-100 text-ink-600 hover:bg-ink-200 hover:text-ink-900 border border-ink-200'
                             }`}
                           >
                             <span>Member #{idx + 1}</span>
                             {m.isLeader && (
-                              <span className="text-[9px] px-1.5 py-0.2 rounded bg-amber-300 text-amber-950 font-black">
+                              <span className="text-[9px] px-1.5 py-0.2 rounded bg-caution-300 text-caution-950 font-black">
                                 Leader
                               </span>
                             )}
@@ -623,25 +618,25 @@ export default function PublicEventPage() {
 
                       {/* Active Member Form Inputs */}
                       {groupMembers[activeMemberTab] && (
-                        <div className="p-5 bg-slate-50/90 rounded-2xl border border-slate-200 space-y-4">
-                          <div className="flex items-center justify-between border-b border-slate-200 pb-2.5">
-                            <span className="text-xs font-black text-slate-900 uppercase tracking-wider">
+                        <div className="p-5 bg-ink-50/90 rounded-2xl border border-ink-200 space-y-4">
+                          <div className="flex items-center justify-between border-b border-ink-200 pb-2.5">
+                            <span className="text-[13px] font-bold text-ink-900">
                               Member #{activeMemberTab + 1} Profile
                             </span>
-                            <label className="flex items-center gap-2 cursor-pointer text-xs text-amber-800 font-bold">
+                            <label className="flex items-center gap-2 cursor-pointer text-xs text-caution-800 font-bold">
                               <input
                                 type="radio"
                                 name="groupLeaderSelection"
                                 checked={groupMembers[activeMemberTab].isLeader}
                                 onChange={() => updateGroupMember(activeMemberTab, 'isLeader', true)}
-                                className="w-3.5 h-3.5 accent-amber-600 cursor-pointer"
+                                className="w-3.5 h-3.5 accent-caution-600 cursor-pointer"
                               />
                               <span>Designate as Group Leader</span>
                             </label>
                           </div>
 
                           <div>
-                            <label className="block text-xs font-bold uppercase text-slate-900 mb-1">
+                            <label className="block text-[13px] font-semibold text-ink-900 mb-1">
                               Full Name *
                             </label>
                             <input
@@ -650,12 +645,12 @@ export default function PublicEventPage() {
                               onChange={(e) => updateGroupMember(activeMemberTab, 'name', e.target.value)}
                               required
                               placeholder="Member full name"
-                              className="w-full bg-white border border-slate-300 text-xs text-slate-900 font-medium rounded-xl px-3.5 py-3 outline-none focus:border-slate-900"
+                              className="w-full bg-white border border-ink-300 text-xs text-ink-900 font-medium rounded-xl px-3.5 py-3 outline-none focus:border-ink-900"
                             />
                           </div>
 
                           <div>
-                            <label className="block text-xs font-bold uppercase text-slate-900 mb-1">
+                            <label className="block text-[13px] font-semibold text-ink-900 mb-1">
                               Email Address (Pass will be sent here) *
                             </label>
                             <input
@@ -664,12 +659,12 @@ export default function PublicEventPage() {
                               onChange={(e) => updateGroupMember(activeMemberTab, 'email', e.target.value)}
                               required
                               placeholder="member.email@example.com"
-                              className="w-full bg-white border border-slate-300 text-xs text-slate-900 font-medium rounded-xl px-3.5 py-3 outline-none focus:border-slate-900"
+                              className="w-full bg-white border border-ink-300 text-xs text-ink-900 font-medium rounded-xl px-3.5 py-3 outline-none focus:border-ink-900"
                             />
                           </div>
 
                           <div>
-                            <label className="block text-xs font-bold uppercase text-slate-900 mb-1">
+                            <label className="block text-[13px] font-semibold text-ink-900 mb-1">
                               Phone / WhatsApp *
                             </label>
                             <input
@@ -678,7 +673,7 @@ export default function PublicEventPage() {
                               onChange={(e) => updateGroupMember(activeMemberTab, 'phone', e.target.value)}
                               required
                               placeholder="+92 300 1234567"
-                              className="w-full bg-white border border-slate-300 text-xs text-slate-900 font-medium rounded-xl px-3.5 py-3 outline-none focus:border-slate-900"
+                              className="w-full bg-white border border-ink-300 text-xs text-ink-900 font-medium rounded-xl px-3.5 py-3 outline-none focus:border-ink-900"
                             />
                           </div>
 
@@ -696,7 +691,7 @@ export default function PublicEventPage() {
                       <div className="flex gap-3 pt-2">
                         <button
                           type="button"
-                          className="w-1/2 py-4 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold text-sm border border-slate-200 transition-all flex items-center justify-center gap-2 cursor-pointer"
+                          className="w-1/2 py-4 rounded-xl bg-ink-100 hover:bg-ink-200 text-ink-800 font-bold text-sm border border-ink-200 transition-all flex items-center justify-center gap-2 cursor-pointer"
                           onClick={() => setStep(1)}
                         >
                           <ArrowLeft className="w-4 h-4" />
@@ -704,7 +699,7 @@ export default function PublicEventPage() {
                         </button>
                         <button
                           type="button"
-                          className="w-1/2 py-4 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-bold text-sm shadow-xl shadow-slate-900/15 transition-all flex items-center justify-center gap-2 cursor-pointer"
+                          className="w-1/2 py-4 rounded-xl bg-ink-900 hover:bg-ink-800 text-ink-50 font-bold text-sm shadow-xl transition-all flex items-center justify-center gap-2 cursor-pointer"
                           onClick={() => {
                             setError('');
                             setStep(3);
@@ -718,16 +713,16 @@ export default function PublicEventPage() {
                   ) : (
                     // SINGLE PARTICIPANT REGISTRATION FORM
                     <div className="space-y-4">
-                      <div className="border-b border-slate-200 pb-3">
-                        <h2 className="text-sm font-black text-slate-900 flex items-center gap-2">
-                          <UserCheck className="w-4 h-4 text-slate-900" />
+                      <div className="border-b border-ink-200 pb-3">
+                        <h2 className="text-sm font-black text-ink-900 flex items-center gap-2">
+                          <UserCheck className="w-4 h-4 text-ink-900" />
                           Contact & Security Details
                         </h2>
                       </div>
 
                       <div>
-                        <label className="block text-xs font-bold uppercase tracking-wider text-slate-900 mb-1.5">
-                          Full Name <span className="text-red-500">*</span>
+                        <label className="block text-[13px] font-semibold text-ink-900 mb-1.5">
+                          Full Name <span className="text-negative-500">*</span>
                         </label>
                         <input
                           type="text"
@@ -735,13 +730,13 @@ export default function PublicEventPage() {
                           onChange={(e) => setFullName(e.target.value)}
                           required
                           placeholder="e.g. John Doe"
-                          className="w-full bg-slate-50 border border-slate-300 focus:bg-white focus:border-slate-900 focus:ring-2 focus:ring-slate-900/10 text-sm text-slate-900 placeholder-slate-400 rounded-xl px-4 py-3.5 outline-none font-medium transition-all"
+                          className="w-full bg-ink-50 border border-ink-300 focus:bg-white focus:border-ink-900 focus:ring-2 focus:ring-ink-900/10 text-sm text-ink-900 placeholder-ink-400 rounded-xl px-4 py-3.5 outline-none font-medium transition-all"
                         />
                       </div>
 
                       <div>
-                        <label className="block text-xs font-bold uppercase tracking-wider text-slate-900 mb-1.5">
-                          Email Address <span className="text-red-500">*</span>
+                        <label className="block text-[13px] font-semibold text-ink-900 mb-1.5">
+                          Email Address <span className="text-negative-500">*</span>
                         </label>
                         <input
                           type="email"
@@ -749,13 +744,13 @@ export default function PublicEventPage() {
                           onChange={(e) => setEmail(e.target.value)}
                           required
                           placeholder="your.email@example.com"
-                          className="w-full bg-slate-50 border border-slate-300 focus:bg-white focus:border-slate-900 focus:ring-2 focus:ring-slate-900/10 text-sm text-slate-900 placeholder-slate-400 rounded-xl px-4 py-3.5 outline-none font-medium transition-all"
+                          className="w-full bg-ink-50 border border-ink-300 focus:bg-white focus:border-ink-900 focus:ring-2 focus:ring-ink-900/10 text-sm text-ink-900 placeholder-ink-400 rounded-xl px-4 py-3.5 outline-none font-medium transition-all"
                         />
                       </div>
 
                       <div>
-                        <label className="block text-xs font-bold uppercase tracking-wider text-slate-900 mb-1.5">
-                          Phone / WhatsApp Number <span className="text-red-500">*</span>
+                        <label className="block text-[13px] font-semibold text-ink-900 mb-1.5">
+                          Phone / WhatsApp Number <span className="text-negative-500">*</span>
                         </label>
                         <input
                           type="tel"
@@ -763,7 +758,7 @@ export default function PublicEventPage() {
                           onChange={(e) => setPhone(e.target.value)}
                           required
                           placeholder="e.g. +92 300 1234567"
-                          className="w-full bg-slate-50 border border-slate-300 focus:bg-white focus:border-slate-900 focus:ring-2 focus:ring-slate-900/10 text-sm text-slate-900 placeholder-slate-400 rounded-xl px-4 py-3.5 outline-none font-medium transition-all"
+                          className="w-full bg-ink-50 border border-ink-300 focus:bg-white focus:border-ink-900 focus:ring-2 focus:ring-ink-900/10 text-sm text-ink-900 placeholder-ink-400 rounded-xl px-4 py-3.5 outline-none font-medium transition-all"
                         />
                       </div>
 
@@ -780,7 +775,7 @@ export default function PublicEventPage() {
                         {participantTypes.length > 0 && (
                           <button
                             type="button"
-                            className="w-1/2 py-4 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold text-sm border border-slate-200 transition-all flex items-center justify-center gap-2 cursor-pointer"
+                            className="w-1/2 py-4 rounded-xl bg-ink-100 hover:bg-ink-200 text-ink-800 font-bold text-sm border border-ink-200 transition-all flex items-center justify-center gap-2 cursor-pointer"
                             onClick={() => setStep(1)}
                           >
                             <ArrowLeft className="w-4 h-4" />
@@ -790,7 +785,7 @@ export default function PublicEventPage() {
                         <button
                           type="button"
                           disabled={!email || !fullName || !phone}
-                          className={`${participantTypes.length > 0 ? 'w-1/2' : 'w-full'} py-4 rounded-xl bg-slate-900 hover:bg-slate-800 disabled:opacity-50 text-white font-bold text-sm shadow-xl shadow-slate-900/15 transition-all flex items-center justify-center gap-2 cursor-pointer`}
+                          className={`${participantTypes.length > 0 ? 'w-1/2' : 'w-full'} py-4 rounded-xl bg-ink-900 hover:bg-ink-800 disabled:opacity-50 text-ink-50 font-bold text-sm shadow-xl transition-all flex items-center justify-center gap-2 cursor-pointer`}
                           onClick={() => {
                             setError('');
                             setStep(3);
@@ -808,22 +803,22 @@ export default function PublicEventPage() {
               {/* STEP 3: Event Questionnaire & Submit */}
               {(step === 3 || (participantTypes.length === 0 && !isMun)) && (
                 <div className="space-y-5">
-                  <div className="border-b border-slate-200 pb-3 mb-2">
-                    <h2 className="text-sm font-black text-slate-900 flex items-center gap-2">
-                      <FileText className="w-4 h-4 text-slate-900" />
+                  <div className="border-b border-ink-200 pb-3 mb-2">
+                    <h2 className="text-sm font-black text-ink-900 flex items-center gap-2">
+                      <FileText className="w-4 h-4 text-ink-900" />
                       Event Questionnaire Answers
                     </h2>
                   </div>
 
                   {activeFields.length === 0 ? (
-                    <div className="p-6 rounded-2xl bg-slate-50 border border-slate-200 text-xs font-semibold text-slate-600 text-center">
+                    <div className="p-6 rounded-2xl bg-ink-50 border border-ink-200 text-xs font-semibold text-ink-600 text-center">
                       No additional custom questionnaire fields for this category. Ready to submit!
                     </div>
                   ) : (
                     activeFields.map((field) => (
                       <div key={field.id} className="space-y-1.5">
-                        <label className="block text-xs font-bold uppercase tracking-wider text-slate-900">
-                          {field.label} {field.required && <span className="text-red-500">*</span>}
+                        <label className="block text-[13px] font-semibold text-ink-900">
+                          {field.label} {field.required && <span className="text-negative-500">*</span>}
                         </label>
 
                         {field.type === 'SHORT_TEXT' ? (
@@ -833,7 +828,7 @@ export default function PublicEventPage() {
                             onChange={(e) => updateResponse(field.id, e.target.value)}
                             required={field.required}
                             placeholder={`Enter ${(field.label || '').toLowerCase()}...`}
-                            className="w-full bg-slate-50 border border-slate-300 focus:bg-white focus:border-slate-900 focus:ring-2 focus:ring-slate-900/10 text-sm text-slate-900 placeholder-slate-400 rounded-xl px-4 py-3.5 outline-none font-medium transition-all"
+                            className="w-full bg-ink-50 border border-ink-300 focus:bg-white focus:border-ink-900 focus:ring-2 focus:ring-ink-900/10 text-sm text-ink-900 placeholder-ink-400 rounded-xl px-4 py-3.5 outline-none font-medium transition-all"
                           />
                         ) : field.type === 'PARAGRAPH' ? (
                           <textarea
@@ -842,7 +837,7 @@ export default function PublicEventPage() {
                             onChange={(e) => updateResponse(field.id, e.target.value)}
                             required={field.required}
                             placeholder={`Enter ${(field.label || '').toLowerCase()}...`}
-                            className="w-full bg-slate-50 border border-slate-300 focus:bg-white focus:border-slate-900 focus:ring-2 focus:ring-slate-900/10 text-sm text-slate-900 placeholder-slate-400 rounded-xl p-4 outline-none resize-y font-medium transition-all"
+                            className="w-full bg-ink-50 border border-ink-300 focus:bg-white focus:border-ink-900 focus:ring-2 focus:ring-ink-900/10 text-sm text-ink-900 placeholder-ink-400 rounded-xl p-4 outline-none resize-y font-medium transition-all"
                           />
                         ) : field.type === 'NUMBER' ? (
                           <input
@@ -850,7 +845,7 @@ export default function PublicEventPage() {
                             value={(responses[field.id] as string) || ''}
                             onChange={(e) => updateResponse(field.id, e.target.value)}
                             required={field.required}
-                            className="w-full bg-slate-50 border border-slate-300 focus:bg-white focus:border-slate-900 focus:ring-2 focus:ring-slate-900/10 text-sm text-slate-900 placeholder-slate-400 rounded-xl px-4 py-3.5 outline-none font-medium transition-all"
+                            className="w-full bg-ink-50 border border-ink-300 focus:bg-white focus:border-ink-900 focus:ring-2 focus:ring-ink-900/10 text-sm text-ink-900 placeholder-ink-400 rounded-xl px-4 py-3.5 outline-none font-medium transition-all"
                           />
                         ) : field.type === 'DATE' ? (
                           <input
@@ -858,14 +853,14 @@ export default function PublicEventPage() {
                             value={(responses[field.id] as string) || ''}
                             onChange={(e) => updateResponse(field.id, e.target.value)}
                             required={field.required}
-                            className="w-full bg-slate-50 border border-slate-300 focus:bg-white focus:border-slate-900 focus:ring-2 focus:ring-slate-900/10 text-sm text-slate-900 placeholder-slate-400 rounded-xl px-4 py-3.5 outline-none font-medium transition-all"
+                            className="w-full bg-ink-50 border border-ink-300 focus:bg-white focus:border-ink-900 focus:ring-2 focus:ring-ink-900/10 text-sm text-ink-900 placeholder-ink-400 rounded-xl px-4 py-3.5 outline-none font-medium transition-all"
                           />
                         ) : field.type === 'DROPDOWN' ? (
                           <select
                             value={(responses[field.id] as string) || ''}
                             onChange={(e) => updateResponse(field.id, e.target.value)}
                             required={field.required}
-                            className="w-full bg-slate-50 border border-slate-300 focus:bg-white focus:border-slate-900 text-sm text-slate-900 rounded-xl px-4 py-3.5 outline-none font-medium transition-all"
+                            className="w-full bg-ink-50 border border-ink-300 focus:bg-white focus:border-ink-900 text-sm text-ink-900 rounded-xl px-4 py-3.5 outline-none font-medium transition-all"
                           >
                             <option value="">-- Choose Option --</option>
                             {(field.options || []).map((opt, i) => (
@@ -877,7 +872,7 @@ export default function PublicEventPage() {
                         ) : field.type === 'RADIO' ? (
                           <div className="space-y-2 pt-1">
                             {(field.options || []).map((opt, i) => (
-                              <label key={i} className="flex items-center gap-3 p-3 rounded-xl border border-slate-200 bg-slate-50/50 hover:bg-slate-100 text-sm font-semibold text-slate-900 cursor-pointer transition-all">
+                              <label key={i} className="flex items-center gap-3 p-3 rounded-xl border border-ink-200 bg-ink-50/50 hover:bg-ink-100 text-sm font-semibold text-ink-900 cursor-pointer transition-all">
                                 <input
                                   type="radio"
                                   name={field.id}
@@ -885,7 +880,7 @@ export default function PublicEventPage() {
                                   checked={responses[field.id] === opt}
                                   onChange={() => updateResponse(field.id, opt)}
                                   required={field.required}
-                                  className="w-4 h-4 accent-slate-900 cursor-pointer"
+                                  className="w-4 h-4 accent-ink-900 cursor-pointer"
                                 />
                                 <span>{opt}</span>
                               </label>
@@ -894,7 +889,7 @@ export default function PublicEventPage() {
                         ) : field.type === 'CHECKBOX' ? (
                           <div className="space-y-2 pt-1">
                             {(field.options || []).map((opt, i) => (
-                              <label key={i} className="flex items-center gap-3 p-3 rounded-xl border border-slate-200 bg-slate-50/50 hover:bg-slate-100 text-sm font-semibold text-slate-900 cursor-pointer transition-all">
+                              <label key={i} className="flex items-center gap-3 p-3 rounded-xl border border-ink-200 bg-ink-50/50 hover:bg-ink-100 text-sm font-semibold text-ink-900 cursor-pointer transition-all">
                                 <input
                                   type="checkbox"
                                   checked={((responses[field.id] as string[]) || []).includes(opt)}
@@ -905,7 +900,7 @@ export default function PublicEventPage() {
                                       e.target.checked ? [...cur, opt] : cur.filter((v: string) => v !== opt)
                                     );
                                   }}
-                                  className="w-4 h-4 accent-slate-900 cursor-pointer"
+                                  className="w-4 h-4 accent-ink-900 cursor-pointer"
                                 />
                                 <span>{opt}</span>
                               </label>
@@ -917,7 +912,7 @@ export default function PublicEventPage() {
                   )}
 
                   {error && (
-                    <div className="flex items-center gap-2 p-3.5 text-xs font-bold text-red-600 bg-red-50 border border-red-200 rounded-xl">
+                    <div className="flex items-center gap-2 p-3.5 text-xs font-bold text-negative-600 bg-negative-50 border border-negative-200 rounded-xl">
                       <AlertCircle className="w-4 h-4 shrink-0" />
                       <span>{error}</span>
                     </div>
@@ -927,7 +922,7 @@ export default function PublicEventPage() {
                     {participantTypes.length > 0 && (
                       <button
                         type="button"
-                        className="w-1/3 py-4 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold text-sm border border-slate-200 transition-all flex items-center justify-center gap-2 cursor-pointer"
+                        className="w-1/3 py-4 rounded-xl bg-ink-100 hover:bg-ink-200 text-ink-800 font-bold text-sm border border-ink-200 transition-all flex items-center justify-center gap-2 cursor-pointer"
                         onClick={() => setStep(2)}
                       >
                         <ArrowLeft className="w-4 h-4" />
@@ -937,7 +932,7 @@ export default function PublicEventPage() {
                     <button
                       type="submit"
                       disabled={submitting}
-                      className={`${participantTypes.length > 0 ? 'w-2/3' : 'w-full'} py-4 rounded-xl bg-slate-900 hover:bg-slate-800 disabled:opacity-50 text-white font-bold text-sm shadow-xl shadow-slate-900/15 transition-all flex items-center justify-center gap-2 cursor-pointer`}
+                      className={`${participantTypes.length > 0 ? 'w-2/3' : 'w-full'} py-4 rounded-xl bg-ink-900 hover:bg-ink-800 disabled:opacity-50 text-ink-50 font-bold text-sm shadow-xl transition-all flex items-center justify-center gap-2 cursor-pointer`}
                     >
                       {submitting ? (
                         <>

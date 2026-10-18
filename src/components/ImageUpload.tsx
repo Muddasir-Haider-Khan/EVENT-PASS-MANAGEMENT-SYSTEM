@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useRef } from 'react';
+import { UploadCloud } from 'lucide-react';
 
 interface ImageUploadProps {
   label?: string;
@@ -61,7 +62,7 @@ export function ImageUpload({
 
       onChange(data.url);
     } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : 'Failed to upload image to ImageKit';
+      const msg = err instanceof Error ? err.message : 'Image upload failed';
       setError(msg);
     } finally {
       setUploading(false);
@@ -77,82 +78,58 @@ export function ImageUpload({
     }
   }
 
+  // Dashboard variant follows the app theme; the light variant sits on the public
+  // event page, whose fixed palette never flips with the dashboard theme.
   const isLight = theme === 'light';
+  const ui = isLight
+    ? {
+        label: 'block text-[13px] font-semibold text-ink-900 mb-1.5',
+        frame: 'bg-white border border-ink-200',
+        drop: 'bg-ink-50 border-ink-300 hover:border-ink-500',
+        dropActive: 'bg-ink-100 border-ink-900',
+        text: 'text-ink-900',
+        muted: 'text-ink-500',
+        btn: 'h-8 px-3 rounded-full text-[12.5px] font-semibold border border-ink-300 text-ink-800 bg-white hover:bg-ink-50',
+        input: 'w-full h-11 bg-white border border-ink-300 text-ink-900 rounded-[14px] px-3.5 text-sm focus:border-ink-900 focus:ring-0 outline-none',
+        error: 'text-negative-600',
+      }
+    : {
+        label: 'input-label',
+        frame: 'bg-surface border border-line',
+        drop: 'bg-surface border-line-2 hover:border-faint',
+        dropActive: 'bg-surface-2 border-fg',
+        text: 'text-fg',
+        muted: 'text-muted',
+        btn: 'btn btn-ghost btn-sm',
+        input: 'input',
+        error: 'text-negative-400',
+      };
 
   return (
-    <div style={{ marginBottom: 16 }}>
-      {label && (
-        <label className={`block text-xs font-bold uppercase tracking-wider mb-1.5 ${isLight ? 'text-slate-800' : 'input-label'}`}>
-          {label}
-        </label>
-      )}
+    <div className="mb-1">
+      {label && <label className={ui.label}>{label}</label>}
 
       {value ? (
-        <div
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: 14,
-            padding: 12,
-            background: isLight ? '#F8FAFC' : 'var(--bg-surface)',
-            border: isLight ? '1px solid #E2E8F0' : '1px solid var(--border-hover)',
-            borderRadius: 12,
-          }}
-        >
-          <div
-            style={{
-              width: 54,
-              height: 54,
-              borderRadius: 8,
-              overflow: 'hidden',
-              background: isLight ? '#E2E8F0' : '#000',
-              flexShrink: 0,
-              border: isLight ? '1px solid #CBD5E1' : '1px solid var(--border-default)',
-            }}
-          >
+        <div className={`flex items-center gap-3.5 p-3 rounded-[16px] ${ui.frame}`}>
+          <div className="w-14 h-14 rounded-[12px] overflow-hidden flex-none bg-ink-900/10">
             <img
               src={value}
-              alt="Preview"
-              style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+              alt="Uploaded preview"
+              className="w-full h-full object-cover"
               onError={(e) => {
                 (e.target as HTMLElement).style.display = 'none';
               }}
             />
           </div>
-
-          <div style={{ flex: 1, overflow: 'hidden' }}>
-            <div
-              className="truncate"
-              style={{
-                fontSize: 13,
-                color: isLight ? '#0F172A' : 'var(--text-primary)',
-                fontFamily: 'IBM Plex Mono, monospace',
-                fontWeight: 600,
-              }}
-            >
-              {value}
-            </div>
-            <div style={{ fontSize: 11, color: isLight ? '#16A34A' : 'var(--gold-light)', marginTop: 2, fontWeight: 600 }}>
-              ✓ ImageKit Hosted
-            </div>
+          <div className="flex-1 min-w-0">
+            <p className={`truncate text-[13px] font-semibold ${ui.text}`}>{value.split('/').pop()}</p>
+            <p className={`text-[12px] mt-0.5 ${ui.muted}`}>Uploaded</p>
           </div>
-
-          <div style={{ display: 'flex', gap: 6 }}>
-            <button
-              type="button"
-              className={isLight ? 'px-3 py-1.5 text-xs font-semibold text-slate-700 bg-white border border-slate-300 rounded-lg hover:bg-slate-100' : 'btn btn-ghost btn-sm'}
-              onClick={() => fileInputRef.current?.click()}
-              disabled={uploading}
-            >
-              Change
+          <div className="flex gap-1.5">
+            <button type="button" className={ui.btn} onClick={() => fileInputRef.current?.click()} disabled={uploading}>
+              Replace
             </button>
-            <button
-              type="button"
-              className={isLight ? 'px-3 py-1.5 text-xs font-semibold text-red-600 bg-red-50 border border-red-200 rounded-lg hover:bg-red-100' : 'btn btn-ghost btn-sm'}
-              style={isLight ? undefined : { color: 'var(--error)' }}
-              onClick={() => onChange('')}
-              disabled={uploading}
-            >
+            <button type="button" className={ui.btn} onClick={() => onChange('')} disabled={uploading}>
               Remove
             </button>
           </div>
@@ -161,79 +138,51 @@ export function ImageUpload({
         <div>
           {!showUrlInput ? (
             <div
+              role="button"
+              tabIndex={0}
+              onKeyDown={(e) => (e.key === 'Enter' || e.key === ' ') && fileInputRef.current?.click()}
               onDragOver={(e) => { e.preventDefault(); setDragActive(true); }}
               onDragLeave={() => setDragActive(false)}
               onDrop={handleDrop}
               onClick={() => fileInputRef.current?.click()}
-              style={{
-                border: `2px dashed ${dragActive ? (isLight ? '#4F46E5' : 'var(--gold-primary)') : (isLight ? '#CBD5E1' : 'var(--border-default)')}`,
-                background: dragActive ? (isLight ? 'rgba(79, 70, 229, 0.05)' : 'rgba(212, 175, 55, 0.05)') : (isLight ? '#F8FAFC' : 'var(--bg-root)'),
-                borderRadius: 12,
-                padding: '20px 16px',
-                textAlign: 'center',
-                cursor: uploading ? 'wait' : 'pointer',
-                transition: 'all 150ms ease',
-              }}
+              className={`rounded-[16px] border-2 border-dashed px-4 py-6 text-center transition-colors ${uploading ? 'cursor-wait' : 'cursor-pointer'} ${dragActive ? ui.dropActive : ui.drop}`}
             >
               {uploading ? (
-                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8 }}>
-                  <div className="spinner" style={{ borderTopColor: isLight ? '#4F46E5' : 'var(--gold-primary)' }} />
-                  <span style={{ fontSize: 13, color: isLight ? '#4F46E5' : 'var(--gold-light)', fontWeight: 600 }}>Uploading to ImageKit...</span>
-                </div>
+                <span className={`inline-flex items-center gap-2 text-[13px] font-semibold ${ui.text}`}>
+                  <span className="spinner !w-4 !h-4" /> Uploading…
+                </span>
               ) : (
-                <div>
-                  <div style={{ fontSize: 24, marginBottom: 4 }}>📷</div>
-                  <div style={{ fontSize: 13, fontWeight: 600, color: isLight ? '#0F172A' : 'var(--text-primary)' }}>
-                    Click or drag image file here to upload on ImageKit
-                  </div>
-                  <div style={{ fontSize: 11, color: isLight ? '#64748B' : 'var(--text-muted)', marginTop: 4 }}>
-                    Supports PNG, JPG, WebP, GIF, SVG (Max 6MB)
-                  </div>
-                </div>
+                <>
+                  <UploadCloud className={`w-5 h-5 mx-auto mb-2 ${ui.muted}`} aria-hidden="true" />
+                  <p className={`text-[13px] font-semibold ${ui.text}`}>Drop an image here, or click to choose</p>
+                  <p className={`text-[12px] mt-1 ${ui.muted}`}>PNG, JPG, WebP, GIF or SVG · up to 6 MB</p>
+                </>
               )}
             </div>
           ) : (
-            <input
-              type="url"
-              className={isLight ? 'w-full bg-slate-50 border border-slate-300 text-slate-900 rounded-xl px-4 py-3 text-sm focus:bg-white focus:border-indigo-600 outline-none' : 'input'}
-              value={value || ''}
-              onChange={(e) => onChange(e.target.value)}
-              placeholder={placeholder}
-            />
+            <input type="url" className={ui.input} value={value || ''} onChange={(e) => onChange(e.target.value)} placeholder={placeholder} />
           )}
 
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 6 }}>
-            <span style={{ fontSize: 11, color: isLight ? '#64748B' : 'var(--text-muted)' }}>{helpText}</span>
+          <div className="flex items-start justify-between gap-3 mt-1.5">
+            <span className={`text-[12px] ${ui.muted}`}>{helpText}</span>
             <button
               type="button"
               onClick={() => setShowUrlInput(!showUrlInput)}
-              style={{
-                background: 'none',
-                border: 'none',
-                color: isLight ? '#4F46E5' : 'var(--gold-light)',
-                fontSize: 11,
-                fontWeight: 600,
-                cursor: 'pointer',
-                textDecoration: 'underline',
-              }}
+              className={`text-[12px] font-semibold underline underline-offset-2 whitespace-nowrap ${ui.text}`}
             >
-              {showUrlInput ? '← Upload File to ImageKit' : 'Paste Direct Image URL'}
+              {showUrlInput ? 'Upload a file instead' : 'Use an image URL'}
             </button>
           </div>
         </div>
       )}
 
-      {error && (
-        <div style={{ color: isLight ? '#DC2626' : 'var(--error)', fontSize: 12, marginTop: 6, fontWeight: 600 }}>
-          ⚠️ {error}
-        </div>
-      )}
+      {error && <p role="alert" className={`text-[12.5px] mt-1.5 font-semibold ${ui.error}`}>{error}</p>}
 
       <input
         ref={fileInputRef}
         type="file"
         accept="image/*"
-        style={{ display: 'none' }}
+        className="hidden"
         onChange={(e) => {
           if (e.target.files && e.target.files[0]) {
             handleFileSelect(e.target.files[0]);

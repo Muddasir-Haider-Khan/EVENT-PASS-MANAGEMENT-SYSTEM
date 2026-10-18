@@ -1,6 +1,10 @@
 'use client';
 
 import { useState } from 'react';
+import Link from 'next/link';
+import { ArrowLeft } from 'lucide-react';
+import { PageHead } from '@/components/AppShell';
+import { FontPreviewStyles } from '@/components/FontPreviewStyles';
 import { useRouter } from 'next/navigation';
 import { useToast } from '@/components/Toast';
 import { ImageUpload } from '@/components/ImageUpload';
@@ -97,7 +101,7 @@ export default function CreateEventPage() {
         <div className="card card-gold-glow" style={{ padding: 36 }}>
           <div style={{ marginBottom: 24, textAlign: 'center' }}>
             <span className="badge badge-gold" style={{ marginBottom: 12 }}>
-              ✓ Event Configured & Manager Assigned
+              Event Configured & Manager Assigned
             </span>
             <h2 className="text-headline gold-gradient-text">Manager Permanent Credentials</h2>
             <p className="text-caption" style={{ color: 'var(--text-secondary)', marginTop: 6 }}>
@@ -107,31 +111,31 @@ export default function CreateEventPage() {
 
           <div className="card-elevated" style={{ padding: 22, marginBottom: 20, border: '1px solid var(--border-hover)' }}>
             <div style={{ marginBottom: 18 }}>
-              <span className="text-overline" style={{ color: 'var(--gold-light)' }}>Manager Login ID</span>
-              <div className="text-mono" style={{ fontSize: 18, marginTop: 4, color: '#F8FAFC', fontWeight: 600 }}>
+              <span className="text-[12px] text-muted">Manager Login ID</span>
+              <div className="text-mono" style={{ fontSize: 18, marginTop: 4, color: 'var(--text)', fontWeight: 600 }}>
                 {credentials.loginId}
               </div>
             </div>
             <div>
-              <span className="text-overline" style={{ color: 'var(--gold-light)' }}>Permanent System Password</span>
-              <div className="text-mono" style={{ fontSize: 18, marginTop: 4, color: '#F8FAFC', fontWeight: 600 }}>
+              <span className="text-[12px] text-muted">Permanent System Password</span>
+              <div className="text-mono" style={{ fontSize: 18, marginTop: 4, color: 'var(--text)', fontWeight: 600 }}>
                 {credentials.password}
               </div>
             </div>
           </div>
 
           {credentials.emailSent ? (
-            <div style={{ padding: '12px 14px', borderRadius: 8, background: 'rgba(34, 197, 94, 0.1)', border: '1px solid rgba(34, 197, 94, 0.3)', color: '#4ADE80', fontSize: 13, marginBottom: 24 }}>
-              ✅ Email with permanent credentials successfully dispatched to <strong>{form.managerEmail}</strong>.
+            <div style={{ padding: '12px 14px', borderRadius: 8, background: 'var(--success-bg)', border: '1px solid var(--line-2)', color: 'var(--good)', fontSize: 13, marginBottom: 24 }}>
+              Email with permanent credentials successfully dispatched to <strong>{form.managerEmail}</strong>.
             </div>
           ) : (
-            <div style={{ padding: '12px 14px', borderRadius: 8, background: 'rgba(234, 179, 8, 0.1)', border: '1px solid rgba(234, 179, 8, 0.3)', color: '#FACC15', fontSize: 12, marginBottom: 24 }}>
-              ⚠️ Email delivery info: {credentials.emailError ? credentials.emailError : 'Resend API requires domain verification'}. Please copy these credentials manually for your event manager.
+            <div style={{ padding: '12px 14px', borderRadius: 8, background: 'var(--warning-bg)', border: '1px solid var(--line-2)', color: 'var(--warn)', fontSize: 12, marginBottom: 24 }}>
+              Email delivery info: {credentials.emailError ? credentials.emailError : 'Resend API requires domain verification'}. Please copy these credentials manually for your event manager.
             </div>
           )}
 
           <button className="btn btn-gold" style={{ width: '100%', height: 44 }} onClick={() => router.push('/admin')}>
-            ← Return to Super Admin Roster
+            Back to events
           </button>
         </div>
       </div>
@@ -139,22 +143,18 @@ export default function CreateEventPage() {
   }
 
   return (
-    <div style={{ padding: '32px 28px', maxWidth: 800, margin: '0 auto' }}>
-      <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 28 }}>
-        <button className="btn btn-ghost btn-sm" onClick={() => router.push('/admin')}>
-          ← Back
-        </button>
-        <div>
-          <span className="text-overline" style={{ color: 'var(--gold-light)' }}>SUPER ADMIN ACTION</span>
-          <h1 className="text-headline gold-gradient-text">Initialize New Event</h1>
-        </div>
-      </div>
+    <div className="max-w-[880px]">
+      <FontPreviewStyles families={FONT_OPTIONS.map((f) => f.name)} />
+      <Link href="/admin" className="inline-flex items-center gap-1.5 text-[13px] font-semibold text-muted hover:text-fg mb-3">
+        <ArrowLeft className="w-4 h-4" /> Events
+      </Link>
+      <PageHead title={<>New<br />Event</>} />
 
       <form onSubmit={handleSubmit}>
         {/* Basic Details */}
-        <div className="card" style={{ padding: 28, marginBottom: 24 }}>
-          <h3 className="text-title" style={{ color: '#F8FAFC', marginBottom: 20 }}>
-            1. Event Specifications
+        <div className="card p-[18px] sm:p-6 mb-4">
+          <h3 className="card-title mb-5">
+            Event details
           </h3>
           <div style={{ display: 'grid', gap: 18 }}>
             <div>
@@ -166,16 +166,16 @@ export default function CreateEventPage() {
                   style={{
                     padding: '14px 16px',
                     borderRadius: 10,
-                    background: form.eventType === 'NORMAL' ? 'rgba(99, 102, 241, 0.15)' : 'rgba(255,255,255,0.03)',
-                    border: form.eventType === 'NORMAL' ? '2px solid #6366F1' : '1px solid var(--border-hover)',
-                    color: form.eventType === 'NORMAL' ? '#6366F1' : '#94A3B8',
+                    background: form.eventType === 'NORMAL' ? 'var(--surface-2)' : 'var(--surface)',
+                    border: form.eventType === 'NORMAL' ? '2px solid var(--text)' : '1px solid var(--border-hover)',
+                    color: form.eventType === 'NORMAL' ? 'var(--text)' : 'var(--muted)',
                     textAlign: 'left',
                     cursor: 'pointer',
                     transition: 'all 0.2s ease',
                   }}
                 >
-                  <div style={{ fontWeight: 700, fontSize: 14 }}>🎟️ Standard / Normal Event</div>
-                  <div style={{ fontSize: 12, color: '#94A3B8', marginTop: 4 }}>
+                  <div style={{ fontWeight: 700, fontSize: 14 }}>Standard / Normal Event</div>
+                  <div style={{ fontSize: 12, color: 'var(--muted)', marginTop: 4 }}>
                     Single-page pass form, standard QR gate check-ins.
                   </div>
                 </button>
@@ -186,16 +186,16 @@ export default function CreateEventPage() {
                   style={{
                     padding: '14px 16px',
                     borderRadius: 10,
-                    background: form.eventType === 'MUN' ? 'rgba(56, 189, 248, 0.15)' : 'rgba(255,255,255,0.03)',
-                    border: form.eventType === 'MUN' ? '2px solid #38BDF8' : '1px solid var(--border-hover)',
-                    color: form.eventType === 'MUN' ? '#38BDF8' : '#94A3B8',
+                    background: form.eventType === 'MUN' ? 'var(--surface-2)' : 'var(--surface)',
+                    border: form.eventType === 'MUN' ? '2px solid var(--text)' : '1px solid var(--border-hover)',
+                    color: form.eventType === 'MUN' ? 'var(--text)' : 'var(--muted)',
                     textAlign: 'left',
                     cursor: 'pointer',
                     transition: 'all 0.2s ease',
                   }}
                 >
-                  <div style={{ fontWeight: 700, fontSize: 14 }}>🏛️ MUN (Model United Nations)</div>
-                  <div style={{ fontSize: 12, color: '#94A3B8', marginTop: 4 }}>
+                  <div style={{ fontWeight: 700, fontSize: 14 }}>MUN (Model United Nations)</div>
+                  <div style={{ fontSize: 12, color: 'var(--muted)', marginTop: 4 }}>
                     Multi-step form, Participant Types, Photo Verification & Delegation Groups.
                   </div>
                 </button>
@@ -262,13 +262,13 @@ export default function CreateEventPage() {
         </div>
 
         {/* ImageKit Logo Upload & Colors */}
-        <div className="card" style={{ padding: 28, marginBottom: 28 }}>
-          <h3 className="text-title" style={{ color: '#F8FAFC', marginBottom: 20 }}>
-            2. Event Branding, Palette & Typography
+        <div className="card p-[18px] sm:p-6 mb-4">
+          <h3 className="card-title mb-5">
+            Branding
           </h3>
 
           <ImageUpload
-            label="Event Logo (Uploaded directly to ImageKit)"
+            label="Event logo"
             value={form.logoUrl}
             onChange={(url) => update('logoUrl', url)}
             folder="/epms/events/logos"
@@ -278,7 +278,7 @@ export default function CreateEventPage() {
           {/* Color Palette Presets */}
           <div style={{ marginTop: 24 }}>
             <label className="input-label" style={{ marginBottom: 10, display: 'block' }}>
-              🎨 Enterprise Color Palette Presets (1-Click Selection)
+              Color presets
             </label>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: 10 }}>
               {PALETTE_PRESETS.map((preset) => {
@@ -294,8 +294,8 @@ export default function CreateEventPage() {
                       gap: 10,
                       padding: '10px 12px',
                       borderRadius: 8,
-                      background: isActive ? 'rgba(212, 175, 55, 0.12)' : 'rgba(255, 255, 255, 0.03)',
-                      border: isActive ? '1px solid var(--gold-primary)' : '1px solid var(--border-hover)',
+                      background: isActive ? 'var(--surface-2)' : 'var(--surface)',
+                      border: isActive ? '1px solid var(--text)' : '1px solid var(--border-hover)',
                       cursor: 'pointer',
                       textAlign: 'left',
                       transition: 'all 0.2s ease',
@@ -306,7 +306,7 @@ export default function CreateEventPage() {
                       <div style={{ width: 14, height: 14, borderRadius: '50%', background: preset.secondary }} />
                       <div style={{ width: 14, height: 14, borderRadius: '50%', background: preset.accent }} />
                     </div>
-                    <span style={{ fontSize: 12, fontWeight: 500, color: isActive ? 'var(--gold-light)' : '#E2E8F0' }}>
+                    <span style={{ fontSize: 12, fontWeight: 500, color: 'var(--text)' }}>
                       {preset.name}
                     </span>
                   </button>
@@ -381,13 +381,13 @@ export default function CreateEventPage() {
               onChange={(e) => update('fontUrl', e.target.value)}
               placeholder="e.g. https://fonts.googleapis.com/css2?family=Cinzel:wght@700&display=swap"
             />
-            <span style={{ fontSize: 11, color: '#94A3B8', marginTop: 4, display: 'block' }}>
+            <span style={{ fontSize: 11, color: 'var(--muted)', marginTop: 4, display: 'block' }}>
               Paste a custom Google Font, DaFont WebFont, or CSS stylesheet link to override typography on public registration forms.
             </span>
           </div>
           <div style={{ marginTop: 24 }}>
             <label className="input-label" style={{ marginBottom: 8, display: 'block' }}>
-              🔤 Primary Typography (Google Font Family)
+              Typography
             </label>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: 10 }}>
               {FONT_OPTIONS.map((font) => {
@@ -400,14 +400,14 @@ export default function CreateEventPage() {
                     style={{
                       padding: '12px 14px',
                       borderRadius: 8,
-                      background: isSelected ? 'rgba(212, 175, 55, 0.12)' : 'rgba(255, 255, 255, 0.03)',
-                      border: isSelected ? '1px solid var(--gold-primary)' : '1px solid var(--border-hover)',
+                      background: isSelected ? 'var(--surface-2)' : 'var(--surface)',
+                      border: isSelected ? '1px solid var(--text)' : '1px solid var(--border-hover)',
                       cursor: 'pointer',
                       textAlign: 'left',
                       transition: 'all 0.2s ease',
                     }}
                   >
-                    <div style={{ fontFamily: font.name, fontSize: 15, fontWeight: 600, color: isSelected ? 'var(--gold-light)' : '#F8FAFC' }}>
+                    <div style={{ fontFamily: font.name, fontSize: 15, fontWeight: 600, color: 'var(--text)' }}>
                       {font.name}
                     </div>
                     <div style={{ fontSize: 11, color: 'var(--text-secondary)', marginTop: 2 }}>
@@ -436,26 +436,24 @@ export default function CreateEventPage() {
                 style={{
                   fontSize: 11,
                   fontWeight: 700,
-                  textTransform: 'uppercase',
-                  letterSpacing: '0.1em',
-                  padding: '4px 10px',
+                                    padding: '4px 10px',
                   borderRadius: 20,
                   backgroundColor: `${form.accentColor}20`,
                   color: form.accentColor,
                   border: `1px solid ${form.accentColor}40`,
                 }}
               >
-                LIVE BRANDING PREVIEW
+                Preview
               </span>
-              <span style={{ fontSize: 12, color: '#94A3B8' }}>Font: <strong>{form.fontFamily}</strong></span>
+              <span style={{ fontSize: 12, color: '#CBD5E1' }}>Font: <strong>{form.fontFamily}</strong></span>
             </div>
 
             <div style={{ fontFamily: form.fontFamily }}>
-              <h4 style={{ fontSize: 20, fontWeight: 700, color: '#FFFFFF', marginBottom: 6 }}>
+              <h4 style={{ fontSize: 20, fontWeight: 700, color: '#F8FAFC', marginBottom: 6 }}>
                 {form.name || 'Event Title Preview'}
               </h4>
-              <p style={{ fontSize: 13, color: '#94A3B8', marginBottom: 16 }}>
-                {form.venue || 'Venue Location'} • Registration Form & VIP Email Pass Preview
+              <p style={{ fontSize: 13, color: '#CBD5E1', marginBottom: 16 }}>
+                {form.venue || 'Venue Location'} · registration form and pass
               </p>
               <button
                 type="button"
@@ -471,14 +469,14 @@ export default function CreateEventPage() {
                   cursor: 'pointer',
                 }}
               >
-                Sample Action Button →
+                Sample button
               </button>
             </div>
           </div>
         </div>
 
         <button type="submit" className="btn btn-gold" style={{ width: '100%', height: 46, fontSize: 15 }} disabled={loading}>
-          {loading ? <span className="spinner" style={{ borderTopColor: '#070709' }} /> : 'Create Event & Provision Credentials →'}
+          {loading ? <span className="spinner" style={{ borderTopColor: 'var(--on-pill)' }} /> : 'Create event'}
         </button>
       </form>
     </div>

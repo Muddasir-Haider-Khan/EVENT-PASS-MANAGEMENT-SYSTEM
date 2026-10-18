@@ -1,6 +1,10 @@
 'use client';
 
 import { useEffect, useState, useCallback } from 'react';
+import Link from 'next/link';
+import { ArrowLeft } from 'lucide-react';
+import { PageHead } from '@/components/AppShell';
+import { FontPreviewStyles } from '@/components/FontPreviewStyles';
 import { useRouter, useParams } from 'next/navigation';
 import { useToast } from '@/components/Toast';
 import { ImageUpload } from '@/components/ImageUpload';
@@ -113,27 +117,23 @@ export default function EditEventPage() {
   if (loading) {
     return (
       <div style={{ padding: 60, textAlign: 'center' }}>
-        <div className="spinner" style={{ margin: '0 auto', borderTopColor: 'var(--gold-primary)' }} />
+        <div className="spinner" style={{ margin: '0 auto', borderTopColor: 'currentColor' }} />
       </div>
     );
   }
 
   return (
-    <div style={{ padding: '32px 28px', maxWidth: 800, margin: '0 auto' }}>
-      <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 28 }}>
-        <button className="btn btn-ghost btn-sm" onClick={() => router.push('/admin')}>
-          ← Back to Events
-        </button>
-        <div>
-          <span className="text-overline" style={{ color: 'var(--gold-light)' }}>SUPER ADMIN EDIT</span>
-          <h1 className="text-headline gold-gradient-text">Modify Event #{params.id?.slice(0, 8)}</h1>
-        </div>
-      </div>
+    <div className="max-w-[880px]">
+      <FontPreviewStyles families={FONT_OPTIONS.map((f) => f.name)} />
+      <Link href="/admin" className="inline-flex items-center gap-1.5 text-[13px] font-semibold text-muted hover:text-fg mb-3">
+        <ArrowLeft className="w-4 h-4" /> Events
+      </Link>
+      <PageHead title={<>Edit<br />Event</>} />
 
       <form onSubmit={handleSubmit}>
-        <div className="card" style={{ padding: 28, marginBottom: 24 }}>
-          <h3 className="text-title" style={{ color: '#F8FAFC', marginBottom: 20 }}>
-            Event Information
+        <div className="card p-[18px] sm:p-6 mb-4">
+          <h3 className="card-title mb-5">
+            Event details
           </h3>
           <div style={{ display: 'grid', gap: 18 }}>
             <div>
@@ -169,23 +169,23 @@ export default function EditEventPage() {
           </div>
         </div>
 
-        <div className="card" style={{ padding: 28, marginBottom: 28 }}>
-          <h3 className="text-title" style={{ color: '#F8FAFC', marginBottom: 20 }}>
-            ImageKit Branding & Themes
+        <div className="card p-[18px] sm:p-6 mb-4">
+          <h3 className="card-title mb-5">
+            Branding
           </h3>
 
           <ImageUpload
-            label="Event Logo (ImageKit Hosted)"
+            label="Event logo"
             value={form.logoUrl}
             onChange={(url) => update('logoUrl', url)}
             folder={`/epms/events/${params.id}`}
-            helpText="Upload new logo file to replace current ImageKit logo"
+            helpText="Shown on the public registration page and on attendee passes."
           />
 
           {/* Color Palette Presets */}
           <div style={{ marginTop: 24 }}>
             <label className="input-label" style={{ marginBottom: 10, display: 'block' }}>
-              🎨 Enterprise Color Palette Presets (1-Click Selection)
+              Color presets
             </label>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: 10 }}>
               {PALETTE_PRESETS.map((preset) => {
@@ -201,8 +201,8 @@ export default function EditEventPage() {
                       gap: 10,
                       padding: '10px 12px',
                       borderRadius: 8,
-                      background: isActive ? 'rgba(212, 175, 55, 0.12)' : 'rgba(255, 255, 255, 0.03)',
-                      border: isActive ? '1px solid var(--gold-primary)' : '1px solid var(--border-hover)',
+                      background: isActive ? 'var(--surface-2)' : 'var(--surface)',
+                      border: isActive ? '1px solid var(--text)' : '1px solid var(--border-hover)',
                       cursor: 'pointer',
                       textAlign: 'left',
                       transition: 'all 0.2s ease',
@@ -213,7 +213,7 @@ export default function EditEventPage() {
                       <div style={{ width: 14, height: 14, borderRadius: '50%', background: preset.secondary }} />
                       <div style={{ width: 14, height: 14, borderRadius: '50%', background: preset.accent }} />
                     </div>
-                    <span style={{ fontSize: 12, fontWeight: 500, color: isActive ? 'var(--gold-light)' : '#E2E8F0' }}>
+                    <span style={{ fontSize: 12, fontWeight: 500, color: 'var(--text)' }}>
                       {preset.name}
                     </span>
                   </button>
@@ -281,7 +281,7 @@ export default function EditEventPage() {
           {/* Typography Selector */}
           <div style={{ marginTop: 24 }}>
             <label className="input-label" style={{ marginBottom: 8, display: 'block' }}>
-              🔤 Primary Typography (Google Font Family)
+              Typography
             </label>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: 10 }}>
               {FONT_OPTIONS.map((font) => {
@@ -294,14 +294,14 @@ export default function EditEventPage() {
                     style={{
                       padding: '12px 14px',
                       borderRadius: 8,
-                      background: isSelected ? 'rgba(212, 175, 55, 0.12)' : 'rgba(255, 255, 255, 0.03)',
-                      border: isSelected ? '1px solid var(--gold-primary)' : '1px solid var(--border-hover)',
+                      background: isSelected ? 'var(--surface-2)' : 'var(--surface)',
+                      border: isSelected ? '1px solid var(--text)' : '1px solid var(--border-hover)',
                       cursor: 'pointer',
                       textAlign: 'left',
                       transition: 'all 0.2s ease',
                     }}
                   >
-                    <div style={{ fontFamily: font.name, fontSize: 15, fontWeight: 600, color: isSelected ? 'var(--gold-light)' : '#F8FAFC' }}>
+                    <div style={{ fontFamily: font.name, fontSize: 15, fontWeight: 600, color: 'var(--text)' }}>
                       {font.name}
                     </div>
                     <div style={{ fontSize: 11, color: 'var(--text-secondary)', marginTop: 2 }}>
@@ -330,26 +330,24 @@ export default function EditEventPage() {
                 style={{
                   fontSize: 11,
                   fontWeight: 700,
-                  textTransform: 'uppercase',
-                  letterSpacing: '0.1em',
-                  padding: '4px 10px',
+                                    padding: '4px 10px',
                   borderRadius: 20,
                   backgroundColor: `${form.accentColor}20`,
                   color: form.accentColor,
                   border: `1px solid ${form.accentColor}40`,
                 }}
               >
-                LIVE BRANDING PREVIEW
+                Preview
               </span>
-              <span style={{ fontSize: 12, color: '#94A3B8' }}>Font: <strong>{form.fontFamily}</strong></span>
+              <span style={{ fontSize: 12, color: '#CBD5E1' }}>Font: <strong>{form.fontFamily}</strong></span>
             </div>
 
             <div style={{ fontFamily: form.fontFamily }}>
-              <h4 style={{ fontSize: 20, fontWeight: 700, color: '#FFFFFF', marginBottom: 6 }}>
+              <h4 style={{ fontSize: 20, fontWeight: 700, color: '#F8FAFC', marginBottom: 6 }}>
                 {form.name || 'Event Title Preview'}
               </h4>
-              <p style={{ fontSize: 13, color: '#94A3B8', marginBottom: 16 }}>
-                {form.venue || 'Venue Location'} • Registration Form & VIP Email Pass Preview
+              <p style={{ fontSize: 13, color: '#CBD5E1', marginBottom: 16 }}>
+                {form.venue || 'Venue Location'} · registration form and pass
               </p>
               <button
                 type="button"
@@ -365,14 +363,14 @@ export default function EditEventPage() {
                   cursor: 'pointer',
                 }}
               >
-                Sample Action Button →
+                Sample button
               </button>
             </div>
           </div>
         </div>
 
         <button type="submit" className="btn btn-gold" style={{ width: '100%', height: 46, fontSize: 15 }} disabled={saving}>
-          {saving ? <span className="spinner" style={{ borderTopColor: '#070709' }} /> : 'Save Changes & Update Event →'}
+          {saving ? <span className="spinner" style={{ borderTopColor: 'var(--on-pill)' }} /> : 'Save changes'}
         </button>
       </form>
     </div>

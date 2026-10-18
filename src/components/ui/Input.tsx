@@ -18,14 +18,14 @@ export const Input = React.forwardRef<HTMLInputElement, InputProps>(
         {label && (
           <label
             htmlFor={inputId}
-            className="block text-xs font-semibold uppercase tracking-wider text-slate-300"
+            className="block text-[13px] font-medium text-fg"
           >
             {label}
           </label>
         )}
         <div className="relative flex items-center">
           {leftIcon && (
-            <div className="absolute left-3.5 text-slate-400 pointer-events-none">
+            <div className="absolute left-3.5 text-faint pointer-events-none">
               {leftIcon}
             </div>
           )}
@@ -36,29 +36,29 @@ export const Input = React.forwardRef<HTMLInputElement, InputProps>(
             aria-describedby={error ? `${inputId}-error` : undefined}
             className={clsx(
               // Enforce 16px font-size minimum to eliminate mobile Safari auto-zoom
-              'w-full bg-slate-950/80 border text-base text-white placeholder-slate-500 rounded-xl transition duration-200 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent min-h-[46px]',
+              'w-full h-11 bg-surface border text-base sm:text-sm text-fg placeholder:text-faint rounded-field transition-colors duration-150 focus:outline-none focus:border-fg focus:ring-[3px] focus:ring-line',
               leftIcon ? 'pl-11' : 'pl-4',
               rightIcon ? 'pr-11' : 'pr-4',
               error
-                ? 'border-red-500/80 focus:ring-red-500'
-                : 'border-slate-800 hover:border-slate-700',
+                ? 'border-negative-500'
+                : 'border-line-2 hover:border-faint',
               className
             )}
             {...props}
           />
           {rightIcon && (
-            <div className="absolute right-3.5 text-slate-400">
+            <div className="absolute right-3.5 text-faint">
               {rightIcon}
             </div>
           )}
         </div>
         {error && (
-          <p id={`${inputId}-error`} className="text-xs text-red-400 font-medium">
+          <p id={`${inputId}-error`} className="text-xs text-negative-400 font-semibold">
             {error}
           </p>
         )}
         {!error && helperText && (
-          <p className="text-xs text-slate-400">{helperText}</p>
+          <p className="text-xs text-muted">{helperText}</p>
         )}
       </div>
     );

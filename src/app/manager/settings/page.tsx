@@ -3,6 +3,8 @@
 import { useEffect, useState } from 'react';
 import { useToast } from '@/components/Toast';
 import { ImageUpload } from '@/components/ImageUpload';
+import { PageHead } from '@/components/AppShell';
+import { FontPreviewStyles } from '@/components/FontPreviewStyles';
 
 export default function ManagerSettings() {
   const { toast } = useToast();
@@ -96,45 +98,43 @@ export default function ManagerSettings() {
 
   if (loading) {
     return (
-      <div style={{ padding: 60, textAlign: 'center' }}>
-        <div className="spinner" style={{ margin: '0 auto', borderTopColor: 'var(--gold-primary)' }} />
+      <div className="p-14 flex items-center justify-center gap-3 text-muted text-[13px]">
+        <span className="spinner" /> Loading settings…
       </div>
     );
   }
 
+  const colorFields = [
+    { label: 'Background', value: primaryColor, set: setPrimaryColor },
+    { label: 'Buttons', value: secondaryColor, set: setSecondaryColor },
+    { label: 'Highlights', value: accentColor, set: setAccentColor },
+  ];
+
   return (
-    <div style={{ padding: '32px 28px', maxWidth: 800, margin: '0 auto' }}>
-      <div style={{ marginBottom: 28 }}>
-        <span className="text-overline" style={{ color: 'var(--gold-light)' }}>27 MEDIA AGENCY • BRANDING & SETTINGS</span>
-        <h1 className="text-headline gold-gradient-text" style={{ marginTop: 4 }}>
-          Event Configurations
-        </h1>
-        <p className="text-caption" style={{ color: 'var(--text-secondary)', marginTop: 4 }}>
-          Manage your event logo, color theme, typography, payment instructions, and account details.
-        </p>
-      </div>
+    <>
+      <FontPreviewStyles families={FONT_OPTIONS.map((f) => f.name)} />
+      <PageHead
+        title={<>Event<br />Settings</>}
+        description="Branding for the public registration form and attendee passes, plus payment instructions."
+      />
 
-      <form onSubmit={handleSave}>
-        {/* ImageKit Logo Upload & Theme Suite */}
-        <div className="card" style={{ padding: 28, marginBottom: 24 }}>
-          <h3 className="text-title" style={{ color: '#F8FAFC', marginBottom: 18 }}>
-            1. Event Logo, Colors & Typography Suite
-          </h3>
+      <form onSubmit={handleSave} className="grid grid-cols-1 xl:grid-cols-[minmax(0,1fr)_400px] gap-4 items-start">
+        <div className="space-y-4 min-w-0">
+          <section className="card p-[18px]">
+            <h2 className="card-title mb-4">Logo</h2>
+            <ImageUpload
+              label="Event logo"
+              value={logoUrl}
+              onChange={(url) => setLogoUrl(url)}
+              folder="/epms/events/logos"
+              helpText="Shown on the public registration page and on attendee passes."
+            />
+          </section>
 
-          <ImageUpload
-            label="Event Branding Logo (ImageKit Hosted)"
-            value={logoUrl}
-            onChange={(url) => setLogoUrl(url)}
-            folder="/epms/events/logos"
-            helpText="This logo will be displayed on the public registration page and attendee pass headers."
-          />
-
-          {/* Color Palette Presets */}
-          <div style={{ marginTop: 24 }}>
-            <label className="input-label" style={{ marginBottom: 10, display: 'block' }}>
-              🎨 Enterprise Color Palette Presets
-            </label>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: 10 }}>
+          <section className="card p-[18px]">
+            <h2 className="card-title mb-4">Colors</h2>
+            <p className="input-label">Presets</p>
+            <div className="grid grid-cols-[repeat(auto-fill,minmax(200px,1fr))] gap-2">
               {PALETTE_PRESETS.map((preset) => {
                 const isActive = primaryColor === preset.primary && secondaryColor === preset.secondary;
                 return (
@@ -142,96 +142,49 @@ export default function ManagerSettings() {
                     key={preset.name}
                     type="button"
                     onClick={() => applyPreset(preset)}
-                    style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: 10,
-                      padding: '10px 12px',
-                      borderRadius: 8,
-                      background: isActive ? 'rgba(212, 175, 55, 0.12)' : 'rgba(255, 255, 255, 0.03)',
-                      border: isActive ? '1px solid var(--gold-primary)' : '1px solid var(--border-hover)',
-                      cursor: 'pointer',
-                      textAlign: 'left',
-                      transition: 'all 0.2s ease',
-                    }}
+                    aria-pressed={isActive}
+                    className={`flex items-center gap-2.5 h-11 px-3 rounded-field border text-left text-[13px] font-semibold transition-colors ${
+                      isActive ? 'border-fg bg-surface-2' : 'border-line bg-surface hover:border-line-2'
+                    }`}
                   >
-                    <div style={{ display: 'flex', gap: 3 }}>
-                      <div style={{ width: 14, height: 14, borderRadius: '50%', background: preset.primary, border: '1px solid rgba(255,255,255,0.2)' }} />
-                      <div style={{ width: 14, height: 14, borderRadius: '50%', background: preset.secondary }} />
-                      <div style={{ width: 14, height: 14, borderRadius: '50%', background: preset.accent }} />
-                    </div>
-                    <span style={{ fontSize: 12, fontWeight: 500, color: isActive ? 'var(--gold-light)' : '#E2E8F0' }}>
-                      {preset.name}
+                    <span className="flex -space-x-1 flex-none" aria-hidden="true">
+                      {[preset.primary, preset.secondary, preset.accent].map((c) => (
+                        <span key={c} className="w-4 h-4 rounded-full ring-2 ring-[var(--solid)]" style={{ background: c }} />
+                      ))}
                     </span>
+                    <span className="truncate">{preset.name}</span>
                   </button>
                 );
               })}
             </div>
-          </div>
 
-          {/* Custom Color Pickers */}
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 16, marginTop: 20 }}>
-            <div>
-              <label className="input-label">Primary Color</label>
-              <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
-                <input
-                  type="color"
-                  value={primaryColor}
-                  onChange={(e) => setPrimaryColor(e.target.value)}
-                  style={{ width: 40, height: 38, border: 'none', cursor: 'pointer', borderRadius: 6, background: 'none' }}
-                />
-                <input
-                  className="input text-mono"
-                  value={primaryColor}
-                  onChange={(e) => setPrimaryColor(e.target.value)}
-                  style={{ fontSize: 13 }}
-                />
-              </div>
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mt-5">
+              {colorFields.map((c) => (
+                <div key={c.label}>
+                  <label className="input-label" htmlFor={`color-${c.label}`}>{c.label}</label>
+                  <div className="flex items-center gap-2 h-11 px-2 rounded-field border border-line-2 bg-surface focus-within:border-fg">
+                    <input
+                      type="color"
+                      value={c.value}
+                      onChange={(e) => c.set(e.target.value)}
+                      className="w-8 h-8 rounded-full border-0 bg-transparent cursor-pointer flex-none"
+                      aria-label={`${c.label} color picker`}
+                    />
+                    <input
+                      id={`color-${c.label}`}
+                      className="flex-1 min-w-0 bg-transparent border-0 focus:ring-0 p-0 text-[14px] num uppercase"
+                      value={c.value}
+                      onChange={(e) => c.set(e.target.value)}
+                    />
+                  </div>
+                </div>
+              ))}
             </div>
+          </section>
 
-            <div>
-              <label className="input-label">Secondary Color</label>
-              <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
-                <input
-                  type="color"
-                  value={secondaryColor}
-                  onChange={(e) => setSecondaryColor(e.target.value)}
-                  style={{ width: 40, height: 38, border: 'none', cursor: 'pointer', borderRadius: 6, background: 'none' }}
-                />
-                <input
-                  className="input text-mono"
-                  value={secondaryColor}
-                  onChange={(e) => setSecondaryColor(e.target.value)}
-                  style={{ fontSize: 13 }}
-                />
-              </div>
-            </div>
-
-            <div>
-              <label className="input-label">Accent Color</label>
-              <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
-                <input
-                  type="color"
-                  value={accentColor}
-                  onChange={(e) => setAccentColor(e.target.value)}
-                  style={{ width: 40, height: 38, border: 'none', cursor: 'pointer', borderRadius: 6, background: 'none' }}
-                />
-                <input
-                  className="input text-mono"
-                  value={accentColor}
-                  onChange={(e) => setAccentColor(e.target.value)}
-                  style={{ fontSize: 13 }}
-                />
-              </div>
-            </div>
-          </div>
-
-          {/* Typography Selector */}
-          <div style={{ marginTop: 24 }}>
-            <label className="input-label" style={{ marginBottom: 8, display: 'block' }}>
-              🔤 Event Typography (Google Font Family)
-            </label>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: 10 }}>
+          <section className="card p-[18px]">
+            <h2 className="card-title mb-4">Typography</h2>
+            <div className="grid grid-cols-[repeat(auto-fill,minmax(180px,1fr))] gap-2">
               {FONT_OPTIONS.map((font) => {
                 const isSelected = fontFamily === font.name;
                 return (
@@ -239,121 +192,57 @@ export default function ManagerSettings() {
                     key={font.name}
                     type="button"
                     onClick={() => setFontFamily(font.name)}
-                    style={{
-                      padding: '12px 14px',
-                      borderRadius: 8,
-                      background: isSelected ? 'rgba(212, 175, 55, 0.12)' : 'rgba(255, 255, 255, 0.03)',
-                      border: isSelected ? '1px solid var(--gold-primary)' : '1px solid var(--border-hover)',
-                      cursor: 'pointer',
-                      textAlign: 'left',
-                      transition: 'all 0.2s ease',
-                    }}
+                    aria-pressed={isSelected}
+                    className={`px-3.5 py-3 rounded-field border text-left transition-colors ${
+                      isSelected ? 'border-fg bg-surface-2' : 'border-line bg-surface hover:border-line-2'
+                    }`}
                   >
-                    <div style={{ fontFamily: font.name, fontSize: 15, fontWeight: 600, color: isSelected ? 'var(--gold-light)' : '#F8FAFC' }}>
-                      {font.name}
-                    </div>
-                    <div style={{ fontSize: 11, color: 'var(--text-secondary)', marginTop: 2 }}>
-                      {font.category}
-                    </div>
+                    <span className="block text-[15px] font-semibold" style={{ fontFamily: font.name }}>{font.name}</span>
+                    <span className="block text-[12px] text-muted mt-0.5">{font.category}</span>
                   </button>
                 );
               })}
             </div>
-          </div>
+          </section>
 
-          {/* Live Brand Preview Card */}
-          <div
-            style={{
-              marginTop: 28,
-              padding: 24,
-              borderRadius: 12,
-              backgroundColor: primaryColor,
-              border: `1px solid ${secondaryColor}40`,
-              boxShadow: `0 8px 24px ${primaryColor}80`,
-              transition: 'all 0.3s ease',
-            }}
-          >
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
-              <span
-                style={{
-                  fontSize: 11,
-                  fontWeight: 700,
-                  textTransform: 'uppercase',
-                  letterSpacing: '0.1em',
-                  padding: '4px 10px',
-                  borderRadius: 20,
-                  backgroundColor: `${accentColor}20`,
-                  color: accentColor,
-                  border: `1px solid ${accentColor}40`,
-                }}
-              >
-                LIVE BRANDING PREVIEW
+          <section className="card p-[18px]">
+            <h2 className="card-title">Payment details</h2>
+            <p className="text-caption mt-1 mb-4">Shown to attendees after they register, for fee collection and verification.</p>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+              <div>
+                <label className="input-label" htmlFor="account">Account / IBAN</label>
+                <input id="account" className="input" value={accountNumber} onChange={(e) => setAccountNumber(e.target.value)} placeholder="PK36 HABB 0001 2345 6789 0102" />
+              </div>
+              <div>
+                <label className="input-label" htmlFor="pay-phone">Verification phone / WhatsApp</label>
+                <input id="pay-phone" className="input" value={paymentPhone} onChange={(e) => setPaymentPhone(e.target.value)} placeholder="+92 300 1234567" />
+              </div>
+            </div>
+          </section>
+        </div>
+
+        <aside className="xl:sticky xl:top-5 space-y-3">
+          <section className="card p-[18px]">
+            <div className="card-head mb-3">
+              <h2 className="card-title">Preview</h2>
+              <span className="text-[12.5px] text-muted">{fontFamily}</span>
+            </div>
+            {/* Rendered in the event's own colors, independent of the dashboard theme */}
+            <div className="rounded-tile p-5" style={{ backgroundColor: primaryColor, fontFamily }}>
+              {logoUrl && <img src={logoUrl} alt="" className="w-10 h-10 rounded-full object-cover mb-4" />}
+              <p className="text-[11px] font-bold mb-2" style={{ color: accentColor }}>Registration open</p>
+              <h3 className="text-[20px] font-bold leading-tight" style={{ color: '#F8FAFC' }}>{eventName || 'Event title'}</h3>
+              <p className="text-[13px] mt-1 mb-5" style={{ color: '#CBD5E1' }}>Public registration form &amp; attendee pass</p>
+              <span className="inline-flex h-10 items-center px-5 rounded-full text-[13px] font-bold" style={{ backgroundColor: secondaryColor, color: primaryColor }}>
+                Register now
               </span>
-              <span style={{ fontSize: 12, color: '#94A3B8' }}>Font: <strong>{fontFamily}</strong></span>
             </div>
-
-            <div style={{ fontFamily: fontFamily }}>
-              <h4 style={{ fontSize: 20, fontWeight: 700, color: '#FFFFFF', marginBottom: 6 }}>
-                {eventName || 'Event Title Preview'}
-              </h4>
-              <p style={{ fontSize: 13, color: '#94A3B8', marginBottom: 16 }}>
-                Public Registration Form & Attendee Pass Styling
-              </p>
-              <button
-                type="button"
-                style={{
-                  padding: '10px 20px',
-                  borderRadius: 8,
-                  backgroundColor: secondaryColor,
-                  color: primaryColor,
-                  fontWeight: 700,
-                  fontSize: 13,
-                  border: 'none',
-                  boxShadow: `0 4px 14px ${secondaryColor}40`,
-                  cursor: 'pointer',
-                }}
-              >
-                Sample Action Button →
-              </button>
-            </div>
-          </div>
-        </div>
-
-        {/* Payment Information */}
-        <div className="card" style={{ padding: 28, marginBottom: 28 }}>
-          <h3 className="text-title" style={{ color: '#F8FAFC', marginBottom: 12 }}>
-            2. Payment & Confirmation Details
-          </h3>
-          <p className="text-caption" style={{ color: 'var(--text-secondary)', marginBottom: 20 }}>
-            Instructions shown to attendees for fee collection or deposit verification.
-          </p>
-
-          <div style={{ display: 'grid', gap: 18 }}>
-            <div>
-              <label className="input-label">Account / IBAN Number</label>
-              <input
-                className="input"
-                value={accountNumber}
-                onChange={(e) => setAccountNumber(e.target.value)}
-                placeholder="e.g. PK36 HABB 0001 2345 6789 0102"
-              />
-            </div>
-            <div>
-              <label className="input-label">Payment Verification Phone / WhatsApp</label>
-              <input
-                className="input"
-                value={paymentPhone}
-                onChange={(e) => setPaymentPhone(e.target.value)}
-                placeholder="e.g. +92 300 1526303"
-              />
-            </div>
-          </div>
-        </div>
-
-        <button type="submit" className="btn btn-gold" style={{ width: '100%', height: 46, fontSize: 15 }} disabled={saving}>
-          {saving ? <span className="spinner" style={{ borderTopColor: '#070709' }} /> : 'Save Settings & Update Branding Suite →'}
-        </button>
+          </section>
+          <button type="submit" className="btn btn-primary w-full !h-12" disabled={saving}>
+            {saving ? <span className="spinner" /> : 'Save settings'}
+          </button>
+        </aside>
       </form>
-    </div>
+    </>
   );
 }

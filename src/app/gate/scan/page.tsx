@@ -6,6 +6,8 @@ import { ThemeProvider } from '@/components/ThemeProvider';
 import { Button } from '@/components/ui/Button';
 import { Badge } from '@/components/ui/Badge';
 import {
+  LogIn,
+  LogOut,
   CheckCircle2,
   XCircle,
   AlertTriangle,
@@ -347,8 +349,8 @@ export default function ScanPage() {
 
   if (!gateSession) {
     return (
-      <div className="min-h-screen bg-slate-950 flex items-center justify-center">
-        <div className="w-8 h-8 border-2 border-indigo-500 border-t-transparent rounded-full animate-spin" />
+      <div className="min-h-screen bg-ink-950 flex items-center justify-center">
+        <div className="w-8 h-8 border-2 border-accent-500 border-t-transparent rounded-full animate-spin" />
       </div>
     );
   }
@@ -357,23 +359,23 @@ export default function ScanPage() {
 
   const bgColor = lastScan
     ? lastScan.requiresApproval
-      ? 'bg-slate-950'
+      ? 'bg-ink-950'
       : lastScan.color === 'green'
-      ? 'bg-emerald-950/90'
+      ? 'bg-positive-950/90'
       : lastScan.color === 'red'
-      ? 'bg-red-950/90'
-      : 'bg-amber-950/90'
-    : 'bg-slate-950';
+      ? 'bg-negative-950/90'
+      : 'bg-caution-950/90'
+    : 'bg-ink-950';
 
   const borderColor = lastScan
     ? lastScan.requiresApproval
-      ? 'border-indigo-500/80 shadow-indigo-500/20'
+      ? 'border-accent-500/80'
       : lastScan.color === 'green'
-      ? 'border-emerald-500 shadow-emerald-500/20'
+      ? 'border-positive-500'
       : lastScan.color === 'red'
-      ? 'border-red-500 shadow-red-500/20'
-      : 'border-amber-500 shadow-amber-500/20'
-    : 'border-slate-800';
+      ? 'border-negative-500'
+      : 'border-caution-500'
+    : 'border-ink-800';
 
   return (
     <ThemeProvider
@@ -381,26 +383,24 @@ export default function ScanPage() {
       secondaryColor={gateSession.event.secondaryColor}
       accentColor={gateSession.event.accentColor}
     >
-      <div className={`min-h-screen ${bgColor} transition-colors duration-300 text-slate-100 flex flex-col antialiased`}>
+      <div className={`min-h-screen ${bgColor} transition-colors duration-300 text-ink-100 flex flex-col antialiased`}>
         {/* Header */}
-        <header className="px-4 py-3 bg-slate-900/80 border-b border-slate-800 backdrop-blur-md flex items-center justify-between">
+        <header className="px-4 sm:px-5 py-3 bg-solid border-b border-line flex items-center justify-between gap-3">
           <div>
-            <p className="text-[10px] font-bold uppercase tracking-wider text-indigo-400">
+            <p className="text-[12px] font-semibold text-muted">
               {gateSession.event.name}
             </p>
             <div className="flex items-center gap-2 mt-0.5">
-              <h1 className="text-base font-bold text-white">{gateSession.gate.name}</h1>
-              <Badge
-                variant={isEntryGate ? 'indigo' : 'amber'}
-                size="sm"
-              >
-                {gateSession.gate.type} GATE
-              </Badge>
+              <h1 className="text-base font-bold text-ink-50">{gateSession.gate.name}</h1>
+              <span className="chip !h-6 !text-[11.5px]">
+                {isEntryGate ? <LogIn className="w-3 h-3" /> : <LogOut className="w-3 h-3" />}
+                {isEntryGate ? 'Entry' : 'Exit'}
+              </span>
             </div>
           </div>
           <div className="flex items-center gap-3">
-            <span className="text-xs font-mono text-slate-400 hidden sm:inline">
-              {scanCount} total scans
+            <span className="text-[12.5px] text-muted hidden sm:inline">
+              <b className="num text-fg">{scanCount}</b> scans this session
             </span>
             <Button
               variant="outline"
@@ -408,7 +408,7 @@ export default function ScanPage() {
               leftIcon={useCam ? <Keyboard className="w-3.5 h-3.5" /> : <Camera className="w-3.5 h-3.5" />}
               onClick={() => setUseCam(!useCam)}
             >
-              {useCam ? 'Hardware Mode' : 'Camera Mode'}
+              {useCam ? 'Use hardware scanner' : 'Use camera'}
             </Button>
           </div>
         </header>
@@ -417,7 +417,7 @@ export default function ScanPage() {
         <main className="flex-1 flex flex-col items-center justify-center p-4 sm:p-6 text-center">
           {lastScan ? (
             <div
-              className={`w-full max-w-lg p-6 sm:p-8 rounded-3xl bg-slate-900/95 border-2 ${borderColor} shadow-2xl backdrop-blur-xl animate-in zoom-in-95 duration-150 space-y-5`}
+              className={`w-full max-w-lg p-6 sm:p-8 rounded-3xl bg-ink-900/95 border-2 ${borderColor} shadow-2xl animate-in zoom-in-95 duration-150 space-y-5`}
             >
               {/* ------------------------------------------------------------- */}
               {/* STATE 1: PENDING APPROVAL (PHOTO + APPROVE & DECLINE BUTTONS) */}
@@ -425,11 +425,11 @@ export default function ScanPage() {
               {lastScan.requiresApproval && lastScan.participant ? (
                 <>
                   <div className="space-y-1">
-                    <span className="inline-flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-wider text-indigo-400 bg-indigo-500/10 px-3 py-1 rounded-full border border-indigo-500/20">
+                    <span className="chip">
                       <UserCheck className="w-3.5 h-3.5" />
                       <span>Gate Verification Required</span>
                     </span>
-                    <p className="text-xs text-slate-400 pt-1">
+                    <p className="text-xs text-ink-400 pt-1">
                       {isExitGate
                         ? 'Verify attendee photo and identity below before approving exit.'
                         : 'Verify attendee photo and identity below before approving entry.'}
@@ -437,25 +437,25 @@ export default function ScanPage() {
                   </div>
 
                   {/* ATTENDEE PHOTO & PROFILE CARD */}
-                  <div className="flex flex-col items-center justify-center space-y-3 p-4 bg-slate-950/80 rounded-2xl border border-slate-800">
+                  <div className="flex flex-col items-center justify-center space-y-3 p-4 bg-ink-950/80 rounded-2xl border border-ink-800">
                     {lastScan.participant.photoUrl ? (
                       <img
                         src={lastScan.participant.photoUrl}
                         alt={lastScan.participant.name}
-                        className="w-28 h-28 sm:w-36 sm:h-36 rounded-2xl object-cover border-2 border-indigo-500 shadow-xl shadow-indigo-500/10"
+                        className="w-28 h-28 sm:w-36 sm:h-36 rounded-2xl object-cover border-2 border-accent-500 shadow-xl"
                       />
                     ) : (
-                      <div className="w-28 h-28 sm:w-36 sm:h-36 rounded-2xl bg-slate-900 border-2 border-slate-700 flex flex-col items-center justify-center text-slate-400">
-                        <User className="w-12 h-12 text-slate-500" />
-                        <span className="text-[10px] text-slate-500 mt-1">No Photo Uploaded</span>
+                      <div className="w-28 h-28 sm:w-36 sm:h-36 rounded-2xl bg-ink-900 border-2 border-ink-700 flex flex-col items-center justify-center text-ink-400">
+                        <User className="w-12 h-12 text-ink-500" />
+                        <span className="text-[10px] text-ink-500 mt-1">No Photo Uploaded</span>
                       </div>
                     )}
 
                     <div className="space-y-1">
-                      <h2 className="text-xl sm:text-2xl font-black text-white tracking-tight">
+                      <h2 className="text-xl sm:text-2xl font-black text-ink-50 tracking-tight">
                         {lastScan.participant.name}
                       </h2>
-                      <p className="text-xs font-mono text-indigo-300">
+                      <p className="text-[13px] text-muted">
                         {lastScan.participant.email}
                       </p>
                     </div>
@@ -468,7 +468,7 @@ export default function ScanPage() {
                       )}
                       {lastScan.participant.group && (
                         <Badge variant="green" size="sm">
-                          👥 {lastScan.participant.group}
+                          {lastScan.participant.group}
                         </Badge>
                       )}
                       <Badge variant="slate" size="sm">
@@ -484,8 +484,8 @@ export default function ScanPage() {
                       size="lg"
                       onClick={() => handleGateOfficerDecision('DECLINE')}
                       isLoading={confirming}
-                      className="border-red-500/40 text-red-400 hover:bg-red-500/10 hover:text-red-300 font-bold py-3.5"
-                      leftIcon={<UserX className="w-5 h-5 text-red-400" />}
+                      className="border-negative-500/40 text-negative-400 hover:bg-negative-500/10 hover:text-negative-300 font-bold py-3.5"
+                      leftIcon={<UserX className="w-5 h-5 text-negative-400" />}
                     >
                       {isExitGate ? 'Decline Exit' : 'Decline Entry'}
                     </Button>
@@ -495,8 +495,8 @@ export default function ScanPage() {
                       size="lg"
                       onClick={() => handleGateOfficerDecision('APPROVE')}
                       isLoading={confirming}
-                      className="bg-emerald-600 hover:bg-emerald-500 text-white font-black shadow-lg shadow-emerald-600/30 py-3.5"
-                      leftIcon={<UserCheck className="w-5 h-5 text-white" />}
+                      className="bg-positive-600 hover:bg-positive-500 text-white font-black shadow-lg py-3.5"
+                      leftIcon={<UserCheck className="w-5 h-5 text-ink-50" />}
                     >
                       {isExitGate ? 'Approve Exit' : 'Approve Entry'}
                     </Button>
@@ -509,38 +509,38 @@ export default function ScanPage() {
                 <>
                   <div className="flex justify-center">
                     {lastScan.color === 'green' ? (
-                      <CheckCircle2 className="w-16 h-16 text-emerald-400 animate-bounce" />
+                      <CheckCircle2 className="w-16 h-16 text-positive-400 animate-bounce" />
                     ) : lastScan.color === 'red' ? (
-                      <XCircle className="w-16 h-16 text-red-400" />
+                      <XCircle className="w-16 h-16 text-negative-400" />
                     ) : (
-                      <AlertTriangle className="w-16 h-16 text-amber-400" />
+                      <AlertTriangle className="w-16 h-16 text-caution-400" />
                     )}
                   </div>
 
                   {/* If rejection had participant photo & info, show it cleanly */}
                   {lastScan.participant && (
-                    <div className="flex items-center gap-4 p-3 bg-slate-950/70 rounded-2xl border border-slate-800 text-left">
+                    <div className="flex items-center gap-4 p-3 bg-ink-950/70 rounded-2xl border border-ink-800 text-left">
                       {lastScan.participant.photoUrl ? (
                         <img
                           src={lastScan.participant.photoUrl}
                           alt={lastScan.participant.name}
-                          className="w-16 h-16 rounded-xl object-cover border border-slate-700 shrink-0"
+                          className="w-16 h-16 rounded-xl object-cover border border-ink-700 shrink-0"
                         />
                       ) : (
-                        <div className="w-16 h-16 rounded-xl bg-slate-900 border border-slate-800 flex items-center justify-center text-slate-500 shrink-0">
+                        <div className="w-16 h-16 rounded-xl bg-ink-900 border border-ink-800 flex items-center justify-center text-ink-500 shrink-0">
                           <User className="w-7 h-7" />
                         </div>
                       )}
                       <div className="overflow-hidden">
-                        <h3 className="font-bold text-white text-base truncate">
+                        <h3 className="font-bold text-ink-50 text-base truncate">
                           {lastScan.participant.name}
                         </h3>
-                        <p className="text-xs font-mono text-indigo-300 truncate">
+                        <p className="text-[13px] text-muted truncate">
                           {lastScan.participant.email}
                         </p>
                         {lastScan.participant.group && (
-                          <p className="text-[11px] text-slate-400 truncate mt-0.5">
-                            👥 {lastScan.participant.group}
+                          <p className="text-[11px] text-ink-400 truncate mt-0.5">
+                            {lastScan.participant.group}
                           </p>
                         )}
                       </div>
@@ -548,7 +548,7 @@ export default function ScanPage() {
                   )}
 
                   <div className="space-y-1">
-                    <h2 className="text-xl sm:text-2xl font-black text-white tracking-tight">
+                    <h2 className="text-xl sm:text-2xl font-black text-ink-50 tracking-tight">
                       {lastScan.result === 'ENTRY_DENIED_ALREADY_INSIDE'
                         ? 'ALREADY IN THE EVENT'
                         : lastScan.result === 'ENTRY_GRANTED'
@@ -557,7 +557,7 @@ export default function ScanPage() {
                         ? 'ENTRY DECLINED'
                         : 'ACCESS DENIED'}
                     </h2>
-                    <p className="text-sm font-semibold text-slate-300">
+                    <p className="text-sm font-semibold text-ink-300">
                       {lastScan.message}
                     </p>
                   </div>
@@ -580,7 +580,7 @@ export default function ScanPage() {
                       variant="outline"
                       size="sm"
                       onClick={() => setLastScan(null)}
-                      className="text-xs text-slate-400 hover:text-white"
+                      className="text-xs text-ink-400 hover:text-ink-50"
                     >
                       Scan Next Pass
                     </Button>
@@ -590,11 +590,11 @@ export default function ScanPage() {
             </div>
           ) : (
             <div className="flex flex-col items-center max-w-sm">
-              <div className="w-20 h-20 rounded-3xl bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center text-indigo-400 mb-6 shadow-inner">
-                <QrCode className="w-10 h-10" />
+              <div className="w-20 h-20 rounded-full bg-surface-2 border border-line flex items-center justify-center text-fg mb-6">
+                <QrCode className="w-9 h-9" />
               </div>
-              <h2 className="text-xl font-bold text-white mb-2">Ready for Pass Scan</h2>
-              <p className="text-xs text-slate-400 leading-relaxed">
+              <h2 className="text-headline mb-2">Ready to scan</h2>
+              <p className="text-xs text-ink-400 leading-relaxed">
                 {useCam
                   ? 'Align attendee QR code within the camera viewfinder.'
                   : 'Point hardware laser scanner at attendee QR code.'}
@@ -605,16 +605,16 @@ export default function ScanPage() {
           {useCam && !lastScan?.requiresApproval && (
             <div
               id="qr-reader"
-              className="w-72 mt-6 rounded-2xl overflow-hidden border-2 border-indigo-500 shadow-xl"
+              className="w-72 mt-6 rounded-2xl overflow-hidden border-2 border-accent-500 shadow-xl"
             />
           )}
         </main>
 
         {/* Live Recent 5 Activity Feed */}
         {scanHistory.length > 0 && (
-          <footer className="p-4 bg-slate-900 border-t border-slate-800">
+          <footer className="p-4 bg-ink-900 border-t border-ink-800">
             <div className="max-w-2xl mx-auto space-y-2">
-              <div className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-1">
+              <div className="flex items-center gap-1.5 text-[12px] font-semibold text-muted mb-1">
                 <History className="w-3 h-3" />
                 <span>Recent Gate Activity Log</span>
               </div>
@@ -622,20 +622,20 @@ export default function ScanPage() {
                 {scanHistory.map((item) => (
                   <div
                     key={item.id}
-                    className="flex items-center justify-between p-2.5 rounded-xl bg-slate-950/70 border border-slate-800/80 text-xs"
+                    className="flex items-center justify-between p-2.5 rounded-xl bg-ink-950/70 border border-ink-800/80 text-xs"
                   >
                     <div className="flex items-center gap-2.5 truncate">
                       {item.color === 'green' ? (
-                        <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
+                        <CheckCircle2 className="w-4 h-4 text-positive-400 shrink-0" />
                       ) : item.color === 'red' ? (
-                        <XCircle className="w-4 h-4 text-red-400 shrink-0" />
+                        <XCircle className="w-4 h-4 text-negative-400 shrink-0" />
                       ) : (
-                        <ShieldAlert className="w-4 h-4 text-amber-400 shrink-0" />
+                        <ShieldAlert className="w-4 h-4 text-caution-400 shrink-0" />
                       )}
-                      <span className="font-semibold text-white truncate">{item.name}</span>
-                      <span className="text-slate-400 truncate">— {item.statusMessage}</span>
+                      <span className="font-semibold text-ink-50 truncate">{item.name}</span>
+                      <span className="text-ink-400 truncate">— {item.statusMessage}</span>
                     </div>
-                    <span className="font-mono text-[10px] text-slate-500 shrink-0 ml-2">
+                    <span className="num text-[11px] text-faint shrink-0 ml-2">
                       {item.time}
                     </span>
                   </div>

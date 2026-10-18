@@ -27,25 +27,20 @@ export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
     ref
   ) => {
     const baseStyles =
-      'inline-flex items-center justify-center font-medium rounded-xl transition-all duration-200 cursor-pointer focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-slate-950 disabled:opacity-50 disabled:cursor-not-allowed active:scale-[0.98]';
+      'inline-flex items-center justify-center font-semibold rounded-full border transition-colors duration-150 ease-out cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-fg focus-visible:ring-offset-2 focus-visible:ring-offset-canvas disabled:opacity-45 disabled:cursor-not-allowed';
 
     const variants = {
-      primary:
-        'bg-indigo-600 hover:bg-indigo-500 text-white shadow-lg shadow-indigo-600/25 focus:ring-indigo-500 border border-indigo-500/30',
-      secondary:
-        'bg-slate-800 hover:bg-slate-700 text-slate-100 border border-slate-700 focus:ring-slate-500',
-      outline:
-        'border border-slate-700 hover:border-slate-600 text-slate-300 hover:text-white bg-slate-900/50 hover:bg-slate-800/80 focus:ring-slate-500',
-      ghost:
-        'text-slate-400 hover:text-slate-100 hover:bg-slate-800/60 focus:ring-slate-500',
-      danger:
-        'bg-red-600 hover:bg-red-500 text-white shadow-lg shadow-red-600/25 focus:ring-red-500 border border-red-500/30',
+      primary: 'bg-pill text-on-pill border-transparent hover:opacity-90',
+      secondary: 'bg-surface-2 text-fg border-line hover:border-line-2',
+      outline: 'bg-surface text-fg border-line-2 hover:bg-surface-2',
+      ghost: 'bg-transparent text-muted border-transparent hover:text-fg hover:bg-well',
+      danger: 'bg-negative-500/15 text-negative-400 border-negative-500/30 hover:bg-negative-500/25',
     };
 
     const sizes = {
-      sm: 'px-3 py-1.5 text-xs gap-1.5 min-h-[36px]',
-      md: 'px-4 py-2 text-sm gap-2 min-h-[44px]', // Touch target minimum 44px
-      lg: 'px-6 py-3 text-base gap-2.5 min-h-[50px]',
+      sm: 'h-[34px] px-3.5 text-[12.5px] gap-1.5',
+      md: 'h-[42px] px-[18px] text-[13.5px] gap-2',
+      lg: 'h-12 px-6 text-[15px] gap-2.5',
     };
 
     return (

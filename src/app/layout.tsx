@@ -1,12 +1,24 @@
 import type { Metadata } from 'next';
+import { Urbanist } from 'next/font/google';
 import './globals.css';
 import { PwaRegister } from '@/components/PwaRegister';
+import { THEME_STORAGE_KEY } from '@/lib/theme';
+
+const urbanist = Urbanist({
+  subsets: ['latin'],
+  weight: ['400', '500', '600', '700', '800'],
+  variable: '--font-sans',
+  display: 'swap',
+});
+
+// Runs before first paint so a saved light theme never flashes dark
+const themeBootstrap = `try{var t=localStorage.getItem('${THEME_STORAGE_KEY}');if(t==='light'||t==='dark')document.documentElement.setAttribute('data-theme',t)}catch(e){}`;
 
 export const metadata: Metadata = {
   title: 'EPMS — Event Pass Management System',
   description: 'Production-grade event registration and QR-based gate access control platform',
   manifest: '/manifest.json',
-  themeColor: '#020617',
+  themeColor: '#111412',
   appleWebApp: {
     capable: true,
     statusBarStyle: 'black-translucent',
@@ -29,14 +41,15 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en">
+    <html lang="en" data-theme="dark" className={urbanist.variable} suppressHydrationWarning>
       <head>
+        <script dangerouslySetInnerHTML={{ __html: themeBootstrap }} />
         <link rel="icon" href="/favicon.ico?v=3" sizes="any" />
         <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png?v=3" />
         <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png?v=3" />
         <link rel="apple-touch-icon" href="/apple-touch-icon.png?v=3" />
         <link rel="manifest" href="/manifest.json" />
-        <meta name="theme-color" content="#020617" />
+        <meta name="theme-color" content="#111412" />
       </head>
       <body>
         <PwaRegister />

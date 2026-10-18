@@ -1,5 +1,11 @@
 import type { Config } from 'tailwindcss';
 
+// Each ramp resolves to a CSS variable (see globals.css) so the same class
+// follows the active theme: `bg-ink-950` is the canvas in dark and light.
+const STEPS = [50, 100, 200, 300, 400, 500, 600, 700, 800, 900, 950] as const;
+const ramp = (name: string) =>
+  Object.fromEntries(STEPS.map((s) => [s, `rgb(var(--${name}-${s}) / <alpha-value>)`]));
+
 const config: Config = {
   content: [
     './src/pages/**/*.{js,ts,jsx,tsx,mdx}',
@@ -8,9 +14,45 @@ const config: Config = {
   ],
   theme: {
     extend: {
+      colors: {
+        ink: ramp('ink'),
+        accent: ramp('accent'),
+        positive: ramp('positive'),
+        negative: ramp('negative'),
+        caution: ramp('caution'),
+        canvas: 'var(--canvas)',
+        surface: 'var(--surface)',
+        'surface-2': 'var(--surface-2)',
+        solid: 'var(--solid)',
+        float: 'var(--float)',
+        well: 'var(--well)',
+        line: 'var(--line)',
+        'line-2': 'var(--line-2)',
+        fg: 'var(--text)',
+        muted: 'var(--muted)',
+        faint: 'var(--faint)',
+        pill: 'var(--pill)',
+        'on-pill': 'var(--on-pill)',
+        tomato: 'var(--tomato)',
+        pine: 'var(--pine)',
+        butter: 'var(--butter)',
+        cream: 'var(--cream)',
+      },
       fontFamily: {
-        sans: ['DM Sans', 'system-ui', 'sans-serif'],
-        mono: ['IBM Plex Mono', 'monospace'],
+        sans: ['var(--font-sans)', 'ui-sans-serif', 'system-ui', 'sans-serif'],
+        mono: ['ui-monospace', 'SFMono-Regular', 'Menlo', 'monospace'],
+      },
+      borderRadius: {
+        card: 'var(--r-card)',
+        tile: 'var(--r-tile)',
+        field: 'var(--r-field)',
+      },
+      boxShadow: {
+        card: 'var(--shadow)',
+        pop: 'var(--shadow-pop)',
+      },
+      transitionTimingFunction: {
+        out: 'var(--ease)',
       },
     },
   },

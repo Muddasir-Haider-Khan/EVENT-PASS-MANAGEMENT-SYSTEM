@@ -1,9 +1,12 @@
 'use client';
 
 import { useEffect, useState, useCallback } from 'react';
+import Link from 'next/link';
 import { useRouter } from 'next/navigation';
+import { ArrowUpRight, CalendarDays, Inbox, Mail, Pencil, Plus, Search, Ticket, Trash2, X } from 'lucide-react';
 import { useToast } from '@/components/Toast';
 import { ConfirmDialog } from '@/components/ConfirmDialog';
+import { PageHead, Stat } from '@/components/AppShell';
 
 interface EventItem {
   id: string;
@@ -115,233 +118,129 @@ export default function AdminDashboardPage() {
   const activeEvents = events.filter(e => e.status === 'ACTIVE').length;
 
   return (
-    <div style={{ padding: '32px 28px', maxWidth: 1300, margin: '0 auto' }}>
-      {/* Top Banner Header */}
-      <div
-        style={{
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center',
-          flexWrap: 'wrap',
-          gap: 16,
-          marginBottom: 32,
-          paddingBottom: 20,
-          borderBottom: '1px solid var(--border-default)',
-        }}
-      >
-        <div>
-          <div className="text-overline" style={{ color: 'var(--gold-light)', letterSpacing: '0.12em' }}>
-            27 MEDIA AGENCY • SUPER ADMIN PORTAL
-          </div>
-          <h1 className="text-display gold-gradient-text" style={{ marginTop: 4 }}>
-            Event Pass Management
-          </h1>
-          <p className="text-caption" style={{ color: 'var(--text-secondary)', marginTop: 4 }}>
-            Monitor events, assign manager accounts, and oversee pass issuance across all active shows.
-          </p>
-        </div>
+    <>
+      <PageHead
+        title={<>Event<br />Directory</>}
+        stats={
+          <>
+            <Stat icon={CalendarDays} value={events.length} label="Events configured" badge={activeEvents > 0 ? <span className="badge badge-success">{activeEvents} live</span> : undefined} />
+            <Stat icon={Ticket} value={totalParticipants.toLocaleString()} label="Passes issued" />
+            <Stat icon={Inbox} value={totalSubmissions.toLocaleString()} label="Registrations received" />
+          </>
+        }
+      />
 
-        <button className="btn btn-gold" onClick={() => router.push('/admin/events/new')}>
-          + Create New Event
-        </button>
+      <div className="flex flex-col sm:flex-row sm:items-center gap-3 mb-4">
+        <label className="relative flex-1 sm:max-w-[320px]">
+          <span className="sr-only">Search events</span>
+          <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-faint pointer-events-none" />
+          <input
+            type="search"
+            className="input !rounded-full !pl-11"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            placeholder="Search event, venue, slug, manager…"
+          />
+        </label>
+        <span className="text-[13px] text-muted sm:mr-auto">
+          {filteredEvents.length} of {events.length} events
+        </span>
+        <Link href="/admin/events/new" className="btn btn-primary">
+          <Plus className="w-4 h-4" /> New event
+        </Link>
       </div>
 
-      {/* Analytics KPI Stat Cards */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 20, marginBottom: 32 }}>
-        <div className="card card-gold-glow" style={{ padding: 22 }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <span className="text-overline" style={{ color: 'var(--text-muted)' }}>Total Events</span>
-            <span style={{ fontSize: 18 }}>🎫</span>
-          </div>
-          <div className="text-display text-mono" style={{ marginTop: 8, color: '#F8FAFC' }}>
-            {events.length}
-          </div>
-        </div>
-
-        <div className="card card-gold-glow" style={{ padding: 22 }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <span className="text-overline" style={{ color: 'var(--text-muted)' }}>Active Events</span>
-            <span style={{ fontSize: 18 }}>🟢</span>
-          </div>
-          <div className="text-display text-mono" style={{ marginTop: 8, color: 'var(--success)' }}>
-            {activeEvents}
-          </div>
-        </div>
-
-        <div className="card card-gold-glow" style={{ padding: 22 }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <span className="text-overline" style={{ color: 'var(--text-muted)' }}>Pass Holders</span>
-            <span style={{ fontSize: 18 }}>🎟️</span>
-          </div>
-          <div className="text-display text-mono" style={{ marginTop: 8, color: 'var(--gold-light)' }}>
-            {totalParticipants}
-          </div>
-        </div>
-
-        <div className="card card-gold-glow" style={{ padding: 22 }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <span className="text-overline" style={{ color: 'var(--text-muted)' }}>Total Form Submissions</span>
-            <span style={{ fontSize: 18 }}>📥</span>
-          </div>
-          <div className="text-display text-mono" style={{ marginTop: 8, color: '#F8FAFC' }}>
-            {totalSubmissions}
-          </div>
-        </div>
-      </div>
-
-      {/* Events Control Panel */}
-      <div className="card" style={{ overflow: 'hidden' }}>
-        <div
-          style={{
-            padding: '20px 24px',
-            borderBottom: '1px solid var(--border-default)',
-            display: 'flex',
-            justifyContent: 'space-between',
-            alignItems: 'center',
-            flexWrap: 'wrap',
-            gap: 16,
-          }}
-        >
-          <div>
-            <h2 className="text-title" style={{ color: '#F8FAFC' }}>
-              Master Event Roster
-            </h2>
-            <span className="text-caption" style={{ color: 'var(--text-muted)' }}>
-              Showing {filteredEvents.length} of {events.length} configured events
-            </span>
-          </div>
-
-          <div style={{ maxWidth: 300, width: '100%' }}>
-            <input
-              type="text"
-              className="input"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Search event, venue, slug..."
-              style={{ height: 38, fontSize: 13 }}
-            />
-          </div>
-        </div>
-
+      <section className="card overflow-hidden">
         {loading ? (
-          <div style={{ padding: 60, textAlign: 'center' }}>
-            <div className="spinner" style={{ margin: '0 auto', borderTopColor: 'var(--gold-primary)' }} />
-            <div style={{ marginTop: 12, fontSize: 13, color: 'var(--text-muted)' }}>Loading events...</div>
+          <div className="p-14 flex items-center justify-center gap-3 text-muted text-[13px]">
+            <span className="spinner" /> Loading events…
           </div>
         ) : filteredEvents.length === 0 ? (
-          <div style={{ padding: 60, textAlign: 'center', color: 'var(--text-muted)' }}>
-            <div style={{ fontSize: 32, marginBottom: 8 }}>🎪</div>
-            {searchQuery ? 'No events matched your search query.' : 'No events created yet. Click "+ Create New Event" to get started.'}
+          <div className="px-6 py-14 text-center">
+            <CalendarDays className="w-5 h-5 mx-auto text-muted" />
+            <p className="mt-3 text-[14px] font-semibold">{searchQuery ? 'No matching events' : 'No events yet'}</p>
+            <p className="mt-1 text-[13px] text-muted">
+              {searchQuery ? 'Try a different name, venue or slug.' : 'Create the first event to provision a manager account.'}
+            </p>
           </div>
         ) : (
-          <div style={{ overflowX: 'auto' }}>
+          <div className="overflow-x-auto">
             <table className="data-table">
               <thead>
                 <tr>
-                  <th>Event Name & Branding</th>
-                  <th>Venue & Location</th>
-                  <th>Public Link Slug</th>
-                  <th>Assigned Manager</th>
-                  <th>Pass Holders</th>
+                  <th>Event</th>
+                  <th>Venue</th>
+                  <th>Public link</th>
+                  <th>Manager</th>
+                  <th className="!text-right">Passes</th>
                   <th>Status</th>
-                  <th>Actions</th>
+                  <th className="!text-right">Actions</th>
                 </tr>
               </thead>
               <tbody>
                 {filteredEvents.map((event) => (
                   <tr key={event.id}>
                     <td>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                      <div className="flex items-center gap-3">
                         {event.logoUrl ? (
-                          <img
-                            src={event.logoUrl}
-                            alt=""
-                            style={{ width: 36, height: 36, borderRadius: 8, objectFit: 'cover', border: '1px solid var(--border-default)' }}
-                          />
+                          <img src={event.logoUrl} alt="" className="w-9 h-9 rounded-full object-cover flex-none" />
                         ) : (
-                          <div
-                            style={{
-                              width: 36,
-                              height: 36,
-                              borderRadius: 8,
-                              background: 'var(--gold-gradient)',
-                              display: 'flex',
-                              alignItems: 'center',
-                              justifyContent: 'center',
-                              color: '#070709',
-                              fontWeight: 800,
-                              fontSize: 14,
-                            }}
-                          >
+                          <span className="w-9 h-9 rounded-full bg-surface-2 ring-1 ring-line flex items-center justify-center font-bold text-[13px] flex-none">
                             {event.name.charAt(0).toUpperCase()}
-                          </div>
+                          </span>
                         )}
-                        <div>
-                          <div style={{ fontWeight: 600, color: '#F8FAFC' }}>{event.name}</div>
-                          <div style={{ fontSize: 11, color: 'var(--text-muted)' }}>
-                            ID: {event.id.slice(0, 8)}...
-                          </div>
-                        </div>
+                        <span className="min-w-0">
+                          <span className="block font-semibold">{event.name}</span>
+                          <span className="block text-[12px] text-muted">Created {new Date(event.createdAt).toLocaleDateString([], { dateStyle: 'medium' })}</span>
+                        </span>
                       </div>
                     </td>
-                    <td style={{ color: 'var(--text-secondary)' }}>{event.venue}</td>
+                    <td className="!text-muted">{event.venue}</td>
                     <td>
                       {event.slug ? (
-                        <a
-                          href={`/event/${event.slug}`}
-                          target="_blank"
-                          rel="noreferrer"
-                          className="text-mono"
-                          style={{ fontSize: 12, color: 'var(--gold-light)', textDecoration: 'none' }}
-                        >
-                          /{event.slug} ↗
+                        <a href={`/event/${event.slug}`} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 underline underline-offset-2 decoration-line-2 hover:decoration-fg">
+                          /{event.slug}
+                          <ArrowUpRight className="w-3.5 h-3.5 text-muted" />
                         </a>
                       ) : (
-                        <span style={{ color: 'var(--text-dim)' }}>Draft</span>
+                        <span className="text-faint">Not published</span>
                       )}
                     </td>
                     <td>
-                      <div className="text-mono" style={{ fontSize: 12, color: 'var(--text-primary)' }}>
-                        {event.eventManager?.loginId || 'Unassigned'}
-                      </div>
+                      <span className="block num">{event.eventManager?.loginId || 'Unassigned'}</span>
                       {event.eventManager?.contactEmail && (
-                        <div style={{ fontSize: 11, color: 'var(--text-muted)' }}>
-                          {event.eventManager.contactEmail}
-                        </div>
+                        <span className="block text-[12px] text-muted">{event.eventManager.contactEmail}</span>
                       )}
                     </td>
-                    <td className="text-mono" style={{ fontWeight: 600, color: 'var(--gold-light)' }}>
-                      {event._count.participants}
-                    </td>
+                    <td className="!text-right num font-semibold">{event._count.participants.toLocaleString()}</td>
                     <td>
-                      <span className={`badge ${event.status === 'ACTIVE' ? 'badge-gold' : 'badge-neutral'}`}>
-                        {event.status}
+                      <span className={`chip ${event.status === 'ACTIVE' ? '' : '!text-muted'}`}>
+                        <span className={`w-1.5 h-1.5 rounded-full ${event.status === 'ACTIVE' ? 'bg-positive-400' : 'bg-faint'}`} aria-hidden="true" />
+                        {event.status === 'ACTIVE' ? 'Active' : 'Archived'}
                       </span>
                     </td>
                     <td>
-                      <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+                      <div className="flex items-center justify-end gap-1.5">
                         {event.eventManager && (
                           <button
                             className="btn btn-ghost btn-sm"
-                            style={{ color: 'var(--gold-light)' }}
                             disabled={resendingId === event.id}
                             onClick={() => handleResendCredentials(event)}
                           >
-                            {resendingId === event.id ? 'Sending...' : '✉️ Resend Email'}
+                            <Mail className="w-3.5 h-3.5" />
+                            {resendingId === event.id ? 'Sending…' : 'Resend login'}
                           </button>
                         )}
+                        <Link href={`/admin/events/${event.id}`} className="ibtn ibtn--sm ibtn--plain" aria-label={`Edit ${event.name}`} title="Edit">
+                          <Pencil className="w-3.5 h-3.5" />
+                        </Link>
                         <button
-                          className="btn btn-ghost btn-sm"
-                          onClick={() => router.push(`/admin/events/${event.id}`)}
-                        >
-                          Edit
-                        </button>
-                        <button
-                          className="btn btn-ghost btn-sm"
-                          style={{ color: 'var(--error)' }}
+                          className="ibtn ibtn--sm ibtn--plain hover:!text-negative-400"
+                          aria-label={`Delete ${event.name}`}
+                          title="Delete"
                           onClick={() => setDeleteTarget(event)}
                         >
-                          Delete
+                          <Trash2 className="w-3.5 h-3.5" />
                         </button>
                       </div>
                     </td>
@@ -351,48 +250,41 @@ export default function AdminDashboardPage() {
             </table>
           </div>
         )}
-      </div>
+      </section>
 
       {resendResult && (
-        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.75)', backdropFilter: 'blur(6px)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 100, padding: 20 }}>
-          <div className="card card-gold-glow" style={{ maxWidth: 500, width: '100%', padding: 28 }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
-              <span className="badge badge-gold">Manager Credentials</span>
-              <button className="btn btn-ghost btn-sm" onClick={() => setResendResult(null)}>✕</button>
+        <div className="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="resend-title">
+          <div className="modal">
+            <div className="card-head mb-1">
+              <h3 id="resend-title" className="text-headline">New manager login</h3>
+              <button className="ibtn ibtn--plain" onClick={() => setResendResult(null)} aria-label="Close">
+                <X className="w-4 h-4" />
+              </button>
             </div>
-            <h3 className="text-headline gold-gradient-text" style={{ fontSize: 18, marginBottom: 4 }}>
-              Credentials Dispatched
-            </h3>
-            <p className="text-caption" style={{ color: 'var(--text-secondary)', marginBottom: 20 }}>
-              Credentials for <strong>{resendResult.eventName}</strong> assigned to <strong>{resendResult.email}</strong>.
+            <p className="text-caption mb-5">
+              A fresh password was generated for <b className="text-fg">{resendResult.eventName}</b>. The previous password no longer works.
             </p>
 
-            <div className="card-elevated" style={{ padding: 18, marginBottom: 16 }}>
-              <div style={{ marginBottom: 14 }}>
-                <span className="text-overline" style={{ color: 'var(--gold-light)' }}>Manager Login ID</span>
-                <div className="text-mono" style={{ fontSize: 16, marginTop: 2, color: '#F8FAFC', fontWeight: 600 }}>
-                  {resendResult.loginId}
-                </div>
+            <dl className="rounded-tile bg-well p-4 space-y-3 mb-4">
+              <div>
+                <dt className="text-[12px] text-muted">Login ID</dt>
+                <dd className="text-[15px] font-semibold num select-all">{resendResult.loginId}</dd>
               </div>
               <div>
-                <span className="text-overline" style={{ color: 'var(--gold-light)' }}>New System Password</span>
-                <div className="text-mono" style={{ fontSize: 16, marginTop: 2, color: '#F8FAFC', fontWeight: 600 }}>
-                  {resendResult.password}
-                </div>
+                <dt className="text-[12px] text-muted">Password</dt>
+                <dd className="text-[15px] font-semibold num select-all">{resendResult.password}</dd>
               </div>
-            </div>
+            </dl>
 
-            {resendResult.emailSent ? (
-              <div style={{ padding: '10px 12px', borderRadius: 8, background: 'rgba(34, 197, 94, 0.1)', border: '1px solid rgba(34, 197, 94, 0.3)', color: '#4ADE80', fontSize: 12, marginBottom: 20 }}>
-                ✅ Email successfully sent to <strong>{resendResult.email}</strong> via Resend API.
-              </div>
-            ) : (
-              <div style={{ padding: '10px 12px', borderRadius: 8, background: 'rgba(234, 179, 8, 0.1)', border: '1px solid rgba(234, 179, 8, 0.3)', color: '#FACC15', fontSize: 12, marginBottom: 20 }}>
-                ⚠️ Notice: {resendResult.emailError || 'Resend requires verified domain'}. Please copy credentials manually above.
-              </div>
-            )}
+            <p className={`text-[13px] mb-5 flex gap-2 ${resendResult.emailSent ? 'text-muted' : 'text-caution-400'}`}>
+              {resendResult.emailSent ? (
+                <>Sent to <b className="text-fg">{resendResult.email}</b>.</>
+              ) : (
+                <>Email could not be sent ({resendResult.emailError || 'sender domain not verified'}). Share these credentials securely.</>
+              )}
+            </p>
 
-            <button className="btn btn-gold" style={{ width: '100%', height: 40 }} onClick={() => setResendResult(null)}>
+            <button className="btn btn-primary w-full" onClick={() => setResendResult(null)}>
               Done
             </button>
           </div>
@@ -401,14 +293,14 @@ export default function AdminDashboardPage() {
 
       <ConfirmDialog
         open={!!deleteTarget}
-        title="Delete Event"
-        message={`Are you sure you want to delete "${deleteTarget?.name}"? All associated submissions, passes, and gate access keys will be permanently removed.`}
-        confirmLabel="Delete Event"
+        title="Delete event"
+        message={`Delete "${deleteTarget?.name}"? Every submission, pass and gate key for this event is removed permanently.`}
+        confirmLabel="Delete event"
         variant="danger"
         onConfirm={handleDelete}
         onCancel={() => setDeleteTarget(null)}
         loading={deleting}
       />
-    </div>
+    </>
   );
 }

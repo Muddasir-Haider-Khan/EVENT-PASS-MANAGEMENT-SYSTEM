@@ -16,19 +16,19 @@ export const Badge: React.FC<BadgeProps> = ({
   ...props
 }) => {
   const baseStyles =
-    'inline-flex items-center gap-1.5 font-semibold rounded-full border shadow-sm transition-colors';
+    'inline-flex items-center gap-1.5 font-bold rounded-full whitespace-nowrap';
 
   const variants = {
-    green: 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20',
-    amber: 'bg-amber-500/10 text-amber-400 border-amber-500/20',
-    red: 'bg-red-500/10 text-red-400 border-red-500/20',
-    indigo: 'bg-indigo-500/10 text-indigo-400 border-indigo-500/20',
-    slate: 'bg-slate-800/80 text-slate-300 border-slate-700/60',
+    green: 'bg-pine text-[var(--on-pine)]',
+    amber: 'bg-butter text-[var(--on-butter)]',
+    red: 'bg-negative-500/15 text-negative-400',
+    indigo: 'bg-tomato text-[var(--on-tomato)]',
+    slate: 'bg-surface-2 text-fg ring-1 ring-inset ring-line',
   };
 
   const sizes = {
-    sm: 'px-2 py-0.5 text-xs',
-    md: 'px-3 py-1 text-xs tracking-wide',
+    sm: 'h-5 px-2 text-[10.5px]',
+    md: 'h-[22px] px-[9px] text-[11px]',
   };
 
   return (

@@ -2,7 +2,8 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { Media27Logo } from '@/components/27MediaLogo';
+import Link from 'next/link';
+import { AuthFrame, FormError } from '@/components/AuthFrame';
 
 export default function LoginPage() {
   const router = useRouter();
@@ -99,184 +100,94 @@ export default function LoginPage() {
 
   if (showChangePassword) {
     return (
-      <div
-        style={{
-          minHeight: '100vh',
-          background: 'var(--bg-root)',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          padding: 20,
-          backgroundImage: 'radial-gradient(ellipse at 50% 20%, rgba(212, 175, 55, 0.08) 0%, rgba(7, 7, 9, 1) 75%)',
-        }}
+      <AuthFrame
+        title="Set a new password"
+        description="Your account was issued a temporary password. Choose your own before continuing."
       >
-        <div className="card card-gold-glow" style={{ maxWidth: 440, width: '100%', padding: 36 }}>
-          <div style={{ marginBottom: 28, textAlign: 'center' }}>
-            <div style={{ display: 'inline-block', marginBottom: 16 }}>
-              <Media27Logo size="md" />
-            </div>
-            <h1 className="text-headline" style={{ color: '#F8FAFC', marginTop: 12 }}>
-              Update Required
-            </h1>
-            <p className="text-caption" style={{ color: 'var(--text-secondary)', marginTop: 4 }}>
-              Your account requires setting a secure custom password before proceeding.
-            </p>
+        <form onSubmit={handleChangePassword} className="space-y-4">
+          <div>
+            <label className="input-label" htmlFor="new-password">New password</label>
+            <input
+              id="new-password"
+              type="password"
+              className="input"
+              value={newPassword}
+              onChange={(e) => setNewPassword(e.target.value)}
+              placeholder="At least 8 characters"
+              required
+              minLength={8}
+              autoComplete="new-password"
+              autoFocus
+            />
+            <p className="mt-1.5 text-[12px] text-muted">Use upper and lower case letters and a number.</p>
+          </div>
+          <div>
+            <label className="input-label" htmlFor="confirm-password">Confirm password</label>
+            <input
+              id="confirm-password"
+              type="password"
+              className="input"
+              value={confirmPassword}
+              onChange={(e) => setConfirmPassword(e.target.value)}
+              required
+              autoComplete="new-password"
+            />
           </div>
 
-          <form onSubmit={handleChangePassword}>
-            <div style={{ marginBottom: 16 }}>
-              <label className="input-label">New Password</label>
-              <input
-                type="password"
-                className="input"
-                value={newPassword}
-                onChange={(e) => setNewPassword(e.target.value)}
-                placeholder="Min 8 chars, uppercase, lowercase, number"
-                required
-                minLength={8}
-              />
-            </div>
-            <div style={{ marginBottom: 24 }}>
-              <label className="input-label">Confirm New Password</label>
-              <input
-                type="password"
-                className="input"
-                value={confirmPassword}
-                onChange={(e) => setConfirmPassword(e.target.value)}
-                placeholder="Re-enter your new password"
-                required
-              />
-            </div>
+          {changeError && <FormError>{changeError}</FormError>}
 
-            {changeError && (
-              <div style={{ color: 'var(--error)', fontSize: 13, marginBottom: 16, padding: '10px 14px', background: 'var(--error-bg)', borderRadius: 8 }}>
-                {changeError}
-              </div>
-            )}
-
-            <button type="submit" className="btn btn-gold" style={{ width: '100%', height: 44 }} disabled={loading}>
-              {loading ? <span className="spinner" style={{ borderTopColor: '#070709' }} /> : 'Set Password & Access Portal'}
-            </button>
-          </form>
-        </div>
-      </div>
+          <button type="submit" className="btn btn-primary w-full !h-11" disabled={loading}>
+            {loading ? <span className="spinner" /> : 'Save password and continue'}
+          </button>
+        </form>
+      </AuthFrame>
     );
   }
 
   return (
-    <div
-      style={{
-        minHeight: '100vh',
-        background: 'var(--bg-root)',
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'center',
-        justifyContent: 'center',
-        padding: 20,
-        position: 'relative',
-        overflow: 'hidden',
-        backgroundImage: 'radial-gradient(circle at 50% 30%, rgba(99, 102, 241, 0.12) 0%, rgba(2, 6, 23, 1) 70%)',
-      }}
-    >
-      {/* Background Decorative Rings */}
-      <div
-        style={{
-          position: 'absolute',
-          width: 600,
-          height: 600,
-          borderRadius: '50%',
-          border: '1px solid rgba(99, 102, 241, 0.15)',
-          pointerEvents: 'none',
-          top: '50%',
-          left: '50%',
-          transform: 'translate(-50%, -50%)',
-        }}
-      />
-
-      <div className="card card-gold-glow" style={{ maxWidth: 450, width: '100%', padding: '40px 36px', zIndex: 10 }}>
-        {/* Header Branding */}
-        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', marginBottom: 28, textAlign: 'center' }}>
-          <Media27Logo size="lg" />
-          <div
-            style={{
-              fontSize: 12,
-              fontWeight: 600,
-              letterSpacing: '0.12em',
-              color: '#818CF8',
-              background: 'rgba(99, 102, 241, 0.12)',
-              border: '1px solid rgba(99, 102, 241, 0.3)',
-              padding: '4px 12px',
-              borderRadius: 100,
-              marginTop: 16,
-              textTransform: 'uppercase',
-            }}
-          >
-            Official Enterprise Portal
-          </div>
+    <AuthFrame title="Sign in" description="For event managers and system administrators.">
+      <form onSubmit={handleLogin} className="space-y-4">
+        <div>
+          <label className="input-label" htmlFor="login-id">Login ID or email</label>
+          <input
+            id="login-id"
+            type="text"
+            className="input"
+            value={loginId}
+            onChange={(e) => setLoginId(e.target.value)}
+            required
+            autoComplete="username"
+            autoFocus
+          />
         </div>
 
-        {/* Unified Login Form */}
-        <form onSubmit={handleLogin}>
-          <div style={{ marginBottom: 18 }}>
-            <label className="input-label" htmlFor="login-id">
-              Login ID / Email Address
-            </label>
-            <input
-              id="login-id"
-              type="text"
-              className="input"
-              value={loginId}
-              onChange={(e) => setLoginId(e.target.value)}
-              placeholder="Enter your Login ID or Email"
-              required
-              autoComplete="username"
-              autoFocus
-              style={{ height: 44, fontSize: 14 }}
-            />
-          </div>
-
-          <div style={{ marginBottom: 24 }}>
-            <label className="input-label" htmlFor="password">
-              Security Password
-            </label>
-            <input
-              id="password"
-              type="password"
-              className="input"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              placeholder="••••••••••••"
-              required
-              autoComplete="current-password"
-              style={{ height: 44, fontSize: 14 }}
-            />
-          </div>
-
-          {error && (
-            <div style={{ color: 'var(--error)', fontSize: 13, marginBottom: 20, padding: '12px 14px', background: 'var(--error-bg)', borderRadius: 8, border: '1px solid rgba(239, 68, 68, 0.3)' }}>
-              ⚠️ {error}
-            </div>
-          )}
-
-          <button type="submit" className="btn btn-gold" style={{ width: '100%', height: 46, fontSize: 14 }} disabled={loading}>
-            {loading ? <span className="spinner" style={{ borderTopColor: '#070709' }} /> : 'Sign In →'}
-          </button>
-        </form>
-
-        <div style={{ marginTop: 28, textAlign: 'center', borderTop: '1px solid var(--border-default)', paddingTop: 20 }}>
-          <p className="text-caption" style={{ color: 'var(--text-muted)', fontSize: 12 }}>
-            © {new Date().getFullYear()} 27 MEDIA AGENCY. All Rights Reserved.
-          </p>
-          <a
-            href="https://www.27mediaagency.com"
-            target="_blank"
-            rel="noreferrer"
-            style={{ color: 'var(--gold-light)', fontSize: 11, textDecoration: 'none', marginTop: 4, display: 'inline-block' }}
-          >
-            www.27mediaagency.com
-          </a>
+        <div>
+          <label className="input-label" htmlFor="password">Password</label>
+          <input
+            id="password"
+            type="password"
+            className="input"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            required
+            autoComplete="current-password"
+          />
         </div>
-      </div>
-    </div>
+
+        {error && <FormError>{error}</FormError>}
+
+        <button type="submit" className="btn btn-primary w-full !h-11" disabled={loading}>
+          {loading ? <span className="spinner" /> : 'Sign in'}
+        </button>
+      </form>
+
+      <p className="mt-6 pt-5 border-t border-line text-[12.5px] text-muted">
+        Gate staff sign in with a gate code at{' '}
+        <Link href="/gate" className="text-fg underline underline-offset-2 decoration-line-2 hover:decoration-fg">
+          the scanner
+        </Link>
+        .
+      </p>
+    </AuthFrame>
   );
 }

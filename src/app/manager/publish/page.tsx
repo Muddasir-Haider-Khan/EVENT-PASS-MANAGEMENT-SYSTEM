@@ -2,6 +2,8 @@
 
 import { useEffect, useState, useCallback } from 'react';
 import { useToast } from '@/components/Toast';
+import { PageHead } from '@/components/AppShell';
+import { Copy, ExternalLink, Globe, Link2 } from 'lucide-react';
 
 export default function PublishPage() {
   const { toast } = useToast();
@@ -67,96 +69,95 @@ export default function PublishPage() {
     }
   }
 
+  async function copyUrl(url: string) {
+    try {
+      await navigator.clipboard.writeText(url);
+      toast('Registration link copied', 'success');
+    } catch {
+      toast('Could not copy — select the link manually', 'error');
+    }
+  }
+
   if (loading) {
     return (
-      <div style={{ padding: 60, textAlign: 'center' }}>
-        <div className="spinner" style={{ margin: '0 auto', borderTopColor: 'var(--gold-primary)' }} />
+      <div className="p-14 flex items-center justify-center gap-3 text-muted text-[13px]">
+        <span className="spinner" /> Loading…
       </div>
     );
   }
 
   const publicUrl = currentSlug ? `/event/${currentSlug}` : null;
+  const absoluteUrl = currentSlug && typeof window !== 'undefined' ? `${window.location.origin}/event/${currentSlug}` : publicUrl;
 
   return (
-    <div style={{ padding: '32px 28px', maxWidth: 800, margin: '0 auto' }}>
-      <div style={{ marginBottom: 28 }}>
-        <span className="text-overline" style={{ color: 'var(--gold-light)' }}>27 MEDIA AGENCY • PUBLIC FORM LAUNCH</span>
-        <h1 className="text-headline gold-gradient-text" style={{ marginTop: 4 }}>
-          Publish & QR Distribution
-        </h1>
-        <p className="text-caption" style={{ color: 'var(--text-secondary)', marginTop: 4 }}>
-          Set your custom event URL slug and launch the public registration form.
-        </p>
-      </div>
+    <>
+      <PageHead
+        title={<>Registration<br />Form</>}
+        description="Publish the public form under a short link and share it with attendees."
+      />
 
-      <div className="card" style={{ padding: 32 }}>
+      <section className="card p-[18px] max-w-[760px]">
         {currentSlug ? (
-          <div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 16 }}>
-              <span className="badge badge-gold">🟢 Live & Accepting Registrations</span>
+          <>
+            <div className="card-head mb-4">
+              <h2 className="card-title">Public link</h2>
+              <span className="badge badge-success">
+                <span className="w-1.5 h-1.5 rounded-full bg-current" aria-hidden="true" />
+                Live
+              </span>
             </div>
 
-            <p className="text-body" style={{ color: 'var(--text-secondary)', marginBottom: 8 }}>
-              Your event registration pass portal is live and accessible at:
-            </p>
-
-            <a
-              href={publicUrl || '#'}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-mono gold-gradient-text"
-              style={{ fontSize: 18, fontWeight: 700, display: 'block', marginBottom: 24, textDecoration: 'underline' }}
-            >
-              {typeof window !== 'undefined' ? `${window.location.origin}/event/${currentSlug}` : `/event/${currentSlug}`} ↗
-            </a>
-
-            <div style={{ display: 'flex', gap: 12 }}>
-              <a
-                href={publicUrl || '#'}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="btn btn-gold"
-                style={{ textDecoration: 'none' }}
-              >
-                Open Public Pass Form ↗
+            <div className="flex items-center gap-2 rounded-tile bg-well p-3.5">
+              <Link2 className="w-4 h-4 text-muted flex-none" />
+              <a href={publicUrl || '#'} target="_blank" rel="noopener noreferrer" className="min-w-0 flex-1 truncate text-[15px] font-semibold underline underline-offset-2 decoration-line-2 hover:decoration-fg">
+                {absoluteUrl}
               </a>
-
-              <button className="btn btn-ghost" style={{ color: 'var(--error)' }} onClick={handleUnpublish}>
-                Unpublish Form
+              <button className="ibtn ibtn--sm" onClick={() => absoluteUrl && copyUrl(absoluteUrl)} aria-label="Copy registration link" title="Copy link">
+                <Copy className="w-3.5 h-3.5" />
               </button>
             </div>
-          </div>
+
+            <p className="text-[13px] text-muted mt-3">The form is accepting registrations. Submissions land in the review queue.</p>
+
+            <div className="flex flex-wrap items-center gap-2 mt-5 pt-4 border-t border-line">
+              <a href={publicUrl || '#'} target="_blank" rel="noopener noreferrer" className="btn btn-primary">
+                <ExternalLink className="w-4 h-4" /> Open form
+              </a>
+              <button className="btn btn-ghost sm:ml-auto" onClick={handleUnpublish}>
+                Unpublish
+              </button>
+            </div>
+          </>
         ) : (
           <form onSubmit={handlePublish}>
-            <p className="text-body" style={{ color: 'var(--text-secondary)', marginBottom: 20 }}>
-              Specify a custom URL slug for your public registration form.
-            </p>
-
-            <div style={{ display: 'grid', gap: 16, marginBottom: 24 }}>
-              <div>
-                <label className="input-label">Event URL Slug *</label>
-                <input
-                  className="input text-mono"
-                  value={slug}
-                  onChange={(e) => setSlug(e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, ''))}
-                  placeholder="e.g. gala-2026"
-                  required
-                  minLength={2}
-                  maxLength={50}
-                  style={{ fontSize: 15 }}
-                />
-                <p className="text-caption" style={{ color: 'var(--text-muted)', marginTop: 6 }}>
-                  Lowercase letters, numbers, and hyphens only.
-                </p>
-              </div>
+            <div className="card-head mb-4">
+              <h2 className="card-title">Choose a link</h2>
+              <span className="badge badge-neutral">Not published</span>
             </div>
 
-            <button type="submit" className="btn btn-gold" style={{ width: '100%', height: 44 }} disabled={publishing || !slug}>
-              {publishing ? <span className="spinner" style={{ borderTopColor: '#070709' }} /> : 'Publish Event Pass Form →'}
+            <label className="input-label" htmlFor="slug">Link name</label>
+            <div className="flex items-stretch rounded-field border border-line-2 bg-surface focus-within:border-fg focus-within:ring-[3px] focus-within:ring-line">
+              <span className="flex items-center pl-3.5 pr-1 text-[14px] text-muted select-none">/event/</span>
+              <input
+                id="slug"
+                className="flex-1 min-w-0 h-11 bg-transparent border-0 focus:ring-0 px-1 text-[14px] text-fg"
+                value={slug}
+                onChange={(e) => setSlug(e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, ''))}
+                placeholder="gala-2026"
+                required
+                minLength={2}
+                maxLength={50}
+              />
+            </div>
+            <p className="text-[12.5px] text-muted mt-1.5">Lowercase letters, numbers and hyphens.</p>
+
+            <button type="submit" className="btn btn-primary mt-5" disabled={publishing || !slug}>
+              {publishing ? <span className="spinner !w-3.5 !h-3.5" /> : <Globe className="w-4 h-4" />}
+              Publish form
             </button>
           </form>
         )}
-      </div>
-    </div>
+      </section>
+    </>
   );
 }

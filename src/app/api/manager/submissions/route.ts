@@ -25,7 +25,14 @@ export async function GET() {
     },
   });
 
-  return NextResponse.json({ submissions });
+  // Responses are keyed by form-field id; send labels so the UI can show readable answers
+  const fields = await prisma.formField.findMany({
+    where: { eventId: session.eventId },
+    select: { id: true, label: true },
+  });
+  const fieldLabels = Object.fromEntries(fields.map((f) => [f.id, f.label]));
+
+  return NextResponse.json({ submissions, fieldLabels });
 }
 
 export async function DELETE(req: NextRequest) {

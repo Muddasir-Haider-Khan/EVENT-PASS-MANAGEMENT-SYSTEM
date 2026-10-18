@@ -1,9 +1,10 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { PageHead } from '@/components/AppShell';
 import { Card } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
-import { Mail, Send, CheckCircle2, AlertCircle, Users, Tags, Building, Filter } from 'lucide-react';
+import { Send, CheckCircle2, AlertCircle, Users, Tags, Building, Filter } from 'lucide-react';
 
 interface Option {
   id: string;
@@ -85,23 +86,18 @@ export default function ManagerBroadcastPage() {
   }
 
   return (
-    <div className="max-w-4xl mx-auto space-y-6">
-      <div className="border-b border-slate-800 pb-4">
-        <h1 className="text-2xl font-bold text-white flex items-center gap-2">
-          <Mail className="w-6 h-6 text-indigo-400" />
-          Targeted Email Broadcaster
-        </h1>
-        <p className="text-xs text-slate-400 mt-1">
-          Send official event announcements, schedule changes, or gate entry instructions to specific delegate groups or pass holders.
-        </p>
-      </div>
+    <div className="space-y-4 max-w-[980px]">
+      <PageHead
+        title={<>Email<br />Broadcast</>}
+        description="Send announcements, schedule changes or gate instructions to everyone, or to a category, delegation or entry status."
+      />
 
       {result && (
         <div
           className={`p-4 rounded-xl text-xs font-semibold flex items-center gap-2 ${
             result.success
-              ? 'bg-emerald-500/10 border border-emerald-500/20 text-emerald-400'
-              : 'bg-red-500/10 border border-red-500/20 text-red-400'
+              ? 'bg-positive-500/10 border border-positive-500/20 text-positive-400'
+              : 'bg-negative-500/10 border border-negative-500/20 text-negative-400'
           }`}
         >
           {result.success ? (
@@ -118,10 +114,10 @@ export default function ManagerBroadcastPage() {
         </div>
       )}
 
-      <Card variant="glass" className="p-6 border-slate-800 space-y-6">
+      <Card variant="glass" className="p-6 border-ink-800 space-y-6">
         {/* Recipient Targeting Selector */}
         <div className="space-y-4">
-          <label className="block text-xs font-bold uppercase text-slate-300 tracking-wider">
+          <label className="input-label">
             1. Select Recipient Audience
           </label>
 
@@ -141,11 +137,11 @@ export default function ManagerBroadcastPage() {
                   onClick={() => setTargetType(option.id as 'all' | 'participant_type' | 'group' | 'submission_status')}
                   className={`p-3 rounded-xl border text-left transition flex flex-col justify-between ${
                     active
-                      ? 'bg-indigo-600/20 border-indigo-500 text-white shadow-lg'
-                      : 'bg-slate-950/60 border-slate-800 text-slate-400 hover:text-slate-200'
+                      ? 'bg-accent-600/20 border-accent-500 text-ink-50 shadow-lg'
+                      : 'bg-ink-950/60 border-ink-800 text-ink-400 hover:text-ink-200'
                   }`}
                 >
-                  <Icon className={`w-5 h-5 mb-2 ${active ? 'text-indigo-400' : 'text-slate-400'}`} />
+                  <Icon className={`w-5 h-5 mb-2 ${active ? 'text-accent-400' : 'text-ink-400'}`} />
                   <span className="text-xs font-semibold">{option.label}</span>
                 </button>
               );
@@ -155,13 +151,13 @@ export default function ManagerBroadcastPage() {
           {/* Conditional Target Filters */}
           {targetType === 'participant_type' && (
             <div>
-              <label className="block text-xs font-semibold text-slate-300 mb-1">
+              <label className="block text-xs font-semibold text-ink-300 mb-1">
                 Choose Participant Category
               </label>
               <select
                 value={participantTypeId}
                 onChange={(e) => setParticipantTypeId(e.target.value)}
-                className="w-full bg-slate-950/80 border border-slate-800 focus:border-indigo-500 text-sm text-white rounded-xl px-4 py-2.5 outline-none"
+                className="select"
               >
                 <option value="">-- Select Category --</option>
                 {types.map((t) => (
@@ -175,13 +171,13 @@ export default function ManagerBroadcastPage() {
 
           {targetType === 'group' && (
             <div>
-              <label className="block text-xs font-semibold text-slate-300 mb-1">
+              <label className="block text-xs font-semibold text-ink-300 mb-1">
                 Choose Delegation / Group
               </label>
               <select
                 value={groupId}
                 onChange={(e) => setGroupId(e.target.value)}
-                className="w-full bg-slate-950/80 border border-slate-800 focus:border-indigo-500 text-sm text-white rounded-xl px-4 py-2.5 outline-none"
+                className="select"
               >
                 <option value="">-- Select Delegation --</option>
                 {groups.map((g) => (
@@ -195,13 +191,13 @@ export default function ManagerBroadcastPage() {
 
           {targetType === 'submission_status' && (
             <div>
-              <label className="block text-xs font-semibold text-slate-300 mb-1">
+              <label className="block text-xs font-semibold text-ink-300 mb-1">
                 Filter Submissions by Status
               </label>
               <select
                 value={statusFilter}
                 onChange={(e) => setStatusFilter(e.target.value as 'PENDING' | 'APPROVED' | 'DECLINED')}
-                className="w-full bg-slate-950/80 border border-slate-800 focus:border-indigo-500 text-sm text-white rounded-xl px-4 py-2.5 outline-none"
+                className="select"
               >
                 <option value="APPROVED">Approved Pass Holders</option>
                 <option value="PENDING">Pending Review Submissions</option>
@@ -212,13 +208,13 @@ export default function ManagerBroadcastPage() {
         </div>
 
         {/* Email Content Editor */}
-        <form onSubmit={handleSend} className="space-y-4 pt-4 border-t border-slate-800">
-          <label className="block text-xs font-bold uppercase text-slate-300 tracking-wider">
+        <form onSubmit={handleSend} className="space-y-4 pt-4 border-t border-ink-800">
+          <label className="input-label">
             2. Compose Email Content
           </label>
 
           <div>
-            <label className="block text-xs font-semibold text-slate-300 mb-1">
+            <label className="block text-xs font-semibold text-ink-300 mb-1">
               Email Subject *
             </label>
             <input
@@ -227,12 +223,12 @@ export default function ManagerBroadcastPage() {
               onChange={(e) => setSubject(e.target.value)}
               required
               placeholder="e.g. Important Announcement: Committee Schedule Updated"
-              className="w-full bg-slate-950/80 border border-slate-800 focus:border-indigo-500 text-sm text-white rounded-xl px-4 py-2.5 outline-none"
+              className="input"
             />
           </div>
 
           <div>
-            <label className="block text-xs font-semibold text-slate-300 mb-1">
+            <label className="block text-xs font-semibold text-ink-300 mb-1">
               Message Body *
             </label>
             <textarea
@@ -241,7 +237,7 @@ export default function ManagerBroadcastPage() {
               onChange={(e) => setBody(e.target.value)}
               required
               placeholder="Write your broadcast message here..."
-              className="w-full bg-slate-950/80 border border-slate-800 focus:border-indigo-500 text-sm text-white rounded-xl px-4 py-2.5 outline-none resize-y"
+              className="input"
             />
           </div>
 
