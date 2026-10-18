@@ -74,12 +74,17 @@ export async function rateLimitAsync(
 }
 
 /**
- * Client IP as seen by the edge. Only the first X-Forwarded-For hop is used —
- * the full header is attacker-extendable and would give each request a new key.
+ * Client IP from trusted sources only. Prefer the platform value (Vercel sets
+ * `req.ip` and overwrites `x-real-ip`); otherwise take the RIGHTMOST
+ * X-Forwarded-For hop — the address our nearest proxy actually saw. Leftmost
+ * entries are client-supplied and would let an attacker mint a fresh key per request.
  */
-export function getClientIp(req: { headers: Headers }): string {
-  const forwarded = req.headers.get('x-forwarded-for');
-  return forwarded?.split(',')[0].trim() || req.headers.get('x-real-ip') || 'unknown';
+export function getClientIp(req: { headers: Headers; ip?: string }): string {
+  if (req.ip) return req.ip;
+  const realIp = req.headers.get('x-real-ip')?.trim();
+  if (realIp) return realIp;
+  const hops = req.headers.get('x-forwarded-for')?.split(',').map((h) => h.trim()).filter(Boolean);
+  return hops?.[hops.length - 1] || 'unknown';
 }
 
 export function getRateLimitHeaders(result: { remaining: number; resetAt: number }) {
