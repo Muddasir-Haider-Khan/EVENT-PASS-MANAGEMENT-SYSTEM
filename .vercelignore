@@ -3,3 +3,6 @@
 /.next
 /coverage
 /27 media agencynew brand kit .jpeg
+
+# The marketing site in landing/ is its own Vercel project
+/landing
