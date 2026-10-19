@@ -117,9 +117,9 @@ export default function ManagerDashboard() {
   const approvalRate = pct(approved, reviewed);
 
   const entryMix = [
-    { key: 'inside', label: 'Inside venue', value: inside, swatch: 'bg-tomato' },
-    { key: 'exited', label: 'Checked out', value: exited, swatch: 'bg-butter' },
-    { key: 'waiting', label: 'Not arrived yet', value: notEntered, swatch: 'bg-cream' },
+    { key: 'inside', label: 'Inside venue', value: inside, swatch: 'bg-brand' },
+    { key: 'exited', label: 'Checked out', value: exited, swatch: 'bg-amber' },
+    { key: 'waiting', label: 'Not arrived yet', value: notEntered, swatch: 'bg-tile' },
   ];
 
   // Ring geometry for the review progress card
@@ -172,7 +172,7 @@ export default function ManagerDashboard() {
                 {entryMix
                   .filter((m) => m.value > 0)
                   .map((m) => (
-                    <span key={m.key} className={`${m.swatch} rounded-[12px] ring-1 ring-inset ring-line`} style={{ flex: m.value, minWidth: 18 }} />
+                    <span key={m.key} className={`${m.swatch} bar-grow rounded-[12px] ring-1 ring-inset ring-line`} style={{ flex: m.value, minWidth: 18 }} />
                   ))}
               </div>
               <ul className="mt-5">
@@ -207,12 +207,12 @@ export default function ManagerDashboard() {
               <p className="text-[13px] text-muted mt-1">New registrations will appear here.</p>
             </div>
           ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 stagger">
               {activity.pendingQueue.map((sub, i) => (
                 <Link
                   key={sub.id}
                   href="/manager/submissions"
-                  className={`tile flex flex-col min-h-[150px] transition-transform duration-150 hover:-translate-y-0.5 ${i === 0 ? 'tile--tomato' : ''}`}
+                  className={`tile lift flex flex-col min-h-[150px] ${i === 0 ? 'tile--brand' : ''}`}
                 >
                   <span className="text-[12px] font-semibold opacity-80">Submitted {timeAgo(sub.submittedAt)}</span>
                   <span className="mt-2 text-[17px] font-semibold leading-tight break-all" style={{ letterSpacing: '-0.01em' }}>
@@ -231,21 +231,22 @@ export default function ManagerDashboard() {
 
       <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-[minmax(0,0.85fr)_minmax(0,1fr)_minmax(0,1.15fr)] items-start gap-4 mt-4">
         {/* Review progress */}
-        <section className="card p-[18px] !bg-pine text-[var(--on-pine)] !border-transparent">
+        <section className="card p-[18px] !bg-navy text-[var(--on-navy)] !border-transparent">
           <CardHead title="Review progress" />
           <div className="relative w-[180px] h-[180px] mx-auto my-2">
             <svg viewBox="0 0 180 180" className="w-full h-full -rotate-90" aria-hidden="true">
               <circle cx="90" cy="90" r={R} fill="none" stroke="rgba(255,255,255,0.14)" strokeWidth="14" />
-              <circle
+              {reviewedShare > 0 && <circle
                 cx="90"
                 cy="90"
                 r={R}
                 fill="none"
-                stroke="var(--butter)"
+                stroke="var(--sky)"
+                className="ring-draw"
                 strokeWidth="14"
                 strokeLinecap="round"
                 strokeDasharray={`${(C * reviewedShare) / 100} ${C}`}
-              />
+              />}
             </svg>
             <div className="absolute inset-0 flex flex-col items-center justify-center">
               <b className="text-[36px] font-semibold num leading-none">{reviewedShare}%</b>
@@ -303,7 +304,7 @@ export default function ManagerDashboard() {
                       <b className="num text-[14px]">{g.scansToday}</b>
                     </div>
                     <div className="meter mt-2.5 ml-11">
-                      <span style={{ width: `${pct(g.scansToday, busiest)}%`, background: g.type === 'ENTRY' ? 'var(--tomato)' : 'var(--text)' }} />
+                      <span style={{ width: `${pct(g.scansToday, busiest)}%`, background: g.type === 'ENTRY' ? 'var(--brand)' : 'var(--text)' }} />
                     </div>
                   </li>
                 );
@@ -330,7 +331,7 @@ export default function ManagerDashboard() {
                         label.tone === 'bad'
                           ? 'bg-negative-500/15 text-negative-400'
                           : label.tone === 'good'
-                          ? 'bg-pine text-[var(--on-pine)]'
+                          ? 'bg-positive-500/15 text-positive-400'
                           : 'bg-surface-2 text-fg'
                       }`}
                       aria-hidden="true"

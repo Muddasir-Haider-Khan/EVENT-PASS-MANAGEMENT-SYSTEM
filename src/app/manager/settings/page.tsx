@@ -11,16 +11,16 @@ export default function ManagerSettings() {
   const [accountNumber, setAccountNumber] = useState('');
   const [paymentPhone, setPaymentPhone] = useState('');
   const [logoUrl, setLogoUrl] = useState('');
-  const [primaryColor, setPrimaryColor] = useState('#020617');
-  const [secondaryColor, setSecondaryColor] = useState('#6366F1');
-  const [accentColor, setAccentColor] = useState('#38BDF8');
+  const [primaryColor, setPrimaryColor] = useState('#1A2C56');
+  const [secondaryColor, setSecondaryColor] = useState('#3A54A5');
+  const [accentColor, setAccentColor] = useState('#93A6DC');
   const [fontFamily, setFontFamily] = useState('Inter');
   const [eventName, setEventName] = useState('');
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
 
   const PALETTE_PRESETS = [
-    { name: 'Indigo Obsidian (27 Media Official)', primary: '#020617', secondary: '#6366F1', accent: '#38BDF8' },
+    { name: '27 Media (Official)', primary: '#1A2C56', secondary: '#3A54A5', accent: '#93A6DC' },
     { name: 'Midnight Sapphire', primary: '#0A1128', secondary: '#0066FF', accent: '#38BDF8' },
     { name: 'Emerald Royale', primary: '#062016', secondary: '#10B981', accent: '#6EE7B7' },
     { name: 'Violet Electric', primary: '#120924', secondary: '#8B5CF6', accent: '#C084FC' },

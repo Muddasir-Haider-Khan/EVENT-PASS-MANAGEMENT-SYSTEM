@@ -19,10 +19,10 @@ export const Badge: React.FC<BadgeProps> = ({
     'inline-flex items-center gap-1.5 font-bold rounded-full whitespace-nowrap';
 
   const variants = {
-    green: 'bg-pine text-[var(--on-pine)]',
-    amber: 'bg-butter text-[var(--on-butter)]',
+    green: 'bg-positive-500/15 text-positive-400',
+    amber: 'bg-amber text-[var(--on-amber)]',
     red: 'bg-negative-500/15 text-negative-400',
-    indigo: 'bg-tomato text-[var(--on-tomato)]',
+    indigo: 'bg-brand text-[var(--on-brand)]',
     slate: 'bg-surface-2 text-fg ring-1 ring-inset ring-line',
   };
 

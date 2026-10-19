@@ -1,24 +1,24 @@
 {
-  "name": "EPMS — Event Pass Management System",
-  "short_name": "EPMS Pass",
+  "name": "27 Media EPMS \u2014 Event Pass Management",
+  "short_name": "EPMS",
   "description": "High-performance event pass management & instant gate scanner",
   "start_url": "/",
   "display": "standalone",
-  "background_color": "#020617",
-  "theme_color": "#020617",
+  "background_color": "#0B0F19",
+  "theme_color": "#1A2C56",
   "icons": [
     {
-      "src": "/favicon-32x32.png?v=3",
+      "src": "/favicon-32x32.png?v=4",
       "sizes": "32x32",
       "type": "image/png"
     },
     {
-      "src": "/icon-192.png?v=3",
+      "src": "/icon-192.png?v=4",
       "type": "image/png",
       "sizes": "192x192"
     },
     {
-      "src": "/icon-512.png?v=3",
+      "src": "/icon-512.png?v=4",
       "type": "image/png",
       "sizes": "512x512"
     }

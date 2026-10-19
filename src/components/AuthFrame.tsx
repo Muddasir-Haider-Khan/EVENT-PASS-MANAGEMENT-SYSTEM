@@ -13,21 +13,26 @@ export function FormError({ children }: { children: React.ReactNode }) {
 
 export function AuthFrame({ title, description, children }: { title: string; description: string; children: React.ReactNode }) {
   return (
-    <div className="min-h-screen flex flex-col px-4 sm:px-6 py-5">
-      <header className="flex items-center justify-between">
-        <Media27Logo size="sm" showSubtitle={false} />
+    <div className="relative min-h-screen flex flex-col px-4 sm:px-6 py-5 overflow-hidden">
+      {/* Oversized brand mark as a quiet watermark behind the form (desktop only) */}
+      {/* opacity sits on the wrapper so the entrance animation cannot override it */}
+      <span className="hidden lg:block absolute -right-[6vh] bottom-[-8vh] h-[78vh] opacity-[var(--watermark-opacity)] pointer-events-none" aria-hidden="true">
+        <span className="brand-mark animate-mark h-full" />
+      </span>
+      <header className="relative flex items-center justify-between">
+        <Media27Logo size="md" animate />
         <ThemeToggle />
       </header>
 
-      <main className="flex-1 flex items-center justify-center py-10">
-        <div className="w-full max-w-[400px]">
+      <main className="relative flex-1 flex items-center justify-center py-10">
+        <div className="w-full max-w-[400px] page-enter">
           <h1 className="text-display">{title}</h1>
           <p className="text-caption mt-2 mb-6">{description}</p>
           <div className="card p-6">{children}</div>
         </div>
       </main>
 
-      <footer className="flex flex-wrap items-center justify-between gap-2 text-[12px] text-faint">
+      <footer className="relative flex flex-wrap items-center justify-between gap-2 text-[12px] text-faint">
         <span>© {new Date().getFullYear()} 27 Media Agency</span>
         <a href="https://www.27mediaagency.com" target="_blank" rel="noreferrer" className="hover:text-fg">
           27mediaagency.com

@@ -33,7 +33,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
   return (
     <ToastProvider>
-      <AppShell brand={<Media27Logo size="sm" showSubtitle={false} />} tabs={ADMIN_TABS} actions={actions} identity={identity}>
+      <AppShell brand={<Media27Logo size="sm" />} tabs={ADMIN_TABS} actions={actions} identity={identity}>
         {children}
       </AppShell>
     </ToastProvider>

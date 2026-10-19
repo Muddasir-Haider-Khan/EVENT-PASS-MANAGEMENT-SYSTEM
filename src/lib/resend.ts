@@ -64,12 +64,12 @@ export async function sendManagerCredentials(params: {
           <meta charset="utf-8" />
           <meta name="viewport" content="width=device-width, initial-scale=1.0" />
         </head>
-        <body style="margin:0;padding:0;background:#070709;font-family:'Segoe UI',system-ui,sans-serif;color:#F8FAFC;">
+        <body style="margin:0;padding:0;background:#0B0F19;font-family:'Segoe UI',system-ui,sans-serif;color:#F8FAFC;">
           <div style="max-width:560px;margin:0 auto;padding:40px 24px;">
-            <div style="background:#0F0F14;border:1px solid rgba(212,175,55,0.3);border-radius:14px;padding:36px;box-shadow:0 10px 30px rgba(0,0,0,0.5);">
+            <div style="background:#131A28;border:1px solid rgba(58,84,165,0.45);border-radius:14px;padding:36px;box-shadow:0 10px 30px rgba(0,0,0,0.5);">
               <div style="text-align:center;margin-bottom:24px;">
-                <span style="display:inline-block;background:linear-gradient(135deg,#D4AF37,#AA7C11);color:#070709;font-weight:700;font-size:12px;padding:4px 12px;border-radius:100px;text-transform:uppercase;letter-spacing:0.1em;">
-                  27 MEDIA AGENCY • EVENT PORTAL
+                <span style="display:inline-block;background:#3A54A5;color:#ffffff;font-weight:700;font-size:12px;padding:4px 12px;border-radius:100px;text-transform:uppercase;letter-spacing:0.1em;">
+                  27 MEDIA EPMS
                 </span>
               </div>
 
@@ -77,27 +77,27 @@ export async function sendManagerCredentials(params: {
                 Event Manager Access Granted
               </h1>
               <p style="color:#94A3B8;font-size:14px;margin:0 0 28px;text-align:center;">
-                You have been provisioned as the Official Event Manager for <strong style="color:#D4AF37;">${params.eventName}</strong>.
+                You have been provisioned as the Official Event Manager for <strong style="color:#8FA4E6;">${params.eventName}</strong>.
               </p>
               
-              <div style="background:#070709;border:1px solid rgba(255,255,255,0.1);border-radius:10px;padding:24px;margin:0 0 28px;">
+              <div style="background:#0B0F19;border:1px solid rgba(255,255,255,0.1);border-radius:10px;padding:24px;margin:0 0 28px;">
                 <div style="margin:0 0 16px;padding-bottom:12px;border-bottom:1px solid rgba(255,255,255,0.06);">
-                  <span style="color:#D4AF37;font-size:11px;text-transform:uppercase;letter-spacing:0.1em;font-weight:600;">Manager Login ID</span>
+                  <span style="color:#8FA4E6;font-size:11px;text-transform:uppercase;letter-spacing:0.1em;font-weight:600;">Manager Login ID</span>
                   <div style="color:#F8FAFC;font-size:18px;font-family:monospace;margin-top:4px;font-weight:700;">${params.loginId}</div>
                 </div>
                 <div>
-                  <span style="color:#D4AF37;font-size:11px;text-transform:uppercase;letter-spacing:0.1em;font-weight:600;">Permanent System Password</span>
+                  <span style="color:#8FA4E6;font-size:11px;text-transform:uppercase;letter-spacing:0.1em;font-weight:600;">Permanent System Password</span>
                   <div style="color:#F8FAFC;font-size:18px;font-family:monospace;margin-top:4px;font-weight:700;">${params.password}</div>
                 </div>
               </div>
               
               <div style="text-align:center;">
-                <a href="${params.loginUrl}" style="display:inline-block;background:linear-gradient(135deg,#D4AF37,#AA7C11);color:#070709;text-decoration:none;padding:14px 32px;border-radius:8px;font-size:14px;font-weight:700;">
+                <a href="${params.loginUrl}" style="display:inline-block;background:#3A54A5;color:#ffffff;text-decoration:none;padding:14px 32px;border-radius:8px;font-size:14px;font-weight:700;">
                   Log In to Event Dashboard →
                 </a>
               </div>
               
-              <p style="color:#94A3B8;font-size:12px;margin:24px 0 0;padding:12px;background:rgba(212,175,55,0.06);border:1px solid rgba(212,175,55,0.2);border-radius:8px;text-align:center;">
+              <p style="color:#94A3B8;font-size:12px;margin:24px 0 0;padding:12px;background:rgba(58,84,165,0.10);border:1px solid rgba(58,84,165,0.35);border-radius:8px;text-align:center;">
                 ℹ️ This password is your permanent system-generated key for accessing your event panel.
               </p>
             </div>
@@ -188,7 +188,7 @@ export async function sendQRPass(params: {
                         </tr>
                         ${params.groupName ? `
                         <tr>
-                          <td style="padding-bottom: 8px; font-size: 14px; color: #6366f1;">
+                          <td style="padding-bottom: 8px; font-size: 14px; color: #3A54A5;">
                             <strong>Delegation Group:</strong> ${params.groupName}
                           </td>
                         </tr>` : ''}
@@ -251,9 +251,9 @@ export async function sendDeclineNotice(params: {
       <!DOCTYPE html>
       <html>
         <head><meta charset="utf-8" /></head>
-        <body style="margin:0;padding:0;background:#070709;font-family:'Segoe UI',system-ui,sans-serif;color:#F8FAFC;">
+        <body style="margin:0;padding:0;background:#0B0F19;font-family:'Segoe UI',system-ui,sans-serif;color:#F8FAFC;">
           <div style="max-width:560px;margin:0 auto;padding:40px 24px;">
-            <div style="background:#0F0F14;border:1px solid rgba(239,68,68,0.3);border-radius:14px;padding:32px;">
+            <div style="background:#131A28;border:1px solid rgba(239,68,68,0.3);border-radius:14px;padding:32px;">
               <h1 style="color:#F8FAFC;font-size:20px;font-weight:600;margin:0 0 12px;">
                 Registration Update
               </h1>
@@ -298,7 +298,7 @@ export async function sendCustomBroadcastEmail(params: {
                 <table width="100%" border="0" cellspacing="0" cellpadding="0" style="max-width: 580px; background-color: #ffffff; border: 1px solid #e2e8f0; border-radius: 12px; padding: 32px; box-shadow: 0 4px 12px rgba(0,0,0,0.05);">
                   <tr>
                     <td>
-                      <div style="font-size: 12px; font-weight: 700; color: #6366f1; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 12px;">
+                      <div style="font-size: 12px; font-weight: 700; color: #3A54A5; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 12px;">
                         ${params.eventName} Official Communication
                       </div>
                       <div style="font-size: 15px; color: #334155; line-height: 1.6;">
@@ -359,15 +359,15 @@ export async function sendGroupUpdateNotificationEmail(params: {
           <meta charset="utf-8" />
           <meta name="viewport" content="width=device-width, initial-scale=1.0" />
         </head>
-        <body style="margin: 0; padding: 0; background-color: #070709; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; color: #F8FAFC;">
-          <table width="100%" border="0" cellspacing="0" cellpadding="0" style="background-color: #070709; padding: 32px 16px;">
+        <body style="margin: 0; padding: 0; background-color: #0B0F19; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; color: #F8FAFC;">
+          <table width="100%" border="0" cellspacing="0" cellpadding="0" style="background-color: #0B0F19; padding: 32px 16px;">
             <tr>
               <td align="center">
-                <table width="100%" border="0" cellspacing="0" cellpadding="0" style="max-width: 560px; background-color: #0F0F14; border: 1px solid rgba(99, 102, 241, 0.3); border-radius: 14px; padding: 32px; box-shadow: 0 10px 30px rgba(0,0,0,0.5);">
+                <table width="100%" border="0" cellspacing="0" cellpadding="0" style="max-width: 560px; background-color: #131A28; border: 1px solid rgba(58,84,165,0.3); border-radius: 14px; padding: 32px; box-shadow: 0 10px 30px rgba(0,0,0,0.5);">
                   <tr>
                     <td>
                       <div style="text-align: center; margin-bottom: 20px;">
-                        <span style="display: inline-block; background: linear-gradient(135deg, #6366F1, #4F46E5); color: #ffffff; font-weight: 700; font-size: 11px; padding: 4px 12px; border-radius: 100px; text-transform: uppercase; letter-spacing: 0.1em;">
+                        <span style="display: inline-block; background: #3A54A5; color: #ffffff; font-weight: 700; font-size: 11px; padding: 4px 12px; border-radius: 100px; text-transform: uppercase; letter-spacing: 0.1em;">
                           ${params.eventName} • DELEGATION SYSTEM
                         </span>
                       </div>
@@ -380,8 +380,8 @@ export async function sendGroupUpdateNotificationEmail(params: {
                       </p>
 
                       ${params.groupName ? `
-                        <div style="background: #181825; border: 1px solid rgba(255,255,255,0.08); border-radius: 10px; padding: 20px; margin-bottom: 24px;">
-                          <div style="font-size: 11px; text-transform: uppercase; color: #818cf8; font-weight: 700; letter-spacing: 0.05em; margin-bottom: 8px;">Delegation Details</div>
+                        <div style="background: #1A2233; border: 1px solid rgba(255,255,255,0.08); border-radius: 10px; padding: 20px; margin-bottom: 24px;">
+                          <div style="font-size: 11px; text-transform: uppercase; color: #8FA4E6; font-weight: 700; letter-spacing: 0.05em; margin-bottom: 8px;">Delegation Details</div>
                           <div style="font-size: 16px; font-weight: 700; color: #ffffff; margin-bottom: 6px;">👥 ${params.groupName} ${params.isLeader ? '⭐ (Group Leader)' : ''}</div>
                           ${params.institution ? `<div style="font-size: 13px; color: #94a3b8; margin-bottom: 4px;">🏫 Institution: <strong style="color:#e2e8f0;">${params.institution}</strong></div>` : ''}
                           ${params.country ? `<div style="font-size: 13px; color: #94a3b8;">🇺🇳 Country / Allocation: <strong style="color:#e2e8f0;">${params.country}</strong></div>` : ''}

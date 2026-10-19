@@ -33,13 +33,14 @@ const config: Config = {
         faint: 'var(--faint)',
         pill: 'var(--pill)',
         'on-pill': 'var(--on-pill)',
-        tomato: 'var(--tomato)',
-        pine: 'var(--pine)',
-        butter: 'var(--butter)',
-        cream: 'var(--cream)',
+        brand: 'var(--brand)',
+        navy: 'var(--navy)',
+        amber: 'var(--amber)',
+        tile: 'var(--tile)',
       },
       fontFamily: {
         sans: ['var(--font-sans)', 'ui-sans-serif', 'system-ui', 'sans-serif'],
+        display: ['var(--font-display)', 'var(--font-sans)', 'sans-serif'],
         mono: ['ui-monospace', 'SFMono-Regular', 'Menlo', 'monospace'],
       },
       borderRadius: {

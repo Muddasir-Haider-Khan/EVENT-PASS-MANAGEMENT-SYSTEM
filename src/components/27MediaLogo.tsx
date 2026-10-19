@@ -2,28 +2,25 @@ import React from 'react';
 
 interface MediaLogoProps {
   size?: 'sm' | 'md' | 'lg';
+  /** Wordmark next to the mark; false renders the mark alone. */
   showSubtitle?: boolean;
+  animate?: boolean;
 }
 
-export function Media27Logo({ size = 'md', showSubtitle = true }: MediaLogoProps) {
-  const mark = { sm: 34, md: 38, lg: 48 }[size];
-  const word = { sm: 17, md: 20, lg: 26 }[size];
+/** 27 Media EPMS lockup from the brand kit: the "27" mark beside a two-line MEDIA / EPMS wordmark. */
+export function Media27Logo({ size = 'md', showSubtitle = true, animate = false }: MediaLogoProps) {
+  const markHeight = { sm: 34, md: 42, lg: 58 }[size];
+  const wordSize = { sm: 12, md: 14.5, lg: 19 }[size];
 
   return (
-    <div className="flex items-center gap-2.5 select-none">
-      <span
-        className="inline-flex items-center justify-center flex-none bg-pill text-on-pill font-bold num"
-        style={{ width: mark, height: mark, borderRadius: Math.round(mark / 3.2), fontSize: mark * 0.42, letterSpacing: '-0.04em' }}
-        aria-hidden="true"
-      >
-        27
-      </span>
-      <span className="flex flex-col leading-none">
-        <span className="font-semibold text-fg" style={{ fontSize: word, letterSpacing: '-0.02em' }}>
-          27 media
+    <span className="inline-flex items-center gap-2.5 select-none" aria-label="27 Media EPMS" role="img">
+      <span className={`brand-mark ${animate ? 'animate-mark' : ''}`} style={{ height: markHeight }} aria-hidden="true" />
+      {showSubtitle && (
+        <span className="wordmark flex flex-col" style={{ fontSize: wordSize }} aria-hidden="true">
+          <span>Media</span>
+          <span>EPMS</span>
         </span>
-        {showSubtitle && <span className="mt-1 text-[11px] font-medium text-muted">Pass &amp; Access</span>}
-      </span>
-    </div>
+      )}
+    </span>
   );
 }

@@ -139,9 +139,9 @@ export default function GatesPage() {
           <p className="mt-1 text-[13px] text-muted">Add an entry gate above, then share its access code with scanner staff.</p>
         </section>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 stagger">
           {gates.map((gate) => (
-            <section key={gate.id} className="card p-[18px] flex flex-col">
+            <section key={gate.id} className="card lift p-[18px] flex flex-col">
               <div className="flex items-start gap-3">
                 <span className="stat__ico !w-10 !h-10" aria-hidden="true">
                   {gate.type === 'ENTRY' ? <LogIn className="w-4 h-4" /> : <LogOut className="w-4 h-4" />}

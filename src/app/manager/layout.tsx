@@ -4,9 +4,21 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { ThemeProvider } from '@/components/ThemeProvider';
 import { ToastProvider } from '@/components/Toast';
-import { Media27Logo } from '@/components/27MediaLogo';
-import { AppShell, type ShellAction, type ShellTab } from '@/components/AppShell';
-import { Globe, LogOut, QrCode } from 'lucide-react';
+import { SidebarShell, type ShellAction, type ShellTab } from '@/components/AppShell';
+import {
+  Building2,
+  Globe,
+  Inbox,
+  LayoutDashboard,
+  LogOut,
+  Mail,
+  QrCode,
+  ScanLine,
+  Settings,
+  Share2,
+  Tags,
+  Ticket,
+} from 'lucide-react';
 
 interface EventData {
   id: string;
@@ -20,15 +32,15 @@ interface EventData {
 }
 
 const MANAGER_TABS: ShellTab[] = [
-  { href: '/manager', label: 'Overview' },
-  { href: '/manager/submissions', label: 'Submissions' },
-  { href: '/manager/participants', label: 'Pass holders' },
-  { href: '/manager/types', label: 'Categories' },
-  { href: '/manager/groups', label: 'Delegations' },
-  { href: '/manager/gates', label: 'Gates' },
-  { href: '/manager/broadcast', label: 'Broadcast' },
-  { href: '/manager/publish', label: 'Publish' },
-  { href: '/manager/settings', label: 'Settings' },
+  { href: '/manager', label: 'Overview', icon: LayoutDashboard, group: 'Event' },
+  { href: '/manager/submissions', label: 'Submissions', icon: Inbox, group: 'Event' },
+  { href: '/manager/participants', label: 'Pass holders', icon: Ticket, group: 'Event' },
+  { href: '/manager/types', label: 'Categories', icon: Tags, group: 'Setup' },
+  { href: '/manager/groups', label: 'Delegations', icon: Building2, group: 'Setup' },
+  { href: '/manager/gates', label: 'Gates', icon: ScanLine, group: 'Setup' },
+  { href: '/manager/settings', label: 'Settings', icon: Settings, group: 'Setup' },
+  { href: '/manager/broadcast', label: 'Broadcast', icon: Mail, group: 'Outreach' },
+  { href: '/manager/publish', label: 'Publish', icon: Share2, group: 'Outreach' },
 ];
 
 export default function ManagerLayout({ children }: { children: React.ReactNode }) {
@@ -72,28 +84,12 @@ export default function ManagerLayout({ children }: { children: React.ReactNode 
   }
 
   const actions: ShellAction[] = [
-    { label: 'Open gate scanner', icon: QrCode, href: '/gate' },
+    { label: 'Gate scanner', icon: QrCode, href: '/gate' },
     ...(event.slug
-      ? [{ label: 'View public registration form', icon: Globe, href: `/event/${event.slug}`, external: true }]
+      ? [{ label: 'Public form', icon: Globe, href: `/event/${event.slug}`, external: true }]
       : []),
     { label: 'Sign out', icon: LogOut, onClick: handleLogout, tone: 'danger' as const },
   ];
-
-  const identity = (
-    <div className="hidden sm:flex items-center gap-2.5 pl-1.5 pr-1 h-11 rounded-full border border-line bg-surface max-w-[260px]">
-      <span className="text-right min-w-0 hidden md:block">
-        <span className="block text-[13px] font-semibold truncate">{event.name}</span>
-        <span className="block text-[11.5px] text-muted capitalize">{event.status.toLowerCase()} · Event manager</span>
-      </span>
-      {event.logoUrl ? (
-        <img src={event.logoUrl} alt="" className="w-9 h-9 rounded-full object-cover flex-none" />
-      ) : (
-        <span className="w-9 h-9 rounded-full bg-pill text-on-pill flex items-center justify-center text-[13px] font-bold flex-none">
-          {event.name.charAt(0).toUpperCase()}
-        </span>
-      )}
-    </div>
-  );
 
   return (
     <ThemeProvider
@@ -102,9 +98,17 @@ export default function ManagerLayout({ children }: { children: React.ReactNode 
       accentColor={event.accentColor}
     >
       <ToastProvider>
-        <AppShell brand={<Media27Logo size="sm" showSubtitle={false} />} tabs={MANAGER_TABS} actions={actions} identity={identity}>
+        <SidebarShell
+          tabs={MANAGER_TABS}
+          actions={actions}
+          identity={{
+            name: event.name,
+            subtitle: `${event.status.charAt(0)}${event.status.slice(1).toLowerCase()} · Event manager`,
+            logoUrl: event.logoUrl,
+          }}
+        >
           {children}
-        </AppShell>
+        </SidebarShell>
       </ToastProvider>
     </ThemeProvider>
   );

@@ -29,7 +29,8 @@ export default function EditEventPage() {
   });
 
   const PALETTE_PRESETS = [
-    { name: 'Gold Luxe (27 Media)', primary: '#070709', secondary: '#D4AF37', accent: '#E5C158' },
+    { name: '27 Media (Official)', primary: '#1A2C56', secondary: '#3A54A5', accent: '#93A6DC' },
+    { name: 'Gold Luxe', primary: '#070709', secondary: '#D4AF37', accent: '#E5C158' },
     { name: 'Cyberpunk Neon', primary: '#0A0A12', secondary: '#FF007A', accent: '#00F0FF' },
     { name: 'Midnight Sapphire', primary: '#0A1128', secondary: '#0066FF', accent: '#38BDF8' },
     { name: 'Emerald Royale', primary: '#062016', secondary: '#10B981', accent: '#6EE7B7' },

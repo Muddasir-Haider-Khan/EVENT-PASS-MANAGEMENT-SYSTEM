@@ -496,7 +496,7 @@ export default function ManagerTypesPage() {
                 No participant categories created yet. Create your first category above.
               </Card>
             ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 stagger">
                 {types.map((type) => (
                   <Card
                     key={type.id}
