@@ -1,0 +1,5 @@
+# Never upload local-only state when deploying with the Vercel CLI
+/.local-db
+/.next
+/coverage
+/27 media agencynew brand kit .jpeg
