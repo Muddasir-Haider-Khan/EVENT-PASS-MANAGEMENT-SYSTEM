@@ -65,7 +65,7 @@ process.on('SIGTERM', () => shutdown(0));
 try {
   console.log('[local-db] syncing Prisma schema…');
   await run(bin('prisma'), ['db', 'push', '--skip-generate']);
-  console.log('[local-db] seeding super admins from .env…');
+  console.log('[local-db] creating the first super admin from .env if none exists…');
   await run(bin('tsx'), ['prisma/seed.ts']);
 } catch (err) {
   console.error(`[local-db] setup failed: ${err.message}`);
